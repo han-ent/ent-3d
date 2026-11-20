@@ -2,7 +2,7 @@
 
 귀 해부를 휴대폰에서 보는 학습 뷰어입니다. 지금은 측두골 페이지가 동작하고, VOR 페이지는 자리만 있습니다.
 
-주소는 나중에 `https://han-ent.github.io/ent-3d/` 에 올릴 수 있도록 베이스를 `/ent-3d/` 로 맞춰 두었습니다. GitHub Pages 배포는 켜 두지 않았습니다. `.github/workflows/pages.yml` 은 수동 실행만 가능하고, 실행해도 배포 잡이 건너뛰어집니다.
+공개 주소는 [https://han-ent.github.io/ent-3d/](https://han-ent.github.io/ent-3d/) 입니다. `main`에 푸시되면 `.github/workflows/pages.yml` 이 `npm ci && npm run build` 결과를 GitHub Pages에 올립니다. 베이스는 `/ent-3d/` 이라 측두골은 `/ent-3d/temporal-bone/`, VOR은 `/ent-3d/vor/` 입니다.
 
 ## 페이지
 

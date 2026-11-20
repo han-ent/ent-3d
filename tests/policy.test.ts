@@ -39,10 +39,20 @@ describe('project policy', () => {
     expect(manifest.lang).toBe('ko');
   });
 
-  it('keeps GitHub Pages manual and disabled', () => {
+  it('deploys GitHub Pages from the Vite build on main', () => {
     const workflow = readFileSync(resolve(root, '.github/workflows/pages.yml'), 'utf8');
+    const vite = readFileSync(resolve(root, 'vite.config.ts'), 'utf8');
     expect(workflow).toMatch(/workflow_dispatch/);
-    expect(workflow).not.toMatch(/^\s*push:/m);
-    expect(workflow).toMatch(/if:\s*\$\{\{\s*false\s*\}\}/);
+    expect(workflow).toMatch(/push:[\s\S]*branches:[\s\S]*-\s*main/);
+    expect(workflow).not.toMatch(/if:\s*\$\{\{\s*false\s*\}\}/);
+    expect(workflow).toMatch(/actions\/configure-pages@v/);
+    expect(workflow).toMatch(/actions\/upload-pages-artifact@v/);
+    expect(workflow).toMatch(/actions\/deploy-pages@v/);
+    expect(workflow).toMatch(/pages:\s*write/);
+    expect(workflow).toMatch(/id-token:\s*write/);
+    expect(workflow).toMatch(/cancel-in-progress:\s*false/);
+    expect(workflow).toMatch(/npm ci && npm run build/);
+    expect(workflow).toMatch(/path:\s*dist/);
+    expect(vite).toMatch(/base:\s*'\/ent-3d\/'/);
   });
 });
