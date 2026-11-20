@@ -1,0 +1,15 @@
+# GitHub Pages is intentionally disabled.
+# The workflow can only be started by hand, and the job is skipped so a
+# manual run still does not publish the site. Do not add a push trigger.
+name: pages
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: disabled
+        run: echo "GitHub Pages deployment is disabled."

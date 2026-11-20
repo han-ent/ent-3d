@@ -1,0 +1,61 @@
+{
+  "id": "chorda_tympani",
+  "model_version": "openear-zeta-sample-0",
+  "info": {
+    "summary": {
+      "ko": "[샘플] 고실끈신경의 해부 설명. 검토자가 채울 자리이며, 교재나 OpenEar에서 옮긴 문장이 아닙니다.",
+      "en": "[Sample] Anatomy note for the chorda tympani. Placeholder for a reviewer, not copied from a textbook or OpenEar."
+    },
+    "source": "샘플 문안. 문헌이나 OpenEar에서 옮기지 않음.",
+    "status": "미검증"
+  },
+  "function": {
+    "physiology": {
+      "text": {
+        "ko": "[샘플] 고실끈신경의 생리적 역할. 소리 전달이나 균형에서 무엇을 하는지는 검토자가 채웁니다.",
+        "en": "[Sample] Physiological role of the chorda tympani. A reviewer fills in what it does for hearing or balance."
+      },
+      "source": "샘플 문안. 문헌이나 OpenEar에서 옮기지 않음.",
+      "status": "미검증"
+    },
+    "injury": {
+      "text": {
+        "ko": "[샘플] 고실끈신경의 손상이나 기능 이상이 임상에서 어떻게 나타나는지. 검토 전 자리표시자입니다.",
+        "en": "[Sample] Clinical consequences if the chorda tympani is injured or not working. Unreviewed placeholder."
+      },
+      "source": "샘플 문안. 문헌이나 OpenEar에서 옮기지 않음.",
+      "status": "미검증"
+    },
+    "tests": {
+      "text": {
+        "ko": "[샘플] 고실끈신경의 관련 검사. 어떤 청각·전정 검사를 연결할지는 검토자가 채웁니다.",
+        "en": "[Sample] Hearing or vestibular tests a reviewer may tie to the chorda tympani. Unreviewed placeholder."
+      },
+      "source": "샘플 문안. 문헌이나 OpenEar에서 옮기지 않음.",
+      "status": "미검증"
+    }
+  },
+  "related": [
+    "facial_nerve"
+  ],
+  "surgical_points": [
+    {
+      "id": "chorda-origin",
+      "title": {
+        "ko": "고실끈신경 기시",
+        "en": "Chorda origin"
+      },
+      "body": {
+        "ko": "[샘플] 얼굴신경에서 갈라지는 자리의 자리표시 좌표입니다.",
+        "en": "[Sample] Placeholder coordinate where it leaves the facial nerve."
+      },
+      "position_mm": [
+        -2.2,
+        2.6,
+        -2.6
+      ],
+      "source": "샘플 좌표. OpenEar 랜드마크가 아님.",
+      "status": "미검증"
+    }
+  ]
+}

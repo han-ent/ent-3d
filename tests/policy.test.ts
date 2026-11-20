@@ -1,0 +1,40 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import en from '../src/shared/i18n/en.json';
+import ko from '../src/shared/i18n/ko.json';
+
+const root = resolve(import.meta.dirname, '..');
+
+describe('project policy', () => {
+  it('keeps Korean and English UI keys in parallel', () => {
+    expect(Object.keys(en).sort()).toEqual(Object.keys(ko).sort());
+    expect(ko['info.function']).toBe('기능적 역할');
+    expect(ko['info.summary']).toBe('해부');
+  });
+
+  it('caches large assets in the service worker', () => {
+    const source = readFileSync(resolve(root, 'public/sw.js'), 'utf8');
+    expect(source).toMatch(/glb/);
+    expect(source).toMatch(/cacheFirst/);
+    expect(source).toContain('ent-3d-assets');
+  });
+
+  it('scopes the PWA at the site base', () => {
+    const manifest = JSON.parse(readFileSync(resolve(root, 'public/manifest.webmanifest'), 'utf8')) as {
+      start_url: string;
+      scope: string;
+      lang: string;
+    };
+    expect(manifest.scope).toBe('./');
+    expect(manifest.start_url).toBe('./temporal-bone/');
+    expect(manifest.lang).toBe('ko');
+  });
+
+  it('keeps GitHub Pages manual and disabled', () => {
+    const workflow = readFileSync(resolve(root, '.github/workflows/pages.yml'), 'utf8');
+    expect(workflow).toMatch(/workflow_dispatch/);
+    expect(workflow).not.toMatch(/^\s*push:/m);
+    expect(workflow).toMatch(/if:\s*\$\{\{\s*false\s*\}\}/);
+  });
+});

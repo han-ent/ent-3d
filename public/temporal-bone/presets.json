@@ -1,0 +1,49 @@
+{
+  "model_version": "openear-zeta-sample-0",
+  "note": {
+    "ko": "카메라와 자르기 평면은 표본 밀리미터입니다. 자르기는 dot(normal, p) + constant >= 0 인 쪽을 남깁니다. 숫자는 샘플 형상에 맞춘 시작값이라 나중에 고쳐야 합니다.",
+    "en": "Camera and clipping planes are in specimen millimetres. Clipping keeps points where dot(normal, p) + constant >= 0. These numbers are starting values for the sample geometry and are meant to be tuned."
+  },
+  "presets": [
+    {
+      "id": "mastoidectomy",
+      "name": { "ko": "유양돌기 절제술", "en": "Mastoidectomy" },
+      "camera": {
+        "position": [16, 7, -18],
+        "target": [2, 0, -6],
+        "up": [0, 1, 0],
+        "fov": 42
+      },
+      "clipping": {
+        "enabled": true,
+        "normal": [0, 0, 1],
+        "constant": 8
+      }
+    },
+    {
+      "id": "transcanal",
+      "name": { "ko": "경외이도", "en": "Transcanal" },
+      "camera": {
+        "position": [20, 0.3, 0.2],
+        "target": [0, 0, 0],
+        "up": [0, 1, 0],
+        "fov": 28
+      }
+    },
+    {
+      "id": "middle-cranial-fossa",
+      "name": { "ko": "중두개와", "en": "Middle cranial fossa" },
+      "camera": {
+        "position": [-4, 26, 2],
+        "target": [-5, 1, 0],
+        "up": [0, 0, 1],
+        "fov": 42
+      },
+      "clipping": {
+        "enabled": true,
+        "normal": [0, -1, 0],
+        "constant": 5.5
+      }
+    }
+  ]
+}

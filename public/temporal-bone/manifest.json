@@ -1,0 +1,156 @@
+{
+  "specimen": {
+    "id": "openear-zeta",
+    "name": "OpenEar ZETA",
+    "model_version": "openear-zeta-sample-0",
+    "licence": "CC-BY-4.0",
+    "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+    "citation": "Sieber D, Erfurt P, John S, et al. The OpenEar library of 3D models of the human temporal bone based on computed tomography and micro-slicing. Sci Data. 2018;6:180297.",
+    "article_url": "https://www.nature.com/articles/sdata2018297",
+    "data_url": "https://zenodo.org/records/1473724",
+    "geometry": "placeholder",
+    "geometry_note": {
+      "ko": "이 빌드의 glb와 CT 슬라이스는 뷰어를 돌리기 위한 샘플입니다. OpenEar 메시가 아니며 실측 밀리미터 형상이 아닙니다.",
+      "en": "The glb files and CT slices in this build are samples so the viewer runs. They are not OpenEar meshes or measured millimetre geometry."
+    }
+  },
+  "model_version": "openear-zeta-sample-0",
+  "viewer_offset_mm": [0, 0, 0],
+  "coordinate_system": {
+    "units": "mm",
+    "x": { "ko": "가쪽(+X) / 안쪽(−X)", "en": "lateral +X / medial −X" },
+    "y": { "ko": "위(+Y) / 아래(−Y)", "en": "superior +Y / inferior −Y" },
+    "z": { "ko": "앞(+Z) / 뒤(−Z)", "en": "anterior +Z / posterior −Z" },
+    "note": {
+      "ko": "샘플 좌표계입니다. 실제 OpenEar를 넣을 때도 메시의 밀리미터 좌표는 그대로 두고, 화면 중심만 viewer_offset_mm로 옮깁니다. 배율은 항상 1입니다.",
+      "en": "Sample coordinate system. Real OpenEar meshes stay in their millimetre coordinates; only viewer_offset_mm recenters the view. Scale stays 1."
+    }
+  },
+  "layers": [
+    { "id": "membrane", "name": { "ko": "고막", "en": "Tympanic membrane" }, "opacity": 1 },
+    { "id": "ossicles", "name": { "ko": "이소골", "en": "Ossicles" }, "opacity": 1 },
+    { "id": "inner-ear", "name": { "ko": "속귀", "en": "Inner ear" }, "opacity": 1 },
+    { "id": "nerve", "name": { "ko": "신경", "en": "Nerve" }, "opacity": 1 },
+    { "id": "canal", "name": { "ko": "바깥귀길", "en": "Ear canal" }, "opacity": 0.4 },
+    { "id": "bone", "name": { "ko": "뼈", "en": "Bone" }, "opacity": 0.35 }
+  ],
+  "structures": [
+    {
+      "id": "tympanic_membrane",
+      "file": "models/tympanic_membrane.glb",
+      "name": { "ko": "고막", "en": "Tympanic membrane" },
+      "color": "#e7c4b0",
+      "layer": "membrane",
+      "status": "미검증",
+      "content": "content/tympanic_membrane.json"
+    },
+    {
+      "id": "malleus",
+      "file": "models/malleus.glb",
+      "name": { "ko": "망치뼈", "en": "Malleus" },
+      "color": "#e0b15a",
+      "layer": "ossicles",
+      "status": "미검증",
+      "content": "content/malleus.json"
+    },
+    {
+      "id": "incus",
+      "file": "models/incus.glb",
+      "name": { "ko": "모루뼈", "en": "Incus" },
+      "color": "#d4894a",
+      "layer": "ossicles",
+      "status": "미검증",
+      "content": "content/incus.json"
+    },
+    {
+      "id": "stapes",
+      "file": "models/stapes.glb",
+      "name": { "ko": "등자뼈", "en": "Stapes" },
+      "color": "#c45c46",
+      "layer": "ossicles",
+      "status": "미검증",
+      "content": "content/stapes.json"
+    },
+    {
+      "id": "cochlea",
+      "file": "models/cochlea.glb",
+      "name": { "ko": "달팽이관", "en": "Cochlea" },
+      "color": "#4c7fe0",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/cochlea.json"
+    },
+    {
+      "id": "vestibule",
+      "file": "models/vestibule.glb",
+      "name": { "ko": "안뜰", "en": "Vestibule" },
+      "color": "#7a6ad4",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/vestibule.json"
+    },
+    {
+      "id": "lateral_semicircular_canal",
+      "file": "models/lateral_semicircular_canal.glb",
+      "name": { "ko": "가쪽 반고리관", "en": "Lateral semicircular canal" },
+      "color": "#2f9d96",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/lateral_semicircular_canal.json"
+    },
+    {
+      "id": "superior_semicircular_canal",
+      "file": "models/superior_semicircular_canal.glb",
+      "name": { "ko": "위 반고리관", "en": "Superior semicircular canal" },
+      "color": "#3d8f62",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/superior_semicircular_canal.json"
+    },
+    {
+      "id": "posterior_semicircular_canal",
+      "file": "models/posterior_semicircular_canal.glb",
+      "name": { "ko": "뒤 반고리관", "en": "Posterior semicircular canal" },
+      "color": "#3d8eb8",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/posterior_semicircular_canal.json"
+    },
+    {
+      "id": "facial_nerve",
+      "file": "models/facial_nerve.glb",
+      "name": { "ko": "얼굴신경", "en": "Facial nerve" },
+      "color": "#e25d86",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/facial_nerve.json"
+    },
+    {
+      "id": "chorda_tympani",
+      "file": "models/chorda_tympani.glb",
+      "name": { "ko": "고실끈신경", "en": "Chorda tympani" },
+      "color": "#f0a3c0",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/chorda_tympani.json"
+    },
+    {
+      "id": "external_auditory_canal",
+      "file": "models/external_auditory_canal.glb",
+      "name": { "ko": "바깥귀길", "en": "External auditory canal" },
+      "color": "#8d9aab",
+      "layer": "canal",
+      "status": "미검증",
+      "content": "content/external_auditory_canal.json"
+    },
+    {
+      "id": "mastoid",
+      "file": "models/mastoid.glb",
+      "name": { "ko": "유양돌기", "en": "Mastoid" },
+      "color": "#c6b5a2",
+      "layer": "bone",
+      "status": "미검증",
+      "content": "content/mastoid.json"
+    }
+  ]
+}
