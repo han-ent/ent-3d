@@ -1,62 +1,62 @@
 {
   "id": "stapes",
   "model_version": "openear-zeta-ras-1",
-  "info": {
-    "summary": {
-      "ko": "[샘플] 등자뼈의 해부 설명. 검토자가 채울 자리이며, 교재에서 옮긴 문장이 아닙니다.",
-      "en": "[Sample] Anatomy note for the stapes. Placeholder for a reviewer, not copied from a textbook."
-    },
-    "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-    "status": "미검증"
+  "anatomy": {
+    "ko": "바닥판(footplate)은 난원창(oval window)을 차지하고, 바로 내측에는 전정(vestibule)이 있으며 구형낭(saccule)이 footplate 바로 내측에 위치함\n머리(capitulum)에는 pyramidal eminence에서 나온 stapedial tendon이 부착됨\noval window는 와우 갑각(promontory)의 후상방에 있고, pyramidal eminence는 안면신경이 고실(수평) 분절에서 유양(수직) 분절로 이행하는 제2슬의 바로 앞 표지임",
+    "en": ""
   },
   "function": {
-    "physiology": {
-      "text": {
-        "ko": "[샘플] 등자뼈의 생리적 역할. 검토자가 채웁니다.",
-        "en": "[Sample] Physiological role of the stapes. A reviewer fills this in."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "injury": {
-      "text": {
-        "ko": "[샘플] 등자뼈의 손상이나 기능 이상이 임상에서 어떻게 나타나는지. 검토 전입니다.",
-        "en": "[Sample] Clinical consequences if the stapes is injured or not working. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "tests": {
-      "text": {
-        "ko": "[샘플] 등자뼈의 관련 검사. 검토자가 채웁니다.",
-        "en": "[Sample] Related tests for the stapes. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    }
+    "ko": "footplate가 oval window에서 전정으로 진동을 전달하여 외림프 공간을 움직임\nstapedius는 안면신경의 특수내장원심섬유 지배를 받으며, 건이 capitulum에 부착되어 등골을 고정하는 부착점을 제공함",
+    "en": ""
   },
+  "surgical_points": [
+    {
+      "id": "stapes-p1",
+      "text": {
+        "ko": "경외이도·등골 수술: fallopian canal은 oval window niche의 골성 상연이나, Cummings는 55%에서 부분 골 결손으로 신경이 노출되고, 일부에서는 신경이 niche로 탈출하여 등골 수술 시 손상 위험이 커진다고 기술함 (Cummings 7e Ch126 p.1934)",
+        "en": ""
+      }
+    },
+    {
+      "id": "stapes-p2",
+      "text": {
+        "ko": "경외이도: saccule이 footplate 바로 내측에 있으므로 footplate 조작 시 내이 손상에 주의함 (Francis 2e Ch2 p.10)",
+        "en": ""
+      }
+    },
+    {
+      "id": "stapes-p3",
+      "text": {
+        "ko": "유양돌기절제·facial recess: recess를 통해 등골과 난원창을 확인할 수 있고, pyramidal eminence와 oval window는 sinus tympani의 상연 표지임 (Cummings 7e Ch143 p.2170; Francis 2e Ch3 p.36, 38)",
+        "en": ""
+      }
+    }
+  ],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "1933–1935",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch143 Mastoidectomy: Surgical Techniques",
+      "page": "2170",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch2 Anatomy of the Temporal Bone",
+      "page": "10",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch3 Mastoidectomy",
+      "page": "36, 38",
+      "verified": true
+    }
+  ],
+  "review": "미검증",
   "related": [
     "incus",
     "scala-vestibuli"
-  ],
-  "surgical_points": [
-    {
-      "id": "stapes-center",
-      "title": {
-        "ko": "등자뼈 중심(샘플)",
-        "en": "Stapes center (sample)"
-      },
-      "body": {
-        "ko": "[샘플] 메시 경계상자의 중심입니다. 수술 랜드마크가 아닙니다.",
-        "en": "[Sample] Center of the mesh bounding box. Not a surgical landmark."
-      },
-      "position_mm": [
-        21.42,
-        21.28,
-        33.69
-      ],
-      "source": "샘플 좌표. 구조 경계상자 중심이며 실측 랜드마크가 아닙니다.",
-      "status": "미검증"
-    }
   ]
 }

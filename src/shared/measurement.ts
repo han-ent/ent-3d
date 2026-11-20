@@ -28,6 +28,12 @@ export function formatMm(value: number): string {
   return `${value.toFixed(digits)} mm`;
 }
 
+/** Measure-tool readout. Always two decimals, including distances of 10 mm and more. */
+export function formatDistanceMm(value: number): string {
+  if (!Number.isFinite(value)) return '—';
+  return `${value.toFixed(2)} mm`;
+}
+
 /** Pick a scale-bar length in real millimetres that stays near `targetPx` on screen. */
 export function chooseScaleMm(pxPerMm: number, targetPx = 96): { mm: number; px: number } {
   const steps = [1, 2, 5, 10, 20, 50, 100];

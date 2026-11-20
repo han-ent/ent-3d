@@ -19,7 +19,7 @@
 - 배지: `미검증`, `YS 검수 완료`
 - 퀴즈: 이름 맞히기, 구조 찾기
 - 문자열: `src/shared/i18n/ko.json` 이 기본. `en.json` 은 같은 키를 가진 영어 초안
-- 서비스 워커: `public/sw.js`. glb·png·json 은 한 번 받은 뒤 캐시해서 다시 받지 않음
+- 서비스 워커: `public/sw.js`. json은 네트워크를 먼저 보고, glb·webp는 빌드 해시가 붙은 주소로 캐시합니다. 캐시 이름은 빌드 해시이고, 이전 캐시는 activate에서 지웁니다.
 
 ## 실행
 
@@ -58,7 +58,7 @@ npm run preview
 
 지금 `public/temporal-bone` 은 OpenEar ZETA입니다. glb는 Draco 압축이고, CT는 `ct/{axial,coronal,sagittal}/*.webp` (0.25 mm)입니다. Draco 디코더는 `public/draco/` 에 있고 three 패키지에서 복사한 것이며 외부 CDN을 쓰지 않습니다.
 
-뼈와 구불정맥굴·경막만 삼각형 수를 줄였습니다. 구불정맥굴·경막은 기본 불투명도 0.35이고, 분할 경계의 절단면이 있으며 구불정맥굴과 중두개와 경막이 섞였을 수 있어 상태는 `미검증`입니다. 반고리관과 목정맥공은 없습니다 (1.5단계).
+뼈와 S상정맥동·경막만 삼각형 수를 줄였습니다. 뼈는 기본이 불투명이고, S상정맥동·경막은 한 메시에 섞였을 수 있어 `미검증`입니다. 반고리관과 경정맥구(jugular bulb)는 없습니다. 목정맥공(jugular foramen)은 다른 구조입니다.
 
 `npm run generate:placeholders` 는 이 실측 파일을 덮어쓰지 않도록 막아 두었습니다.
 
@@ -66,10 +66,11 @@ npm run preview
 
 검토자(커밍스 / YS)는 코드 대신 JSON만 고칩니다.
 
-- 해부: `info` (`summary`, `source`, `status`)
-- 기능적 역할: `function.physiology` (생리), `function.injury` (손상·기능 이상), `function.tests` (관련 검사). 각 블록에 `text`, `source`, `status`
-- 연결된 구조: `related` 에 다른 구조 id. 패널에서 이름을 누르면 그 메시가 강조됩니다. 예: 고실끈신경 → `facial_nerve`
-- 수술 포인트: `surgical_points[]` 의 제목, 설명, `position_mm`, `source`, `status`
+- 해부: `anatomy`, 기능: `function`. 둘 다 `{ ko, en }`
+- 출처: `sources[]`의 `citation`, `page`, `verified`
+- 상태: 파일의 `review` (`미검증` 또는 `YS 검수 완료`)
+- 연결된 구조: `related`. 예: 고삭신경 → `facial-nerve`
+- 수술 포인트: `surgical_points[].text`. 좌표 `position_mm`는 출처와 `review`가 있을 때만
 
 새 문안의 기본 상태는 `미검증` 입니다. 확인이 끝나면 그 항목만 `YS 검수 완료`로 바꿉니다. 구조 목록의 배지는 manifest의 `structures[].status` 입니다. 기하를 바꾸면 `model_version`을 올리고 관련 문안을 다시 `미검증`으로 되돌립니다.
 

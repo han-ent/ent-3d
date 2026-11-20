@@ -21,11 +21,30 @@ describe('project policy', () => {
     expect(existsSync(resolve(root, 'public/draco/draco_wasm_wrapper.js'))).toBe(true);
   });
 
-  it('caches large assets in the service worker', () => {
+  it('versions the asset cache and prefers the network for json', () => {
     const source = readFileSync(resolve(root, 'public/sw.js'), 'utf8');
+    expect(source).toContain('__ENT3D_BUILD__');
+    expect(source).toContain('ent-3d-');
+    expect(source).toMatch(/skipWaiting/);
+    expect(source).toMatch(/clients\.claim/);
+    expect(source).toMatch(/caches\.delete/);
+    const fetchBody = source.slice(source.indexOf("addEventListener('fetch'"));
+    expect(fetchBody).toMatch(/JSON_FILE/);
+    expect(fetchBody).toMatch(/HEAVY/);
+    expect(fetchBody.indexOf('networkFirst')).toBeLessThan(fetchBody.indexOf('cacheFirst'));
     expect(source).toMatch(/glb/);
-    expect(source).toMatch(/cacheFirst/);
-    expect(source).toContain('ent-3d-assets');
+    expect(source).not.toContain('ent-3d-assets-v3');
+  });
+
+  it('self-hosts Pretendard under the SIL Open Font License', () => {
+    const license = readFileSync(resolve(root, 'public/fonts/OFL.txt'), 'utf8');
+    const fonts = readFileSync(resolve(root, 'src/shared/fonts.ts'), 'utf8');
+    expect(license).toMatch(/SIL OPEN FONT LICENSE/);
+    expect(fonts).toMatch(/font-display:\s*swap/);
+    expect(fonts).toMatch(/Pretendard-Regular\.woff2/);
+    expect(fonts).toMatch(/Pretendard-SemiBold\.woff2/);
+    expect(existsSync(resolve(root, 'public/fonts/Pretendard-Regular.woff2'))).toBe(true);
+    expect(existsSync(resolve(root, 'public/fonts/Pretendard-SemiBold.woff2'))).toBe(true);
   });
 
   it('scopes the PWA at the site base', () => {

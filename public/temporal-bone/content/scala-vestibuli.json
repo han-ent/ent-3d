@@ -1,63 +1,73 @@
 {
   "id": "scala-vestibuli",
   "model_version": "openear-zeta-ras-1",
-  "info": {
-    "summary": {
-      "ko": "[샘플] 안뜰계단의 해부 설명. 검토자가 채울 자리이며, 교재에서 옮긴 문장이 아닙니다.",
-      "en": "[Sample] Anatomy note for the scala vestibuli. Placeholder for a reviewer, not copied from a textbook."
-    },
-    "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-    "status": "미검증"
+  "anatomy": {
+    "ko": "와우관(cochlear duct)은 정상적으로 약 2¼ 회전하며 중심의 나선신경절(spiral ganglion)과 축주(modiolus)를 감고, 구심섬유가 modiolus에서 내이도(IAC)로 들어가 와우신경을 이룸\n단면에서는 basilar membrane이 scala tympani(IAC 쪽)와 scala vestibuli(중이 쪽)를 나누고, scala media는 basilar membrane과 Reissner막 사이의 내림프 공간임\n정원창(round window)은 scala tympani로 열리고, 와우수도관(cochlear aqueduct)은 와우 기저의 scala tympani로 연결됨\n와우는 중고실 내측벽에 갑각(promontory)을 만들고, 그 전방 이관 개구의 내측에 내경동맥이 있으며, 슬상신경절은 와우 바로 상방에 위치함",
+    "en": ""
   },
   "function": {
-    "physiology": {
-      "text": {
-        "ko": "[샘플] 안뜰계단의 생리적 역할. 검토자가 채웁니다.",
-        "en": "[Sample] Physiological role of the scala vestibuli. A reviewer fills this in."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "injury": {
-      "text": {
-        "ko": "[샘플] 안뜰계단의 손상이나 기능 이상이 임상에서 어떻게 나타나는지. 검토 전입니다.",
-        "en": "[Sample] Clinical consequences if the scala vestibuli is injured or not working. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "tests": {
-      "text": {
-        "ko": "[샘플] 안뜰계단의 관련 검사. 검토자가 채웁니다.",
-        "en": "[Sample] Related tests for the scala vestibuli. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    }
+    "ko": "나선신경절의 구심섬유가 와우신경을 형성하여 IAC로 투사하는 말초 청각 경로의 수용·전달 구조를 이룸\nscala vestibuli·tympani와 scala media의 외림프·내림프 공간이 와우관 단면을 구성하고, 정원창은 scala tympani로 열리는 창임\nCorti 기관의 유모세포 변환(transduction) 세부는 이번에 연 Cummings 청각생리 장에서 확인하지 못해 미검증으로 둠",
+    "en": ""
   },
+  "surgical_points": [
+    {
+      "id": "scala-vestibuli-p1",
+      "text": {
+        "ko": "중두개와: GSPN·슬상신경절·미로 분절 안면신경이 이루는 약 120° 둔각의 골 속에 와우 midturn이 있어, 이 관계를 아는 것이 안전 박리의 핵심임 (Cummings 7e Ch175 p.2631) 미로 분절 전방 약 1 mm 이내에 와우가 있을 수 있고, 외측 IAC는 내이 위치 때문에 내측 porus처럼 270° 골격화를 할 수 없음 (Francis 2e Ch7 p.56–58)",
+        "en": ""
+      }
+    },
+    {
+      "id": "scala-vestibuli-p2",
+      "text": {
+        "ko": "경미로(translabyrinthine) 접근: 와우수도관은 하방 뇌신경을 보호하기 위한 하방 박리의 중요 한계임 (Cummings 7e Ch126 p.1929; Francis 2e Ch2 p.6)",
+        "en": ""
+      }
+    },
+    {
+      "id": "scala-vestibuli-p3",
+      "text": {
+        "ko": "유양돌기절제·facial recess: recess를 통해 promontory와 정원창 함요(round window niche)를 확인할 수 있음 (Cummings 7e Ch143 p.2170)",
+        "en": ""
+      }
+    }
+  ],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "1929, 1933, 1935",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch143 Mastoidectomy: Surgical Techniques",
+      "page": "2170",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "2629, 2631–2632",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch2 Anatomy of the Temporal Bone",
+      "page": "6, 8, 10–11",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch7 The Middle Cranial Fossa Approach to the Internal Auditory Canal",
+      "page": "56–58",
+      "verified": true
+    },
+    {
+      "citation": "Corti 기관 변환(transduction) 세부 / Cummings 7e Ch127–128 등 청각생리 장",
+      "page": "이번 회차 미개봉",
+      "verified": false
+    }
+  ],
+  "review": "미검증",
   "related": [
     "scala-tympani",
     "stapes",
     "cochleovestibular-nerve"
-  ],
-  "surgical_points": [
-    {
-      "id": "scala-vestibuli-center",
-      "title": {
-        "ko": "안뜰계단 중심(샘플)",
-        "en": "Scala vestibuli center (sample)"
-      },
-      "body": {
-        "ko": "[샘플] 메시 경계상자의 중심입니다. 수술 랜드마크가 아닙니다.",
-        "en": "[Sample] Center of the mesh bounding box. Not a surgical landmark."
-      },
-      "position_mm": [
-        18.81,
-        18.98,
-        35.4
-      ],
-      "source": "샘플 좌표. 구조 경계상자 중심이며 실측 랜드마크가 아닙니다.",
-      "status": "미검증"
-    }
   ]
 }

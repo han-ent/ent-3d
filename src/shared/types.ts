@@ -59,43 +59,44 @@ export type Manifest = {
   missing_structures?: MissingStructure[];
 };
 
-export type SurgicalPoint = {
-  id: string;
-  title: Localized;
-  body: Localized;
-  position_mm: Vec3;
-  source: string;
-  status: ReviewStatus;
+/**
+ * One citation. `verified: false` means the page was not opened for this draft;
+ * the viewer marks those lines "출처 확인 필요" without rewriting the sentence.
+ */
+export type ContentSource = {
+  citation: string;
+  page: string;
+  verified: boolean;
 };
 
-/** One reviewed paragraph. Anatomy, each function block, and each surgical point use this shape. */
-export type ReviewedBlock = {
+/**
+ * Surgical note copied verbatim from a content draft.
+ * `position_mm` is optional and, when present, needs `source` and `review`
+ * so a coordinate is never shown as a measured landmark without a source.
+ */
+export type SurgicalPoint = {
+  id: string;
   text: Localized;
-  source: string;
-  status: ReviewStatus;
+  position_mm?: Vec3;
+  source?: string;
+  review?: ReviewStatus;
 };
 
 export type StructureContent = {
   id: string;
   model_version: string;
-  /** Anatomy. Reviewers edit this without touching code. */
-  info: {
-    summary: Localized;
-    source: string;
-    status: ReviewStatus;
-  };
-  /** Physiology, dysfunction, and related tests. Each block has its own source and status. */
-  function: {
-    physiology: ReviewedBlock;
-    injury: ReviewedBlock;
-    tests: ReviewedBlock;
-  };
+  /** Anatomy paragraph. Korean text is the draft; do not paraphrase it in code. */
+  anatomy: Localized;
+  /** One function paragraph, same rule as anatomy. */
+  function: Localized;
+  surgical_points: SurgicalPoint[];
+  sources: ContentSource[];
+  review: ReviewStatus;
   /**
    * Other structure ids that are functionally linked.
    * Optional. Tapping one highlights that structure in the viewer.
    */
   related?: string[];
-  surgical_points: SurgicalPoint[];
 };
 
 export type CameraPose = {
@@ -111,6 +112,15 @@ export type ClippingPlane = {
   constant: number;
 };
 
+/** A point in specimen millimetres used when no mesh exists for the target. */
+export type StepMarker = {
+  id: string;
+  label: Localized;
+  position_mm: Vec3;
+  source: string;
+  review: ReviewStatus;
+};
+
 /** One ordered step in a dissection sequence. Drilling is not implemented. */
 export type DissectionStep = {
   id: string;
@@ -122,6 +132,16 @@ export type DissectionStep = {
   danger: string[];
   camera: CameraPose;
   clipping?: ClippingPlane;
+  /** Shown at their normal opacity. Combined with `ghosted`. */
+  visible?: string[];
+  /** Not drawn for this step. */
+  hidden?: string[];
+  /** Drawn translucent so neighbouring anatomy stays in context. */
+  ghosted?: string[];
+  /** Structure drawn opaque, outlined, and in front. */
+  highlight?: string;
+  /** Labeled point when the step has no mesh, for example the antrum. */
+  marker?: StepMarker;
 };
 
 export type DissectionSequence = {

@@ -1,29 +1,24 @@
 /* ent-3d service worker.
-   Large learning assets (glb, slice images, json) stay in the asset cache
-   so a repeat visit does not download them again. HTML and scripts are
-   network-first, with the previous response kept for offline reloads.
-   Scope is the site base (/ent-3d/ when hosted as a project page).
+   JSON is network-first so copy edits reach phones on the next load.
+   glb / webp are requested with ?v=<build id>, so cache-first is safe:
+   a new build changes the URL. The cache name itself is the build id.
+   Install calls skipWaiting; activate drops every other cache and claims clients.
 */
-const SHELL_CACHE = 'ent-3d-shell-v3';
-const ASSET_CACHE = 'ent-3d-assets-v3';
-const ASSET = /\.(?:glb|gltf|png|webp|json|wasm|webmanifest)$/i;
+const BUILD = '__ENT3D_BUILD__';
+const CACHE = `ent-3d-${BUILD}`;
+const JSON_FILE = /\.json$/i;
+const HEAVY = /\.(?:glb|gltf|webp|woff2)$/i;
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(caches.open(SHELL_CACHE));
+  event.waitUntil(caches.open(CACHE));
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== SHELL_CACHE && key !== ASSET_CACHE)
-            .map((key) => caches.delete(key)),
-        ),
-      )
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
 });
@@ -34,15 +29,19 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (ASSET.test(url.pathname)) {
-    event.respondWith(cacheFirst(request, ASSET_CACHE));
+  if (JSON_FILE.test(url.pathname)) {
+    event.respondWith(networkFirst(request));
     return;
   }
-  event.respondWith(networkFirst(request, SHELL_CACHE));
+  if (HEAVY.test(url.pathname)) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+  event.respondWith(networkFirst(request));
 });
 
-async function cacheFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
+async function cacheFirst(request) {
+  const cache = await caches.open(CACHE);
   const cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
@@ -50,8 +49,8 @@ async function cacheFirst(request, cacheName) {
   return response;
 }
 
-async function networkFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE);
   try {
     const response = await fetch(request);
     if (response.ok) await cache.put(request, response.clone());

@@ -5,8 +5,8 @@
   "start_url": "./temporal-bone/",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#eef3f5",
-  "theme_color": "#0e3f4d",
+  "background_color": "#F7F5F0",
+  "theme_color": "#222222",
   "icons": [
     {
       "src": "icons/icon-192.png",

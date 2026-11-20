@@ -10,8 +10,8 @@
     "data_url": "https://zenodo.org/records/1473724",
     "geometry": "openear",
     "geometry_note": {
-      "ko": "오른쪽 측두골 ZETA. 메시는 원본 RAS 밀리미터이며 파일을 recenter 하지 않았습니다. 뼈와 구불정맥굴·경막만 삼각형 수를 줄였고, 구불정맥굴·경막은 분할 경계의 절단면이 있으며 구불정맥굴과 중두개와 경막이 섞였을 수 있습니다. 반고리관과 목정맥공은 없습니다 (1.5단계).",
-      "en": "Right temporal bone, specimen ZETA. Meshes keep their original RAS millimetres and were not recentered. Only the bone and sinus/dura meshes were decimated. Sinus/dura has flat crop faces at the segmentation bounds and may mix the sigmoid sinus with middle-fossa dura. Semicircular canals and the jugular bulb are absent (stage 1.5)."
+      "ko": "오른쪽 측두골 ZETA. 메시는 원본 RAS 밀리미터이며 파일을 recenter 하지 않았습니다. 뼈와 S상정맥동·경막만 삼각형 수를 줄였습니다. S상정맥동·경막은 한 메시에 섞여 있을 수 있어 미검증입니다. 반고리관과 경정맥구(jugular bulb)는 없습니다. 목정맥공(jugular foramen)은 다른 구조입니다.",
+      "en": "Right temporal bone, specimen ZETA. Meshes keep their original RAS millimetres and were not recentered. Only bone and sinus/dura were decimated. Sinus and dura may be mixed in one mesh, which is unverified. Semicircular canals and the jugular bulb are absent. The jugular foramen is a different structure."
     }
   },
   "model_version": "openear-zeta-ras-1",
@@ -59,8 +59,8 @@
     {
       "id": "inner-ear",
       "name": {
-        "ko": "달팽이관",
-        "en": "Cochlea"
+        "ko": "내이",
+        "en": "Inner ear"
       },
       "opacity": 1
     },
@@ -75,26 +75,26 @@
     {
       "id": "canal",
       "name": {
-        "ko": "바깥귀길",
+        "ko": "외이도",
         "en": "Ear canal"
       },
-      "opacity": 0.45
+      "opacity": 0.7
     },
     {
       "id": "vessel",
       "name": {
-        "ko": "속목동맥",
-        "en": "Carotid artery"
+        "ko": "내경동맥",
+        "en": "Internal carotid artery"
       },
       "opacity": 1
     },
     {
       "id": "sinus",
       "name": {
-        "ko": "구불정맥굴·경막",
+        "ko": "S상정맥동·경막",
         "en": "Sigmoid sinus / dura"
       },
-      "opacity": 0.35
+      "opacity": 0.18
     },
     {
       "id": "bone",
@@ -102,7 +102,7 @@
         "ko": "뼈",
         "en": "Bone"
       },
-      "opacity": 0.28
+      "opacity": 1
     }
   ],
   "structures": [
@@ -110,10 +110,10 @@
       "id": "scala-tympani",
       "file": "models/scala-tympani.glb",
       "name": {
-        "ko": "고실계단",
+        "ko": "고실계",
         "en": "Scala tympani"
       },
-      "color": "#80ae80",
+      "color": "#9A84B5",
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-tympani.json"
@@ -122,10 +122,10 @@
       "id": "scala-vestibuli",
       "file": "models/scala-vestibuli.glb",
       "name": {
-        "ko": "안뜰계단",
+        "ko": "전정계",
         "en": "Scala vestibuli"
       },
-      "color": "#f1d691",
+      "color": "#D9C6E8",
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-vestibuli.json"
@@ -134,10 +134,10 @@
       "id": "malleus",
       "file": "models/malleus.glb",
       "name": {
-        "ko": "망치뼈",
+        "ko": "추골(망치뼈)",
         "en": "Malleus"
       },
-      "color": "#b17a65",
+      "color": "#D6C49A",
       "layer": "ossicles",
       "status": "미검증",
       "content": "content/malleus.json"
@@ -146,10 +146,10 @@
       "id": "incus",
       "file": "models/incus.glb",
       "name": {
-        "ko": "모루뼈",
+        "ko": "침골",
         "en": "Incus"
       },
-      "color": "#6fb8d2",
+      "color": "#D6C49A",
       "layer": "ossicles",
       "status": "미검증",
       "content": "content/incus.json"
@@ -158,10 +158,10 @@
       "id": "stapes",
       "file": "models/stapes.glb",
       "name": {
-        "ko": "등자뼈",
+        "ko": "등골",
         "en": "Stapes"
       },
-      "color": "#d8654f",
+      "color": "#D6C49A",
       "layer": "ossicles",
       "status": "미검증",
       "content": "content/stapes.json"
@@ -170,10 +170,10 @@
       "id": "facial-nerve",
       "file": "models/facial-nerve.glb",
       "name": {
-        "ko": "얼굴신경",
+        "ko": "안면신경",
         "en": "Facial nerve"
       },
-      "color": "#90ee90",
+      "color": "#E3B629",
       "layer": "nerve",
       "status": "미검증",
       "content": "content/facial-nerve.json"
@@ -182,10 +182,10 @@
       "id": "chorda-tympani",
       "file": "models/chorda-tympani.glb",
       "name": {
-        "ko": "고실끈신경",
+        "ko": "고삭신경",
         "en": "Chorda tympani"
       },
-      "color": "#c06858",
+      "color": "#F3E2A1",
       "layer": "nerve",
       "status": "미검증",
       "content": "content/chorda-tympani.json"
@@ -194,10 +194,10 @@
       "id": "cochleovestibular-nerve",
       "file": "models/cochleovestibular-nerve.glb",
       "name": {
-        "ko": "달팽이안뜰신경",
+        "ko": "와우전정신경",
         "en": "Cochleovestibular nerve"
       },
-      "color": "#dd8265",
+      "color": "#C48A2A",
       "layer": "nerve",
       "status": "미검증",
       "content": "content/cochleovestibular-nerve.json"
@@ -209,7 +209,7 @@
         "ko": "고막",
         "en": "Tympanic membrane"
       },
-      "color": "#c8c8eb",
+      "color": "#D9B8B0",
       "layer": "membrane",
       "status": "미검증",
       "content": "content/tympanic-membrane.json"
@@ -218,10 +218,10 @@
       "id": "external-auditory-canal",
       "file": "models/external-auditory-canal.glb",
       "name": {
-        "ko": "바깥귀길",
+        "ko": "외이도",
         "en": "External auditory canal"
       },
-      "color": "#b17a65",
+      "color": "#CDB0A6",
       "layer": "canal",
       "status": "미검증",
       "content": "content/external-auditory-canal.json"
@@ -230,10 +230,10 @@
       "id": "sinus-dura",
       "file": "models/sinus-dura.glb",
       "name": {
-        "ko": "구불정맥굴·경막",
+        "ko": "S상정맥동·경막",
         "en": "Sigmoid sinus / dura"
       },
-      "color": "#6fb8d2",
+      "color": "#2F5FA8",
       "layer": "sinus",
       "status": "미검증",
       "content": "content/sinus-dura.json"
@@ -242,10 +242,10 @@
       "id": "carotid-artery",
       "file": "models/carotid-artery.glb",
       "name": {
-        "ko": "속목동맥",
+        "ko": "내경동맥",
         "en": "Internal carotid artery"
       },
-      "color": "#80ae80",
+      "color": "#C8322F",
       "layer": "vessel",
       "status": "미검증",
       "content": "content/carotid-artery.json"
@@ -257,7 +257,7 @@
         "ko": "측두골",
         "en": "Temporal bone"
       },
-      "color": "#fafad2",
+      "color": "#E8DFC8",
       "layer": "bone",
       "status": "미검증",
       "content": "content/bone.json"
@@ -270,7 +270,7 @@
     },
     {
       "name": "Jugular bulb",
-      "note": "Not separately segmented in Segmentation.seg.nrrd or supplied as a PLY. Planned for stage 1.5 (manual segmentation). May be partly included in Sinus Dura, but that was not verified."
+      "note": "Not segmented. This is the jugular bulb (경정맥구), not the jugular foramen (목정맥공). It may be partly inside Sinus Dura, but that was not verified."
     }
   ]
 }

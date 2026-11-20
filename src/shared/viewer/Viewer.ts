@@ -2,10 +2,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import type { ContourSource } from '../ct-slice';
+import { displayOpacity, choosePick, isEnvelope, touchSampleOffsets, type PickCandidate } from '../picking';
 import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
+import { DEFAULT_CAMERA, DEFAULT_FOV } from '../view-pose';
 
 export type PickHit = {
   structureId: string;
@@ -18,7 +21,13 @@ type StructureRecord = {
   layer: string;
   object: THREE.Object3D;
   materials: THREE.MeshStandardMaterial[];
+  meshes: THREE.Mesh[];
+  outlines: THREE.Mesh[];
   opacity: number;
+  envelope: boolean;
+  size: number;
+  color: string;
+  label: string;
 };
 
 type PlaneRecord = {
@@ -27,7 +36,39 @@ type PlaneRecord = {
   material: THREE.MeshBasicMaterial;
 };
 
-const DEFAULT_FOV = 40;
+type Gathered = PickCandidate & { point: THREE.Vector3; kind: 'structure' | 'ct' };
+
+type PresetVisibility = {
+  hidden: Set<string>;
+  ghosted: Set<string>;
+  visible: Set<string> | null;
+};
+
+type Tween = {
+  fromP: THREE.Vector3;
+  toP: THREE.Vector3;
+  fromT: THREE.Vector3;
+  toT: THREE.Vector3;
+  fromU: THREE.Vector3;
+  toU: THREE.Vector3;
+  fromF: number;
+  toF: number;
+  start: number;
+};
+
+const SVG_NS = ['http', '://www.w3.org/2000/svg'].join('');
+const TWEEN_MS = 500;
+const STAGE = '#C4C2BC';
+const OUTLINE = '#F7F5F0';
+
+const GIZMO_AXES: { id: string; dir: Vec3; text: string }[] = [
+  { id: 'lat', dir: [1, 0, 0], text: '외' },
+  { id: 'med', dir: [-1, 0, 0], text: '내' },
+  { id: 'ant', dir: [0, 1, 0], text: '전' },
+  { id: 'post', dir: [0, -1, 0], text: '후' },
+  { id: 'sup', dir: [0, 0, 1], text: '상' },
+  { id: 'inf', dir: [0, 0, -1], text: '하' },
+];
 
 function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
   return (obj as THREE.Mesh).isMesh === true;
@@ -40,6 +81,10 @@ function isShown(obj: THREE.Object3D): boolean {
     node = node.parent;
   }
   return true;
+}
+
+function ease(t: number): number {
+  return t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
 }
 
 /**
@@ -60,7 +105,6 @@ export class EntViewer {
   private draco = new DRACOLoader();
   private records = new Map<string, StructureRecord>();
   private pickables: THREE.Object3D[] = [];
-  private measureTargets: THREE.Object3D[] = [];
   private planes = new Map<string, PlaneRecord>();
   private clipping: THREE.Plane[] = [];
   private raycaster = new THREE.Raycaster();
@@ -70,12 +114,30 @@ export class EntViewer {
   private selected: string | null = null;
   private dimOthers = false;
   private linked = new Set<string>();
+  private userHidden = new Set<string>();
+  private isolateId: string | null = null;
+  private boneTransparent = false;
+  private presetVis: PresetVisibility | null = null;
   private points: Vec3[] = [];
   private scaleEl: HTMLElement | null = null;
   private down: { x: number; y: number } | null = null;
-  private onPickHandler: ((hit: PickHit) => void) | null = null;
+  private onPickHandler: ((hit: PickHit | null) => void) | null = null;
   private onMeasureHandler: ((points: Vec3[]) => void) | null = null;
+  private onLabelHandler: ((id: string) => void) | null = null;
   private resizeObserver: ResizeObserver;
+  private running = true;
+  private tween: Tween | null = null;
+  private outlineMaterial: THREE.MeshBasicMaterial;
+  private calloutLayer: HTMLElement;
+  private leaderSvg: SVGSVGElement;
+  private calloutButtons = new Map<string, HTMLButtonElement>();
+  private marker: THREE.Mesh | null = null;
+  private markerLabel = '';
+  private crosshair: THREE.Group;
+  private gizmo: HTMLElement;
+  private gizmoSvg: SVGSVGElement;
+  private gizmoCam = new THREE.OrthographicCamera(-1.7, 1.7, 1.7, -1.7, 0.1, 20);
+  private keyLight: THREE.DirectionalLight;
 
   constructor(canvas: HTMLCanvasElement, offsetMm: Vec3) {
     this.canvas = canvas;
@@ -84,8 +146,7 @@ export class EntViewer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.localClippingEnabled = true;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.scene.background = new THREE.Color('#121a21');
-    // Decoder files are copied from the three package into public/draco.
+    this.scene.background = new THREE.Color(STAGE);
     this.draco.setDecoderPath(publicUrl('draco/'));
     this.loader.setDRACOLoader(this.draco);
 
@@ -105,15 +166,48 @@ export class EntViewer {
     this.world.add(this.structures, this.measures);
     this.scene.add(this.world);
 
-    const hemi = new THREE.HemisphereLight('#e9f3f8', '#3d342c', 1.2);
-    const key = new THREE.DirectionalLight('#ffffff', 1.45);
-    key.position.set(40, 55, 28);
-    const fill = new THREE.DirectionalLight('#8eb4cc', 0.5);
-    fill.position.set(-28, 12, -20);
-    this.scene.add(hemi, key, fill);
+    const hemi = new THREE.HemisphereLight('#f7f5f0', '#e7e2d8', 1.15);
+    const key = new THREE.DirectionalLight('#ffffff', 1.05);
+    key.position.set(90, 10, 50);
+    this.keyLight = key;
+    this.scene.add(hemi, key);
 
-    this.camera.position.set(36, 24, 36);
-    this.controls.target.set(this.offset[0], this.offset[1], this.offset[2]);
+    this.outlineMaterial = new THREE.MeshBasicMaterial({
+      color: OUTLINE,
+      side: THREE.BackSide,
+      depthTest: false,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    this.outlineMaterial.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\ntransformed += normalize(normal) * 0.28;',
+      );
+    };
+
+    this.crosshair = this.makeCrosshair();
+    this.world.add(this.crosshair);
+
+    const parent = canvas.parentElement ?? canvas;
+    this.calloutLayer = document.createElement('div');
+    this.calloutLayer.className = 'callout-layer';
+    this.leaderSvg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+    this.leaderSvg.classList.add('leaders');
+    this.calloutLayer.append(this.leaderSvg);
+    this.gizmo = document.createElement('div');
+    this.gizmo.className = 'gizmo';
+    this.gizmoSvg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+    this.gizmoSvg.setAttribute('viewBox', '0 0 84 84');
+    this.gizmo.append(this.gizmoSvg);
+    for (const axis of GIZMO_AXES) {
+      const label = document.createElement('span');
+      label.dataset.axis = axis.id;
+      label.textContent = axis.text;
+      this.gizmo.append(label);
+    }
+    parent.append(this.calloutLayer, this.gizmo);
+    this.frameDefault(true);
 
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointerup', this.onPointerUp);
@@ -122,8 +216,13 @@ export class EntViewer {
     });
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
-    this.resizeObserver.observe(canvas.parentElement ?? canvas);
+    this.resizeObserver.observe(parent);
     this.resize();
+  }
+
+  /** Starts drawing. Call after the meshes are loaded so decode is not starved. */
+  start(): void {
+    if (!this.running) return;
     this.renderer.setAnimationLoop(() => this.tick());
   }
 
@@ -133,9 +232,10 @@ export class EntViewer {
 
   setMode(mode: 'view' | 'measure' | 'quiz'): void {
     this.mode = mode;
+    if (mode === 'quiz') this.clearMeasurement();
   }
 
-  onPick(handler: (hit: PickHit) => void): void {
+  onPick(handler: (hit: PickHit | null) => void): void {
     this.onPickHandler = handler;
   }
 
@@ -143,18 +243,27 @@ export class EntViewer {
     this.onMeasureHandler = handler;
   }
 
-  async loadStructure(id: string, url: string, color: string, layer: string, opacity: number): Promise<void> {
+  onLabel(handler: (id: string) => void): void {
+    this.onLabelHandler = handler;
+  }
+
+  async loadStructure(id: string, url: string, color: string, layer: string, opacity: number, label: string): Promise<void> {
     const gltf = await this.loader.loadAsync(url);
     const root = gltf.scene;
     const materials: THREE.MeshStandardMaterial[] = [];
+    const meshes: THREE.Mesh[] = [];
+    const outlines: THREE.Mesh[] = [];
+    const found: THREE.Mesh[] = [];
     root.traverse((obj) => {
-      if (!isMesh(obj)) return;
+      if (isMesh(obj)) found.push(obj);
+    });
+    for (const obj of found) {
       this.warnIfScaled(obj, id);
       const material = new THREE.MeshStandardMaterial({
         color,
-        roughness: 0.58,
-        metalness: 0.04,
-        side: THREE.DoubleSide,
+        roughness: 0.72,
+        metalness: 0,
+        side: id === 'tympanic-membrane' ? THREE.DoubleSide : THREE.FrontSide,
         clippingPlanes: this.clipping,
       });
       const previous = obj.material;
@@ -162,87 +271,201 @@ export class EntViewer {
       const old = Array.isArray(previous) ? previous : [previous];
       old.forEach((item) => item.dispose());
       materials.push(material);
+      meshes.push(obj);
       obj.userData.structureId = id;
       obj.userData.kind = 'structure';
       this.pickables.push(obj);
-      this.measureTargets.push(obj);
-    });
+      const outline = new THREE.Mesh(obj.geometry, this.outlineMaterial);
+      outline.visible = false;
+      outline.renderOrder = 29;
+      outline.userData.kind = 'outline';
+      obj.add(outline);
+      outlines.push(outline);
+    }
     root.userData.structureId = id;
     this.structures.add(root);
-    const record: StructureRecord = { id, layer, object: root, materials, opacity };
+    const box = new THREE.Box3().setFromObject(root);
+    const size = box.isEmpty() ? 1 : box.getSize(new THREE.Vector3()).length();
+    const record: StructureRecord = {
+      id,
+      layer,
+      object: root,
+      materials,
+      meshes,
+      outlines,
+      opacity,
+      envelope: isEnvelope(id),
+      size,
+      color,
+      label,
+    };
     this.records.set(id, record);
     this.applyLook(record);
   }
 
-  setLayerVisible(layer: string, visible: boolean): void {
-    for (const record of this.records.values()) {
-      if (record.layer === layer) record.object.visible = visible;
-    }
+  setLabel(id: string, label: string): void {
+    const record = this.records.get(id);
+    if (record) record.label = label;
+    this.syncCallouts();
   }
 
-  setLayerOpacity(layer: string, opacity: number): void {
-    for (const record of this.records.values()) {
-      if (record.layer !== layer) continue;
-      record.opacity = opacity;
-      this.applyLook(record);
-    }
-  }
-
-  select(id: string | null): void {
-    this.selected = id;
-    this.dimOthers = false;
-    this.linked.clear();
+  setHidden(id: string, hidden: boolean): void {
+    if (hidden) this.userHidden.add(id);
+    else this.userHidden.delete(id);
+    if (hidden && this.selected === id) this.select(null, false);
+    if (hidden && this.isolateId === id) this.isolateId = null;
     this.refreshLook();
   }
 
-  /** Highlight one structure. `dimOthers` is used by the name-the-structure quiz. */
-  highlight(id: string | null, dimOthers: boolean): void {
+  hiddenIds(): string[] {
+    return [...this.userHidden];
+  }
+
+  setIsolate(id: string | null): void {
+    this.isolateId = id;
+    this.refreshLook();
+  }
+
+  isolatedId(): string | null {
+    return this.isolateId;
+  }
+
+  setBoneTransparent(on: boolean): void {
+    this.boneTransparent = on;
+    this.refreshLook();
+  }
+
+  boneIsTransparent(): boolean {
+    return this.boneTransparent;
+  }
+
+  select(id: string | null, frame = true): void {
+    this.selected = id;
+    this.dimOthers = id !== null;
+    this.linked.clear();
+    this.refreshLook();
+    if (id && frame) this.frameStructure(id);
+    else this.syncCallouts();
+  }
+
+  /** Quiz highlight. The target stays opaque and is drawn in front of bone. */
+  highlight(id: string | null, dimOthers: boolean, frame = false): void {
     this.selected = id;
     this.dimOthers = dimOthers && id !== null;
     this.linked.clear();
     this.refreshLook();
+    if (id && frame) this.frameStructure(id);
   }
 
-  /**
-   * Emphasise functionally related structures while keeping the current selection.
-   * Pass the related ids only; the selected structure stays the primary highlight.
-   */
+  /** Kept so related structures can be named. Opacity stays on the selection rule. */
   link(ids: string[]): void {
     this.linked = new Set(ids.filter((id) => id !== this.selected));
     this.refreshLook();
   }
 
-  frameAll(): void {
-    this.structures.updateWorldMatrix(true, true);
-    const box = new THREE.Box3().setFromObject(this.structures);
-    if (box.isEmpty()) return;
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    const radius = Math.max(size.x, size.y, size.z) * 0.5;
-    this.camera.up.set(0, 0, 1);
-    this.camera.fov = DEFAULT_FOV;
-    const distance = (radius / Math.tan((DEFAULT_FOV * Math.PI) / 360)) * 1.45;
-    this.camera.position.set(center.x + distance * 0.85, center.y - distance * 0.25, center.z + distance * 0.4);
-    this.controls.target.copy(center);
-    this.camera.updateProjectionMatrix();
-    this.controls.update();
+  selectedId(): string | null {
+    return this.selected;
+  }
+
+  frameDefault(immediate = false): void {
+    this.presetVis = null;
+    this.selected = null;
+    this.dimOthers = false;
+    this.linked.clear();
+    this.isolateId = null;
+    this.userHidden.clear();
+    this.boneTransparent = false;
+    this.setMarker(null, '');
+    this.refreshLook();
+    this.moveCamera(this.worldPoint(DEFAULT_CAMERA.position), this.worldPoint(DEFAULT_CAMERA.target), DEFAULT_CAMERA.up, DEFAULT_CAMERA.fov, immediate);
     this.setClipping(null);
   }
 
-  applyPreset(preset: Pick<DissectionStep, 'camera' | 'clipping'>): void {
+  frameStructure(id: string): void {
+    const record = this.records.get(id);
+    if (!record) return;
+    record.object.updateWorldMatrix(true, true);
+    const box = new THREE.Box3().setFromObject(record.object);
+    if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
+    const radius = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.4);
+    const direction = this.camera.position.clone().sub(this.controls.target);
+    if (direction.lengthSq() < 1e-4) direction.set(1, -0.15, 0.25);
+    direction.normalize();
+    const fov = (this.camera.fov * Math.PI) / 180;
+    const distance = Math.max((radius / Math.sin(fov / 2)) * 0.92, radius * 2.4);
+    const position = center.clone().add(direction.multiplyScalar(distance));
+    this.moveCamera([position.x, position.y, position.z], [center.x, center.y, center.z], [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
+  }
+
+  applyPreset(preset: Pick<DissectionStep, 'camera' | 'clipping' | 'visible' | 'hidden' | 'ghosted' | 'highlight'>): void {
+    this.presetVis = {
+      hidden: new Set(preset.hidden ?? []),
+      ghosted: new Set(preset.ghosted ?? []),
+      visible: preset.visible ? new Set(preset.visible) : null,
+    };
+    this.isolateId = null;
+    const highlight = preset.highlight ?? null;
+    this.selected = highlight;
+    this.dimOthers = highlight !== null;
+    this.linked.clear();
+    this.refreshLook();
     const position = preset.camera.position;
     const target = preset.camera.target;
     const up = preset.camera.up ?? [0, 0, 1];
-    this.camera.up.set(up[0], up[1], up[2]);
-    this.camera.position.set(position[0] + this.offset[0], position[1] + this.offset[1], position[2] + this.offset[2]);
-    this.controls.target.set(target[0] + this.offset[0], target[1] + this.offset[1], target[2] + this.offset[2]);
-    this.camera.fov = preset.camera.fov ?? DEFAULT_FOV;
-    this.camera.updateProjectionMatrix();
-    this.controls.update();
+    this.moveCamera(this.worldPoint(position), this.worldPoint(target), up, preset.camera.fov ?? DEFAULT_FOV, false);
     this.setClipping(preset.clipping?.enabled ? preset.clipping : null);
   }
 
+  setMarker(position: Vec3 | null, label: string): void {
+    this.markerLabel = position ? label : '';
+    if (!position) {
+      if (this.marker) this.marker.visible = false;
+      this.syncCallouts();
+      return;
+    }
+    if (!this.marker) {
+      this.marker = new THREE.Mesh(
+        new THREE.SphereGeometry(0.45, 18, 12),
+        new THREE.MeshBasicMaterial({ color: '#8C2F1B', depthTest: false, toneMapped: false }),
+      );
+      this.marker.renderOrder = 40;
+      this.marker.userData.kind = 'marker';
+      this.world.add(this.marker);
+    }
+    this.marker.visible = true;
+    this.marker.position.set(position[0], position[1], position[2]);
+    this.syncCallouts();
+  }
+
+  setCrosshair(point: Vec3 | null): void {
+    this.crosshair.visible = point !== null;
+    if (!point) return;
+    this.crosshair.position.set(point[0], point[1], point[2]);
+  }
+
+  contourSources(skipBone = true): ContourSource[] {
+    const sources: ContourSource[] = [];
+    for (const record of this.records.values()) {
+      if (!record.object.visible) continue;
+      if (skipBone && record.id === 'bone') continue;
+      for (const mesh of record.meshes) {
+        const position = mesh.geometry.getAttribute('position');
+        if (!position) continue;
+        sources.push({
+          id: record.id,
+          color: record.color,
+          positions: position.array as ArrayLike<number>,
+          index: mesh.geometry.index ? (mesh.geometry.index.array as ArrayLike<number>) : null,
+          stride: record.id === 'sinus-dura' ? 2 : 1,
+        });
+      }
+    }
+    return sources;
+  }
+
   clearMeasurement(): void {
+    if (this.points.length === 0) return;
     this.points = [];
     this.redrawMeasurement();
     this.onMeasureHandler?.([]);
@@ -279,7 +502,6 @@ export class EntViewer {
       mesh.userData.kind = 'ct';
       mesh.renderOrder = 2;
       this.world.add(mesh);
-      this.measureTargets.push(mesh);
       record = { mesh, texture, material };
       this.planes.set(options.id, record);
     }
@@ -302,15 +524,24 @@ export class EntViewer {
     this.canvas.removeEventListener('pointerup', this.onPointerUp);
     this.controls.dispose();
     this.draco.dispose();
+    this.outlineMaterial.dispose();
     this.renderer.dispose();
+    this.calloutLayer.remove();
+    this.gizmo.remove();
   }
 
-  private running = true;
+  private worldPoint(specimen: Vec3): Vec3 {
+    return [specimen[0] + this.offset[0], specimen[1] + this.offset[1], specimen[2] + this.offset[2]];
+  }
 
   private tick(): void {
     if (!this.running) return;
+    this.stepTween(performance.now());
+    this.keyLight.position.copy(this.camera.position);
     this.controls.update();
     this.updateScaleBar();
+    this.projectCallouts();
+    this.projectGizmo();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -351,19 +582,41 @@ export class EntViewer {
 
   private refreshLook(): void {
     for (const record of this.records.values()) this.applyLook(record);
+    this.syncCallouts();
+  }
+
+  private shown(record: StructureRecord): boolean {
+    if (this.userHidden.has(record.id)) return false;
+    if (this.isolateId) return record.id === this.isolateId;
+    if (!this.presetVis) return true;
+    if (this.presetVis.hidden.has(record.id)) return false;
+    if (this.presetVis.visible && !this.presetVis.visible.has(record.id) && !this.presetVis.ghosted.has(record.id)) return false;
+    return true;
   }
 
   private applyLook(record: StructureRecord): void {
-    const active = record.id === this.selected;
-    const linked = !this.dimOthers && this.linked.has(record.id);
-    const opacity = this.dimOthers && !active ? Math.min(record.opacity, 0.14) : record.opacity;
+    const visible = this.shown(record);
+    record.object.visible = visible;
+    const onTop = record.id === this.selected && visible;
+    const opacity = displayOpacity({
+      id: record.id,
+      base: record.opacity,
+      selectedId: this.selected,
+      dimOthers: this.dimOthers,
+      ghost: this.presetVis?.ghosted.has(record.id) === true,
+      boneTransparent: this.boneTransparent,
+    });
     for (const material of record.materials) {
       material.opacity = opacity;
       material.transparent = opacity < 0.98;
-      material.depthWrite = opacity >= 0.85;
-      material.emissive.set(active ? '#14685a' : linked ? '#a15c12' : '#000000');
-      material.emissiveIntensity = active ? 0.65 : linked ? 0.9 : 0;
+      material.depthWrite = !onTop && opacity >= 0.9;
+      material.depthTest = !onTop;
+      material.polygonOffset = opacity < 0.98;
+      material.polygonOffsetFactor = 1;
+      material.polygonOffsetUnits = 1;
     }
+    for (const mesh of record.meshes) mesh.renderOrder = onTop ? 30 : 0;
+    for (const outline of record.outlines) outline.visible = onTop;
   }
 
   private setClipping(clip: { normal: Vec3; constant: number } | null): void {
@@ -399,6 +652,20 @@ export class EntViewer {
     record.texture.needsUpdate = true;
   }
 
+  private makeCrosshair(): THREE.Group {
+    const group = new THREE.Group();
+    group.visible = false;
+    group.renderOrder = 41;
+    const material = new THREE.MeshBasicMaterial({ color: '#8C2F1B', depthTest: false, toneMapped: false });
+    const arm = (axis: 'x' | 'y' | 'z') => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(axis === 'x' ? 14 : 0.12, axis === 'y' ? 14 : 0.12, axis === 'z' ? 14 : 0.12), material);
+      mesh.renderOrder = 41;
+      return mesh;
+    };
+    group.add(arm('x'), arm('y'), arm('z'));
+    return group;
+  }
+
   private redrawMeasurement(): void {
     for (const child of this.measures.children) {
       const mesh = child as THREE.Mesh;
@@ -409,10 +676,11 @@ export class EntViewer {
     this.measures.clear();
     for (const point of this.points) {
       const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.45, 18, 12),
-        new THREE.MeshBasicMaterial({ color: '#f4d35e' }),
+        new THREE.SphereGeometry(0.35, 16, 10),
+        new THREE.MeshBasicMaterial({ color: '#8C2F1B', depthTest: false }),
       );
       mesh.position.set(point[0], point[1], point[2]);
+      mesh.renderOrder = 35;
       this.measures.add(mesh);
     }
     if (this.points.length === 2) {
@@ -422,13 +690,158 @@ export class EntViewer {
       const length = direction.length();
       if (length > 0.001) {
         const mesh = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.12, 0.12, length, 8),
-          new THREE.MeshBasicMaterial({ color: '#f4d35e' }),
+          new THREE.CylinderGeometry(0.08, 0.08, length, 8),
+          new THREE.MeshBasicMaterial({ color: '#8C2F1B', depthTest: false }),
         );
         mesh.position.copy(start).add(end).multiplyScalar(0.5);
         mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+        mesh.renderOrder = 35;
         this.measures.add(mesh);
       }
+    }
+  }
+
+  private moveCamera(position: Vec3, target: Vec3, up: Vec3, fov: number, immediate: boolean): void {
+    const toP = new THREE.Vector3(...position);
+    const toT = new THREE.Vector3(...target);
+    const toU = new THREE.Vector3(...up).normalize();
+    const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (immediate || reduce) {
+      this.tween = null;
+      this.camera.position.copy(toP);
+      this.controls.target.copy(toT);
+      this.camera.up.copy(toU);
+      this.camera.fov = fov;
+      this.camera.updateProjectionMatrix();
+      this.controls.update();
+      return;
+    }
+    this.tween = {
+      fromP: this.camera.position.clone(),
+      toP,
+      fromT: this.controls.target.clone(),
+      toT,
+      fromU: this.camera.up.clone(),
+      toU,
+      fromF: this.camera.fov,
+      toF: fov,
+      start: performance.now(),
+    };
+  }
+
+  private stepTween(now: number): void {
+    if (!this.tween) return;
+    const t = Math.min(1, (now - this.tween.start) / TWEEN_MS);
+    const e = ease(t);
+    this.camera.position.lerpVectors(this.tween.fromP, this.tween.toP, e);
+    this.controls.target.lerpVectors(this.tween.fromT, this.tween.toT, e);
+    this.camera.up.copy(this.tween.fromU).lerp(this.tween.toU, e).normalize();
+    this.camera.fov = this.tween.fromF + (this.tween.toF - this.tween.fromF) * e;
+    this.camera.updateProjectionMatrix();
+    if (t >= 1) this.tween = null;
+  }
+
+  private syncCallouts(): void {
+    const wanted = new Set<string>();
+    if (this.selected && this.records.get(this.selected)?.object.visible) wanted.add(this.selected);
+    if (this.marker?.visible && this.markerLabel) wanted.add('marker');
+    for (const [id, button] of this.calloutButtons) {
+      if (!wanted.has(id)) {
+        button.remove();
+        this.calloutButtons.delete(id);
+      }
+    }
+    for (const id of wanted) {
+      if (this.calloutButtons.has(id)) continue;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'callout';
+      button.addEventListener('pointerup', (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.onLabelHandler?.(id === 'marker' ? '' : id);
+      });
+      this.calloutLayer.append(button);
+      this.calloutButtons.set(id, button);
+    }
+    this.projectCallouts();
+  }
+
+  private projectCallouts(): void {
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    this.leaderSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    this.leaderSvg.replaceChildren();
+    const place = (id: string, anchor: THREE.Vector3, text: string) => {
+      const button = this.calloutButtons.get(id);
+      if (!button) return;
+      button.textContent = text;
+      const ndc = anchor.clone().project(this.camera);
+      if (ndc.z > 1) {
+        button.hidden = true;
+        return;
+      }
+      button.hidden = false;
+      const x = (ndc.x * 0.5 + 0.5) * width;
+      const y = (-ndc.y * 0.5 + 0.5) * height;
+      let left = x + 18;
+      let top = y - 28;
+      if (left > width - 120) left = x - 18;
+      top = Math.max(8, Math.min(height - 28, top));
+      left = Math.max(8, Math.min(width - 8, left));
+      button.style.left = `${left}px`;
+      button.style.top = `${top}px`;
+      if (left < x) button.style.transform = 'translate(-100%, -50%)';
+      else button.style.transform = 'translate(0, -50%)';
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', String(x));
+      line.setAttribute('y1', String(y));
+      line.setAttribute('x2', String(left < x ? left : left));
+      line.setAttribute('y2', String(top));
+      line.setAttribute('stroke', OUTLINE);
+      line.setAttribute('stroke-width', '1');
+      this.leaderSvg.append(line);
+    };
+    if (this.selected) {
+      const record = this.records.get(this.selected);
+      if (record?.object.visible) {
+        const box = new THREE.Box3().setFromObject(record.object);
+        place(this.selected, box.getCenter(new THREE.Vector3()), record.label);
+      }
+    }
+    if (this.marker?.visible && this.markerLabel) {
+      place('marker', this.marker.getWorldPosition(new THREE.Vector3()), this.markerLabel);
+    }
+  }
+
+  private projectGizmo(): void {
+    const direction = new THREE.Vector3();
+    this.camera.getWorldDirection(direction);
+    this.gizmoCam.position.copy(direction.multiplyScalar(-4));
+    this.gizmoCam.up.copy(this.camera.up);
+    this.gizmoCam.lookAt(0, 0, 0);
+    this.gizmoCam.updateMatrixWorld();
+    const project = (x: number, y: number, z: number) => {
+      const point = new THREE.Vector3(x, y, z).project(this.gizmoCam);
+      return { x: (point.x * 0.5 + 0.5) * 84, y: (-point.y * 0.5 + 0.5) * 84 };
+    };
+    const origin = project(0, 0, 0);
+    this.gizmoSvg.replaceChildren();
+    for (const axis of GIZMO_AXES) {
+      const tip = project(axis.dir[0] * 1.05, axis.dir[1] * 1.05, axis.dir[2] * 1.05);
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', String(origin.x));
+      line.setAttribute('y1', String(origin.y));
+      line.setAttribute('x2', String(tip.x));
+      line.setAttribute('y2', String(tip.y));
+      line.setAttribute('stroke', '#222');
+      line.setAttribute('stroke-width', '1.25');
+      this.gizmoSvg.append(line);
+      const label = this.gizmo.querySelector<HTMLElement>(`[data-axis="${axis.id}"]`);
+      if (!label) continue;
+      const textPos = project(axis.dir[0] * 1.35, axis.dir[1] * 1.35, axis.dir[2] * 1.35);
+      label.style.left = `${textPos.x}px`;
+      label.style.top = `${textPos.y}px`;
     }
   }
 
@@ -440,35 +853,57 @@ export class EntViewer {
     if (!this.down) return;
     const moved = Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y);
     this.down = null;
-    if (moved > 8) return;
-    const targets = this.mode === 'measure' ? this.measureTargets : this.pickables;
-    const hit = this.cast(event, targets);
-    if (!hit) return;
+    if (moved > 10) return;
+    const hit = this.cast(event.clientX, event.clientY);
     if (this.mode === 'measure') {
+      if (!hit || hit.kind !== 'structure') return;
       if (this.points.length >= 2) this.points = [];
       this.points.push(hit.pointMm);
       this.redrawMeasurement();
       this.onMeasureHandler?.(this.measurementPoints());
       return;
     }
-    if (hit.kind === 'structure') this.onPickHandler?.(hit);
+    this.onPickHandler?.(hit);
   };
 
-  private cast(event: PointerEvent, targets: THREE.Object3D[]): PickHit | null {
+  private cast(clientX: number, clientY: number): PickHit | null {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return null;
-    this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    this.raycaster.setFromCamera(this.pointer, this.camera);
-    const hits = this.raycaster.intersectObjects(targets, false);
-    const hit = hits.find((item) => isShown(item.object));
-    if (!hit) return null;
-    const local = this.world.worldToLocal(hit.point.clone());
-    const kind = hit.object.userData.kind === 'ct' ? 'ct' : 'structure';
+    const gathered: Gathered[] = [];
+    for (const sample of touchSampleOffsets()) {
+      const x = clientX + sample.x;
+      const y = clientY + sample.y;
+      this.pointer.x = ((x - rect.left) / rect.width) * 2 - 1;
+      this.pointer.y = -((y - rect.top) / rect.height) * 2 + 1;
+      this.raycaster.setFromCamera(this.pointer, this.camera);
+      const hits = this.raycaster.intersectObjects(this.pickables, false);
+      for (const hit of hits) {
+        if (!isShown(hit.object)) continue;
+        const structureId = String(hit.object.userData.structureId ?? '');
+        if (!structureId) continue;
+        const record = this.records.get(structureId);
+        gathered.push({
+          structureId,
+          distance: hit.distance,
+          size: record?.size ?? 1e6,
+          central: sample.central,
+          envelope: record?.envelope,
+          point: hit.point.clone(),
+          kind: 'structure',
+        });
+      }
+    }
+    const chosen = choosePick(gathered);
+    if (!chosen) return null;
+    const same = gathered.filter((item) => item.structureId === chosen.structureId);
+    const central = same.filter((item) => item.central).sort((a, b) => a.distance - b.distance)[0];
+    const pointHit = central ?? same.sort((a, b) => a.distance - b.distance)[0];
+    if (!pointHit) return null;
+    const local = this.world.worldToLocal(pointHit.point.clone());
     return {
-      structureId: String(hit.object.userData.structureId ?? ''),
+      structureId: chosen.structureId,
       pointMm: [local.x, local.y, local.z],
-      kind,
+      kind: pointHit.kind,
     };
   }
 }

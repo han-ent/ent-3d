@@ -24,42 +24,31 @@
 
 ## content/*.json
 
-구조마다 해부, 기능, 수술 포인트를 한 파일에 둡니다. 섹션은 저마다 `source`와 `status`를 가집니다.
+구조마다 해부, 기능, 수술 포인트, 출처를 한 파일에 둡니다. 문안 초안은 이 모양 그대로 넣습니다. 문장을 코드에서 고치지 않습니다.
 
 ```json
 {
-  "id": "chorda_tympani",
-  "model_version": "openear-zeta-sample-0",
-  "info": {
-    "summary": { "ko": "[샘플] 해부 설명", "en": "[Sample] anatomy" },
-    "source": "어디에 근거했는지",
-    "status": "미검증"
-  },
-  "function": {
-    "physiology": { "text": { "ko": "", "en": "" }, "source": "", "status": "미검증" },
-    "injury": { "text": { "ko": "", "en": "" }, "source": "", "status": "미검증" },
-    "tests": { "text": { "ko": "", "en": "" }, "source": "", "status": "미검증" }
-  },
-  "related": ["facial_nerve"],
+  "id": "chorda-tympani",
+  "model_version": "openear-zeta-ras-1",
+  "anatomy": { "ko": "해부 문장", "en": "" },
+  "function": { "ko": "기능 문장", "en": "" },
   "surgical_points": [
-    {
-      "id": "chorda-origin",
-      "title": { "ko": "", "en": "" },
-      "body": { "ko": "", "en": "" },
-      "position_mm": [0, 0, 0],
-      "source": "",
-      "status": "미검증"
-    }
-  ]
+    { "id": "chorda-tympani-p1", "text": { "ko": "수술 문장", "en": "" } }
+  ],
+  "sources": [
+    { "citation": "책, 장", "page": "123", "verified": true }
+  ],
+  "review": "미검증",
+  "related": ["facial-nerve"]
 }
 ```
 
-- `info`는 해부입니다.
-- `function.physiology`는 생리적 역할, `injury`는 손상·기능 이상의 임상 결과, `tests`는 관련 검사입니다.
-- `related`는 생략할 수 있는 구조 id 목록입니다. 정보 패널에서 이름을 누르면 그 메시가 강조됩니다. 자기 자신이나 목록에 없는 id는 거부됩니다. 예: 고실끈신경 → `facial_nerve`.
-- `surgical_points[].position_mm`는 표본 밀리미터입니다. 뷰어 오프셋을 더하지 않습니다.
-
-지금 들어 있는 문장은 모두 `[샘플]`이고 상태는 `미검증`입니다. 검토자가 채우기 전의 자리입니다.
+- `anatomy`와 `function`은 한국어·영어 문장입니다. `[샘플]`이 들어 있으면 화면은 이름과 "설명 준비 중"만 보여 줍니다.
+- `sources[].verified`가 false이면 그 출처와, 본문에 "확인하지 못해"가 있는 문장에 "출처 확인 필요"를 붙입니다. 문장은 그대로입니다.
+- `review`는 `미검증` 또는 `YS 검수 완료`입니다.
+- `related`는 생략할 수 있는 구조 id입니다. 자기 자신이나 없는 id는 거부됩니다.
+- `surgical_points[].position_mm`는 있을 때만 둡니다. 좌표가 있으면 `source`와 `review`가 필요합니다. 뷰어 오프셋을 더하지 않습니다.
+- 와우 초안은 와우 메시가 없어 `scala-vestibuli.json`과 `scala-tympani.json`에 같은 문장으로 둡니다. S상정맥동 초안은 `sinus-dura.json`에 둡니다.
 
 ## presets.json
 
