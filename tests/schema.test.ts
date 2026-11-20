@@ -95,7 +95,9 @@ describe('temporal-bone manifest and content', () => {
   });
 
   it('validates presets and the CT volume, and every slice file exists', () => {
-    const presets = readJson(resolve(data, 'presets.json'));
+    const presets = readJson(resolve(data, 'presets.json')) as {
+      sequences: { id: string; steps: { id: string; identify: string[]; danger: string[] }[] }[];
+    };
     const volume = readJson(resolve(data, 'ct/volume.json')) as {
       dims: number[];
       spacing_mm: number[];
@@ -105,7 +107,15 @@ describe('temporal-bone manifest and content', () => {
       planes: Record<string, { axis: number; folder: string }>;
       model_version: string;
     };
-    expect(validatePresets(presets)).toEqual([]);
+    expect(validatePresets(presets, knownIds)).toEqual([]);
+    const mastoidectomy = presets.sequences.find((sequence) => sequence.id === 'mastoidectomy');
+    expect(mastoidectomy?.steps.map((step) => step.id)).toEqual([
+      'cortical-mastoidectomy',
+      'antrum',
+      'identify-facial-nerve',
+      'posterior-tympanotomy',
+    ]);
+    expect(mastoidectomy?.steps[3]?.danger).toEqual(['facial-nerve', 'chorda-tympani']);
     expect(validateVolume(volume)).toEqual([]);
     expect(volume.model_version).toBe(manifest.model_version);
     expect(volume.texture_flip_y).toBe(false);

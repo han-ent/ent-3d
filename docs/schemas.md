@@ -63,7 +63,19 @@
 
 ## presets.json
 
-`presets[]`는 `camera.position`, `camera.target`, 선택적 `up`과 `fov`, 선택적 `clipping`입니다. 자르기 평면은 표본 공간에서 `dot(normal, p) + constant >= 0`인 쪽을 남깁니다. 뷰어가 오프셋만큼 평행이동한 뒤 Three.js 월드 평면으로 바꿉니다.
+`sequences[]` 안의 `steps[]`가 절제 순서입니다. 배열 순서가 진행 순서입니다. 드릴은 없고, 설계는 [dissection-lab.md](dissection-lab.md)에 있습니다.
+
+각 단계:
+
+| 필드 | 의미 |
+| --- | --- |
+| `title`, `instructions` | 한국어·영어. 문안은 검토 전 |
+| `identify` | 이 단계에서 찾을 구조 id |
+| `danger` | 위험 구조 id. 거리 계산은 아직 없음 |
+| `camera` | `position`, `target`, 선택적 `up`, `fov`. 표본 밀리미터 |
+| `clipping` | 선택. `dot(normal, p) + constant >= 0` 인 쪽을 남김 |
+
+뷰어가 오프셋만큼 평행이동한 뒤 자르기 평면을 Three.js 월드 좌표로 바꿉니다.
 
 ## ct/volume.json
 

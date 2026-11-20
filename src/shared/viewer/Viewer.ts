@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
-import type { Vec3, ViewPreset } from '../types';
+import type { DissectionStep, Vec3 } from '../types';
 
 export type PickHit = {
   structureId: string;
@@ -229,10 +229,10 @@ export class EntViewer {
     this.setClipping(null);
   }
 
-  applyPreset(preset: ViewPreset): void {
+  applyPreset(preset: Pick<DissectionStep, 'camera' | 'clipping'>): void {
     const position = preset.camera.position;
     const target = preset.camera.target;
-    const up = preset.camera.up ?? [0, 1, 0];
+    const up = preset.camera.up ?? [0, 0, 1];
     this.camera.up.set(up[0], up[1], up[2]);
     this.camera.position.set(position[0] + this.offset[0], position[1] + this.offset[1], position[2] + this.offset[2]);
     this.controls.target.set(target[0] + this.offset[0], target[1] + this.offset[1], target[2] + this.offset[2]);

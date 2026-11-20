@@ -98,26 +98,42 @@ export type StructureContent = {
   surgical_points: SurgicalPoint[];
 };
 
-export type ViewPreset = {
+export type CameraPose = {
+  position: Vec3;
+  target: Vec3;
+  up?: Vec3;
+  fov?: number;
+};
+
+export type ClippingPlane = {
+  enabled: boolean;
+  normal: Vec3;
+  constant: number;
+};
+
+/** One ordered step in a dissection sequence. Drilling is not implemented. */
+export type DissectionStep = {
   id: string;
-  name: Localized;
-  camera: {
-    position: Vec3;
-    target: Vec3;
-    up?: Vec3;
-    fov?: number;
-  };
-  clipping?: {
-    enabled: boolean;
-    normal: Vec3;
-    constant: number;
-  };
+  title: Localized;
+  instructions: Localized;
+  /** Structure ids the learner should identify at this step. */
+  identify: string[];
+  /** Structure ids that are at risk. Distances are not computed yet. */
+  danger: string[];
+  camera: CameraPose;
+  clipping?: ClippingPlane;
+};
+
+export type DissectionSequence = {
+  id: string;
+  title: Localized;
+  steps: DissectionStep[];
 };
 
 export type PresetFile = {
   model_version: string;
   note: Localized;
-  presets: ViewPreset[];
+  sequences: DissectionSequence[];
 };
 
 export type VolumeMeta = {

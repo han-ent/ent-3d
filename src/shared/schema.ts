@@ -214,51 +214,96 @@ export function validateContent(data: unknown, expectedId?: string, knownIds?: R
   return issues;
 }
 
-export function validatePresets(data: unknown): SchemaIssue[] {
+function idList(value: unknown, path: string, issues: SchemaIssue[], knownIds?: ReadonlySet<string>): void {
+  if (!Array.isArray(value)) {
+    issues.push({ path, message: 'expected an array of structure ids' });
+    return;
+  }
+  const seen = new Set<string>();
+  value.forEach((id, index) => {
+    const itemPath = `${path}[${index}]`;
+    if (typeof id !== 'string' || id.trim() === '') {
+      issues.push({ path: itemPath, message: 'expected a structure id' });
+      return;
+    }
+    if (seen.has(id)) issues.push({ path: itemPath, message: 'duplicate structure id' });
+    seen.add(id);
+    if (knownIds && !knownIds.has(id)) issues.push({ path: itemPath, message: `unknown structure id ${id}` });
+  });
+}
+
+function cameraFields(camera: unknown, path: string, issues: SchemaIssue[]): void {
+  if (!isObject(camera)) {
+    issues.push({ path, message: 'expected object' });
+    return;
+  }
+  vec3(camera.position, `${path}.position`, issues);
+  vec3(camera.target, `${path}.target`, issues);
+  if (camera.up !== undefined) vec3(camera.up, `${path}.up`, issues);
+  if (camera.fov !== undefined && (!isNum(camera.fov) || camera.fov <= 0 || camera.fov >= 180)) {
+    issues.push({ path: `${path}.fov`, message: 'fov must be between 0 and 180' });
+  }
+}
+
+function clippingFields(clipping: unknown, path: string, issues: SchemaIssue[]): void {
+  if (!isObject(clipping)) {
+    issues.push({ path, message: 'expected object' });
+    return;
+  }
+  if (typeof clipping.enabled !== 'boolean') {
+    issues.push({ path: `${path}.enabled`, message: 'expected boolean' });
+  }
+  vec3(clipping.normal, `${path}.normal`, issues);
+  if (!isNum(clipping.constant)) {
+    issues.push({ path: `${path}.constant`, message: 'expected number (mm, specimen space)' });
+  }
+}
+
+export function validatePresets(data: unknown, knownIds?: ReadonlySet<string>): SchemaIssue[] {
   const issues: SchemaIssue[] = [];
   if (!isObject(data)) return [{ path: '', message: 'presets must be an object' }];
   stringField(data, 'model_version', '', issues);
   localized(data.note, 'note', issues);
-  if (!Array.isArray(data.presets) || data.presets.length === 0) {
-    issues.push({ path: 'presets', message: 'expected non-empty array' });
+  if (!Array.isArray(data.sequences) || data.sequences.length === 0) {
+    issues.push({ path: 'sequences', message: 'expected a non-empty ordered list of sequences' });
     return issues;
   }
-  const ids = new Set<string>();
-  data.presets.forEach((preset, i) => {
-    const path = `presets[${i}]`;
-    if (!isObject(preset)) {
+  const sequenceIds = new Set<string>();
+  const stepIds = new Set<string>();
+  data.sequences.forEach((sequence, sequenceIndex) => {
+    const path = `sequences[${sequenceIndex}]`;
+    if (!isObject(sequence)) {
       issues.push({ path, message: 'expected object' });
       return;
     }
-    if (typeof preset.id !== 'string' || ids.has(preset.id)) {
-      issues.push({ path: `${path}.id`, message: 'expected unique id' });
+    if (typeof sequence.id !== 'string' || sequenceIds.has(sequence.id)) {
+      issues.push({ path: `${path}.id`, message: 'expected a unique id' });
     } else {
-      ids.add(preset.id);
+      sequenceIds.add(sequence.id);
     }
-    localized(preset.name, `${path}.name`, issues);
-    if (!isObject(preset.camera)) {
-      issues.push({ path: `${path}.camera`, message: 'expected object' });
-    } else {
-      vec3(preset.camera.position, `${path}.camera.position`, issues);
-      vec3(preset.camera.target, `${path}.camera.target`, issues);
-      if (preset.camera.up !== undefined) vec3(preset.camera.up, `${path}.camera.up`, issues);
-      if (preset.camera.fov !== undefined && (!isNum(preset.camera.fov) || preset.camera.fov <= 0 || preset.camera.fov >= 180)) {
-        issues.push({ path: `${path}.camera.fov`, message: 'fov must be between 0 and 180' });
+    localized(sequence.title, `${path}.title`, issues);
+    if (!Array.isArray(sequence.steps) || sequence.steps.length === 0) {
+      issues.push({ path: `${path}.steps`, message: 'expected a non-empty ordered list of steps' });
+      return;
+    }
+    sequence.steps.forEach((step, stepIndex) => {
+      const stepPath = `${path}.steps[${stepIndex}]`;
+      if (!isObject(step)) {
+        issues.push({ path: stepPath, message: 'expected object' });
+        return;
       }
-    }
-    if (preset.clipping !== undefined) {
-      if (!isObject(preset.clipping)) {
-        issues.push({ path: `${path}.clipping`, message: 'expected object' });
+      if (typeof step.id !== 'string' || stepIds.has(step.id)) {
+        issues.push({ path: `${stepPath}.id`, message: 'expected a unique id' });
       } else {
-        if (typeof preset.clipping.enabled !== 'boolean') {
-          issues.push({ path: `${path}.clipping.enabled`, message: 'expected boolean' });
-        }
-        vec3(preset.clipping.normal, `${path}.clipping.normal`, issues);
-        if (!isNum(preset.clipping.constant)) {
-          issues.push({ path: `${path}.clipping.constant`, message: 'expected number (mm, specimen space)' });
-        }
+        stepIds.add(step.id);
       }
-    }
+      localized(step.title, `${stepPath}.title`, issues);
+      localized(step.instructions, `${stepPath}.instructions`, issues);
+      idList(step.identify, `${stepPath}.identify`, issues, knownIds);
+      idList(step.danger, `${stepPath}.danger`, issues, knownIds);
+      cameraFields(step.camera, `${stepPath}.camera`, issues);
+      if (step.clipping !== undefined) clippingFields(step.clipping, `${stepPath}.clipping`, issues);
+    });
   });
   return issues;
 }

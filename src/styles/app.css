@@ -273,6 +273,34 @@ a { color: var(--teal); }
 
 .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
 
+.step-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+
+.step-btn {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-align: left;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.step-btn.is-active {
+  border-color: var(--teal);
+  background: #e7f4f6;
+}
+
+.step-num {
+  flex: none;
+  font-weight: 800;
+  color: var(--teal);
+}
+
+.chips { list-style: none; margin: 0; padding: 0; }
+
 .btn {
   flex: 1 1 calc(50% - 6px);
   min-width: 0;

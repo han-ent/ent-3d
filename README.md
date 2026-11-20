@@ -54,7 +54,7 @@ npm run preview
 4. `public/temporal-bone/content/<id>.json` 을 만듭니다. 형식은 [docs/schemas.md](docs/schemas.md) 입니다.
 5. 새 묶음이면 `layers`에 추가합니다.
 6. CT를 바꿀 때는 `ct/volume.json`의 간격·원점·방향·크기와 슬라이스 PNG를 맞춥니다.
-7. 수술 시점은 `presets.json` 입니다. 카메라와 자르기 평면은 표본 밀리미터입니다.
+7. 절제 순서는 `presets.json`의 `sequences[].steps[]` 입니다. 단계마다 제목, 안내, 확인할 구조, 위험 구조, 카메라, 선택적 자르기가 있고, 배열 순서가 진행 순서입니다. 뼈를 갈아내는 기능은 없습니다. 설계는 [docs/dissection-lab.md](docs/dissection-lab.md) 입니다.
 
 지금 `public/temporal-bone` 은 OpenEar ZETA입니다. glb는 Draco 압축이고, CT는 `ct/{axial,coronal,sagittal}/*.webp` (0.25 mm)입니다. Draco 디코더는 `public/draco/` 에 있고 three 패키지에서 복사한 것이며 외부 CDN을 쓰지 않습니다.
 

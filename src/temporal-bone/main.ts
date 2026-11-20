@@ -6,7 +6,7 @@ import { fetchJson, publicUrl } from '../shared/paths';
 import { registerServiceWorker } from '../shared/pwa';
 import { grade, makeLocateQuestion, makeNameQuestion, type QuizQuestion } from '../shared/quiz';
 import { formatIssues, validateContent, validateManifest, validatePresets, validateVolume } from '../shared/schema';
-import type { Manifest, PresetFile, StructureContent, Vec3, VolumeMeta } from '../shared/types';
+import type { DissectionStep, Manifest, PresetFile, StructureContent, Vec3, VolumeMeta } from '../shared/types';
 import { statusBadge } from '../shared/ui/badge';
 import { renderFooter, renderHeader } from '../shared/ui/chrome';
 import { EntViewer, type PickHit } from '../shared/viewer/Viewer';
@@ -63,7 +63,9 @@ workspace.innerHTML = `
     <section class="card">
       <h2 data-i18n="presets.title"></h2>
       <p class="hint" data-i18n="presets.note"></p>
-      <div class="btn-row" id="preset-row"></div>
+      <div class="btn-row" id="sequence-row"></div>
+      <div class="step-list" id="step-list"></div>
+      <div id="step-detail"></div>
       <p class="hint" id="clip-note" hidden></p>
     </section>
     <section class="card">
@@ -102,7 +104,9 @@ const measureReadout = workspace.querySelector<HTMLElement>('#measure-readout')!
 const measureText = workspace.querySelector<HTMLElement>('#measure-text')!;
 const panel = workspace.querySelector<HTMLElement>('#panel')!;
 const infoCard = workspace.querySelector<HTMLElement>('#info-card')!;
-const presetRow = workspace.querySelector<HTMLElement>('#preset-row')!;
+const sequenceRow = workspace.querySelector<HTMLElement>('#sequence-row')!;
+const stepList = workspace.querySelector<HTMLElement>('#step-list')!;
+const stepDetail = workspace.querySelector<HTMLElement>('#step-detail')!;
 const clipNote = workspace.querySelector<HTMLElement>('#clip-note')!;
 const layersEl = workspace.querySelector<HTMLElement>('#layers')!;
 const ctControls = workspace.querySelector<HTMLElement>('#ct-controls')!;
@@ -118,7 +122,8 @@ let volume: VolumeMeta | null = null;
 let viewer: EntViewer | null = null;
 let mode: 'view' | 'measure' | 'quiz' = 'view';
 let selected: string | null = null;
-let activePreset: string | null = 'frame';
+let activeSequence = '';
+let activeStep: string | null = null;
 const linked = new Set<string>();
 let quiz: QuizState | null = null;
 const planeState: Record<PlaneName, { visible: boolean; index: number; opacity: number }> = {
@@ -175,16 +180,75 @@ function paintStatic(): void {
   renderCtLabels();
 }
 
+function structureName(id: string): string {
+  const structure = manifest?.structures.find((item) => item.id === id);
+  return structure ? text(structure.name) : id;
+}
+
+function findStep(id: string): DissectionStep | undefined {
+  for (const sequence of presets?.sequences ?? []) {
+    const step = sequence.steps.find((item) => item.id === id);
+    if (step) return step;
+  }
+  return undefined;
+}
+
 function renderPresetLabels(): void {
-  presetRow.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((button) => {
-    const id = button.dataset.preset;
-    if (id === 'frame') button.textContent = t('mode.frame');
-    else {
-      const preset = presets?.presets.find((item) => item.id === id);
-      if (preset) button.textContent = text(preset.name);
-    }
-    button.classList.toggle('is-active', id === activePreset);
+  sequenceRow.querySelectorAll<HTMLButtonElement>('[data-sequence]').forEach((button) => {
+    const id = button.dataset.sequence ?? '';
+    const sequence = presets?.sequences.find((item) => item.id === id);
+    if (sequence) button.textContent = text(sequence.title);
+    button.classList.toggle('is-active', id === activeSequence);
   });
+  stepList.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((button) => {
+    if (button.dataset.step === 'frame') button.textContent = t('mode.frame');
+    const step = findStep(button.dataset.step ?? '');
+    const title = button.querySelector('[data-step-title]');
+    if (step && title) title.textContent = text(step.title);
+    button.classList.toggle('is-active', button.dataset.step === activeStep);
+  });
+  renderStepDetail();
+}
+
+function renderStepDetail(): void {
+  const step = activeStep ? findStep(activeStep) : undefined;
+  if (!step) {
+    stepDetail.replaceChildren();
+    return;
+  }
+  const names = (ids: string[]) =>
+    ids.length
+      ? `<ul class="chips">${ids.map((id) => `<li><button type="button" class="chip" data-step-structure="${escapeHtml(id)}">${escapeHtml(structureName(id))}</button></li>`).join('')}</ul>`
+      : `<p class="hint">${escapeHtml(t('presets.none'))}</p>`;
+  stepDetail.innerHTML = `
+    <p>${escapeHtml(text(step.instructions))}</p>
+    <h3>${escapeHtml(t('presets.identify'))}</h3>
+    ${names(step.identify)}
+    <h3>${escapeHtml(t('presets.danger'))}</h3>
+    ${names(step.danger)}
+  `;
+  stepDetail.querySelectorAll<HTMLButtonElement>('[data-step-structure]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.stepStructure ?? '';
+      if (!id || mode === 'quiz') return;
+      selected = id;
+      viewer?.select(id);
+      if (step.danger.length) viewer?.link(step.danger);
+      renderInfo();
+      renderLayerLabels();
+    });
+  });
+}
+
+function showDanger(step: DissectionStep): void {
+  const focus = step.identify[0] ?? null;
+  viewer?.select(focus);
+  if (step.danger.length) viewer?.link(step.danger);
+  if (focus) {
+    selected = focus;
+    renderInfo();
+    renderLayerLabels();
+  }
 }
 
 function renderLayerLabels(): void {
@@ -461,34 +525,65 @@ async function syncPlane(plane: PlaneName): Promise<void> {
   renderCtLabels();
 }
 
-function buildPresets(): void {
-  presetRow.replaceChildren();
+function applyStep(step: DissectionStep): void {
+  activeStep = step.id;
+  viewer?.applyPreset(step);
+  const clipping = step.clipping?.enabled === true;
+  clipNote.hidden = !clipping;
+  clipNote.textContent = clipping ? t('presets.clipOn') : '';
+  showDanger(step);
+  renderPresetLabels();
+}
+
+function renderSequenceSteps(): void {
+  const sequence = presets?.sequences.find((item) => item.id === activeSequence);
+  stepList.replaceChildren();
   const frame = document.createElement('button');
   frame.type = 'button';
-  frame.className = 'btn';
-  frame.dataset.preset = 'frame';
+  frame.className = 'step-btn';
+  frame.dataset.step = 'frame';
+  frame.textContent = t('mode.frame');
   frame.addEventListener('click', () => {
-    activePreset = 'frame';
+    activeStep = 'frame';
     viewer?.frameAll();
+    viewer?.select(null);
+    selected = null;
     clipNote.hidden = true;
+    renderInfo();
+    renderLayerLabels();
     renderPresetLabels();
   });
-  presetRow.append(frame);
-  for (const preset of presets?.presets ?? []) {
+  stepList.append(frame);
+  sequence?.steps.forEach((step, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'step-btn';
+    button.dataset.step = step.id;
+    button.innerHTML = `<span class="step-num">${index + 1}</span><span data-step-title></span>`;
+    button.addEventListener('click', () => applyStep(step));
+    stepList.append(button);
+  });
+}
+
+function buildPresets(): void {
+  sequenceRow.replaceChildren();
+  activeSequence = presets?.sequences[0]?.id ?? '';
+  for (const sequence of presets?.sequences ?? []) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'btn';
-    button.dataset.preset = preset.id;
+    button.dataset.sequence = sequence.id;
     button.addEventListener('click', () => {
-      activePreset = preset.id;
-      viewer?.applyPreset(preset);
-      const clipping = preset.clipping?.enabled === true;
-      clipNote.hidden = !clipping;
-      clipNote.textContent = clipping ? t('presets.clipOn') : '';
+      activeSequence = sequence.id;
+      activeStep = null;
+      stepDetail.replaceChildren();
+      clipNote.hidden = true;
+      renderSequenceSteps();
       renderPresetLabels();
     });
-    presetRow.append(button);
+    sequenceRow.append(button);
   }
+  renderSequenceSteps();
   renderPresetLabels();
 }
 
@@ -634,7 +729,7 @@ async function boot(): Promise<void> {
   contents = new Map(contentPairs);
 
   presets = await fetchJson<PresetFile>(publicUrl(`${DATA}/presets.json`));
-  const presetIssues = validatePresets(presets);
+  const presetIssues = validatePresets(presets, knownIds);
   if (presetIssues.length) throw new Error(formatIssues(presetIssues));
 
   volume = await fetchJson<VolumeMeta>(publicUrl(`${DATA}/ct/volume.json`));
@@ -668,7 +763,7 @@ async function boot(): Promise<void> {
   buildLayers();
   buildCt();
   viewer.frameAll();
-  activePreset = 'frame';
+  activeStep = null;
   stageStatus.hidden = true;
   if (failures.length) {
     banner.textContent = `${t('temporal.loadError')} ${failures.join(', ')}`;
