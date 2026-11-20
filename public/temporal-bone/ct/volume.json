@@ -1,18 +1,64 @@
 {
-  "id": "sample-ct",
+  "id": "openear-zeta-cbct",
   "label": {
-    "ko": "샘플 CT. 자리표시 메시와 같은 밀리미터 공간에 둔 합성 슬라이스이며 OpenEar CT가 아닙니다.",
-    "en": "Sample CT. Synthetic slices in the same millimetre space as the placeholder meshes, not OpenEar CT."
+    "ko": "OpenEar ZETA CBCT. 0.25 mm, RAS. 파일 행 0은 앞 또는 위. texture.flipY는 false.",
+    "en": "OpenEar ZETA CBCT. 0.25 mm, RAS. File row 0 is anterior or superior. texture.flipY is false."
   },
-  "model_version": "openear-zeta-sample-0",
-  "spacing_mm": [3, 3, 3],
-  "origin_mm": [-18, -15, -18],
-  "direction": [1, 0, 0, 0, 1, 0, 0, 0, 1],
-  "dims": [14, 12, 12],
+  "model_version": "openear-zeta-ras-1",
+  "spacing_mm": [
+    0.25,
+    0.25,
+    0.25
+  ],
+  "origin_mm": [
+    -19.744400024414062,
+    -7.682730197906494,
+    -1.6732300519943237
+  ],
+  "direction": [
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1
+  ],
+  "dims": [
+    334,
+    294,
+    313
+  ],
   "voxel_origin": "center",
+  "texture_flip_y": false,
+  "index_digits": 3,
+  "file_extension": "webp",
   "planes": {
-    "axial": { "axis": 1, "folder": "ct/axial" },
-    "coronal": { "axis": 2, "folder": "ct/coronal" },
-    "sagittal": { "axis": 0, "folder": "ct/sagittal" }
+    "axial": {
+      "axis": 2,
+      "folder": "ct/axial",
+      "col_axis": 0,
+      "row_axis": 1,
+      "row_0_is_max": true,
+      "initial_index": 161
+    },
+    "coronal": {
+      "axis": 1,
+      "folder": "ct/coronal",
+      "col_axis": 0,
+      "row_axis": 2,
+      "row_0_is_max": true,
+      "initial_index": 121
+    },
+    "sagittal": {
+      "axis": 0,
+      "folder": "ct/sagittal",
+      "col_axis": 1,
+      "row_axis": 2,
+      "row_0_is_max": true,
+      "initial_index": 167
+    }
   }
 }

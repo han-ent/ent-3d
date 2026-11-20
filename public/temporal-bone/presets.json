@@ -1,48 +1,101 @@
 {
-  "model_version": "openear-zeta-sample-0",
+  "model_version": "openear-zeta-ras-1",
   "note": {
-    "ko": "카메라와 자르기 평면은 표본 밀리미터입니다. 자르기는 dot(normal, p) + constant >= 0 인 쪽을 남깁니다. 숫자는 샘플 형상에 맞춘 시작값이라 나중에 고쳐야 합니다.",
-    "en": "Camera and clipping planes are in specimen millimetres. Clipping keeps points where dot(normal, p) + constant >= 0. These numbers are starting values for the sample geometry and are meant to be tuned."
+    "ko": "오른쪽 귀, RAS 밀리미터. 자르기는 dot(normal, p) + constant >= 0 인 쪽을 남깁니다. 시작값이라 검수 때 고칩니다.",
+    "en": "Right ear, RAS millimetres. Clipping keeps dot(normal, p) + constant >= 0. These are starting values to tune during review."
   },
   "presets": [
     {
       "id": "mastoidectomy",
-      "name": { "ko": "유양돌기 절제술", "en": "Mastoidectomy" },
+      "name": {
+        "ko": "유양돌기 절제술",
+        "en": "Mastoidectomy"
+      },
       "camera": {
-        "position": [16, 7, -18],
-        "target": [2, 0, -6],
-        "up": [0, 1, 0],
+        "position": [
+          62,
+          0,
+          48
+        ],
+        "target": [
+          30,
+          18,
+          30
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
         "fov": 42
       },
       "clipping": {
         "enabled": true,
-        "normal": [0, 0, 1],
-        "constant": 8
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "constant": 42
       }
     },
     {
       "id": "transcanal",
-      "name": { "ko": "경외이도", "en": "Transcanal" },
+      "name": {
+        "ko": "경외이도",
+        "en": "Transcanal"
+      },
       "camera": {
-        "position": [20, 0.3, 0.2],
-        "target": [0, 0, 0],
-        "up": [0, 1, 0],
-        "fov": 28
+        "position": [
+          52,
+          25,
+          27
+        ],
+        "target": [
+          24,
+          25,
+          31
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
+        "fov": 26
       }
     },
     {
       "id": "middle-cranial-fossa",
-      "name": { "ko": "중두개와", "en": "Middle cranial fossa" },
+      "name": {
+        "ko": "중두개와",
+        "en": "Middle cranial fossa"
+      },
       "camera": {
-        "position": [-4, 26, 2],
-        "target": [-5, 1, 0],
-        "up": [0, 0, 1],
-        "fov": 42
+        "position": [
+          20,
+          20,
+          88
+        ],
+        "target": [
+          20,
+          22,
+          38
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fov": 40
       },
       "clipping": {
         "enabled": true,
-        "normal": [0, -1, 0],
-        "constant": 5.5
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "constant": 46
       }
     }
   ]

@@ -27,7 +27,9 @@ describe('temporal-bone manifest and content', () => {
     expect(validateManifest(manifest)).toEqual([]);
     expect(manifest.model_version).toBe(manifest.specimen.model_version);
     expect(manifest.coordinate_system.units).toBe('mm');
-    expect(manifest.viewer_offset_mm).toEqual([0, 0, 0]);
+    expect(manifest.viewer_offset_mm.every((value) => value < 0)).toBe(true);
+    expect(manifest.specimen.geometry).toBe('openear');
+    expect(manifest.structures.every((structure) => structure.status === '미검증')).toBe(true);
   });
 
   it('rejects a structure scale', () => {
@@ -53,10 +55,10 @@ describe('temporal-bone manifest and content', () => {
   });
 
   it('links chorda tympani to the facial nerve', () => {
-    const chorda = readJson(resolve(data, 'content/chorda_tympani.json')) as StructureContent;
-    const facial = readJson(resolve(data, 'content/facial_nerve.json')) as StructureContent;
-    expect(chorda.related).toEqual(['facial_nerve']);
-    expect(facial.related).toContain('chorda_tympani');
+    const chorda = readJson(resolve(data, 'content/chorda-tympani.json')) as StructureContent;
+    const facial = readJson(resolve(data, 'content/facial-nerve.json')) as StructureContent;
+    expect(chorda.related).toEqual(['facial-nerve']);
+    expect(facial.related).toContain('chorda-tympani');
   });
 
   it('rejects a function block without its own status', () => {
@@ -76,16 +78,19 @@ describe('temporal-bone manifest and content', () => {
     expect(validateContent(unknown, 'malleus', knownIds).some((issue) => issue.message.includes('unknown'))).toBe(true);
   });
 
-  it('keeps placeholder meshes in millimetres and labeled SAMPLE', () => {
+  it('keeps Draco meshes in original millimetres, without a node scale', () => {
     for (const structure of manifest.structures) {
+      const buf = readFileSync(resolve(data, structure.file));
+      const jsonLength = buf.readUInt32LE(12);
+      const json = buf.subarray(20, 20 + jsonLength).toString('utf8');
+      expect(json, structure.id).toContain('KHR_draco_mesh_compression');
       const doc = gltf(resolve(data, structure.file));
-      expect(doc.nodes?.[0]?.name).toContain('SAMPLE');
       expect(doc.nodes?.[0]?.scale).toBeUndefined();
       const position = doc.accessors.find((accessor) => accessor.type === 'VEC3' && accessor.min && accessor.max);
       expect(position?.min && position.max).toBeTruthy();
       const values = [...position!.min!, ...position!.max!];
       expect(values.some((value) => Math.abs(value) > 1)).toBe(true);
-      expect(values.every((value) => Math.abs(value) < 40)).toBe(true);
+      expect(values.every((value) => Math.abs(value) < 120)).toBe(true);
     }
   });
 
@@ -93,18 +98,30 @@ describe('temporal-bone manifest and content', () => {
     const presets = readJson(resolve(data, 'presets.json'));
     const volume = readJson(resolve(data, 'ct/volume.json')) as {
       dims: number[];
+      spacing_mm: number[];
+      index_digits: number;
+      file_extension: string;
+      texture_flip_y: boolean;
       planes: Record<string, { axis: number; folder: string }>;
       model_version: string;
     };
     expect(validatePresets(presets)).toEqual([]);
     expect(validateVolume(volume)).toEqual([]);
     expect(volume.model_version).toBe(manifest.model_version);
-    expect(volume.planes.axial?.axis).toBe(1);
-    expect(volume.planes.coronal?.axis).toBe(2);
+    expect(volume.texture_flip_y).toBe(false);
+    expect(volume.spacing_mm).toEqual([0.25, 0.25, 0.25]);
+    expect(volume.planes.axial?.axis).toBe(2);
+    expect(volume.planes.coronal?.axis).toBe(1);
     expect(volume.planes.sagittal?.axis).toBe(0);
+    const sinus = manifest.layers.find((layer) => layer.id === 'sinus');
+    expect(sinus?.opacity).toBeLessThan(0.5);
+    expect(sinus?.name.ko).toContain('구불정맥굴');
+    expect(manifest.missing_structures?.map((item) => item.name)).toEqual(
+      expect.arrayContaining(['Semicircular canals', 'Jugular bulb']),
+    );
     for (const plane of Object.values(volume.planes)) {
       for (let index = 0; index < volume.dims[plane.axis]!; index += 1) {
-        const file = resolve(data, plane.folder, `${String(index).padStart(2, '0')}.png`);
+        const file = resolve(data, plane.folder, `${String(index).padStart(volume.index_digits, '0')}.${volume.file_extension}`);
         expect(existsSync(file), file).toBe(true);
       }
     }

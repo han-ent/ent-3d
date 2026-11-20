@@ -1,11 +1,16 @@
 /**
  * Writes tiny SAMPLE glb meshes and synthetic CT slices.
- * Geometry is in millimetres and is not scaled. Re-running overwrites
- * models/ and ct slice pngs only — it does not touch content JSON.
+ * The published temporal-bone folder now holds real OpenEar ZETA assets.
+ * This script refuses to overwrite them unless --replace-with-sample is passed.
  */
 import { deflateSync } from 'node:zlib';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+
+if (!process.argv.includes('--replace-with-sample')) {
+  console.error('Refusing to overwrite the OpenEar ZETA assets. Pass --replace-with-sample to restore the tiny sample.');
+  process.exit(1);
+}
 
 const root = resolve(import.meta.dirname, '..');
 const dataDir = resolve(root, 'public/temporal-bone');

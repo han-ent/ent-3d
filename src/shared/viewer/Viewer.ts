@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { Vec3, ViewPreset } from '../types';
@@ -55,6 +57,7 @@ export class EntViewer {
   private structures = new THREE.Group();
   private measures = new THREE.Group();
   private loader = new GLTFLoader();
+  private draco = new DRACOLoader();
   private records = new Map<string, StructureRecord>();
   private pickables: THREE.Object3D[] = [];
   private measureTargets: THREE.Object3D[] = [];
@@ -82,8 +85,12 @@ export class EntViewer {
     this.renderer.localClippingEnabled = true;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene.background = new THREE.Color('#121a21');
+    // Decoder files are copied from the three package into public/draco.
+    this.draco.setDecoderPath(publicUrl('draco/'));
+    this.loader.setDRACOLoader(this.draco);
 
     this.camera = new THREE.PerspectiveCamera(DEFAULT_FOV, 1, 0.05, 4000);
+    this.camera.up.set(0, 0, 1);
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
@@ -212,10 +219,10 @@ export class EntViewer {
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const radius = Math.max(size.x, size.y, size.z) * 0.5;
-    this.camera.up.set(0, 1, 0);
+    this.camera.up.set(0, 0, 1);
     this.camera.fov = DEFAULT_FOV;
     const distance = (radius / Math.tan((DEFAULT_FOV * Math.PI) / 360)) * 1.45;
-    this.camera.position.set(center.x + distance * 0.55, center.y + distance * 0.38, center.z + distance * 0.72);
+    this.camera.position.set(center.x + distance * 0.85, center.y - distance * 0.25, center.z + distance * 0.4);
     this.controls.target.copy(center);
     this.camera.updateProjectionMatrix();
     this.controls.update();
@@ -251,11 +258,13 @@ export class EntViewer {
     opacity: number;
     pose: SlicePose | null;
     image: HTMLImageElement | null;
+    flipY?: boolean;
   }): void {
     let record = this.planes.get(options.id);
     if (!record) {
       const texture = new THREE.Texture();
       texture.colorSpace = THREE.SRGBColorSpace;
+      texture.flipY = options.flipY === true;
       const material = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
@@ -282,7 +291,7 @@ export class EntViewer {
       record.texture.needsUpdate = true;
     }
     if (!options.pose) return;
-    this.placePlane(record, options.pose);
+    this.placePlane(record, options.pose, options.flipY === true);
   }
 
   dispose(): void {
@@ -292,6 +301,7 @@ export class EntViewer {
     this.canvas.removeEventListener('pointerdown', this.onPointerDown);
     this.canvas.removeEventListener('pointerup', this.onPointerUp);
     this.controls.dispose();
+    this.draco.dispose();
     this.renderer.dispose();
   }
 
@@ -370,22 +380,22 @@ export class EntViewer {
     }
   }
 
-  private placePlane(record: PlaneRecord, pose: SlicePose): void {
+  private placePlane(record: PlaneRecord, pose: SlicePose, flipY: boolean): void {
     const u = new THREE.Vector3(pose.u[0], pose.u[1], pose.u[2]).normalize();
     const v = new THREE.Vector3(pose.v[0], pose.v[1], pose.v[2]).normalize();
-    const normal = new THREE.Vector3(pose.normal[0], pose.normal[1], pose.normal[2]).normalize();
-    const mirror = new THREE.Vector3().crossVectors(u, v).dot(normal) < 0;
-    if (mirror) u.negate();
+    const normal = new THREE.Vector3().crossVectors(u, v).normalize();
     const basis = new THREE.Matrix4().makeBasis(u, v, normal);
     record.mesh.quaternion.setFromRotationMatrix(basis);
     record.mesh.position.set(pose.position[0], pose.position[1], pose.position[2]);
     record.mesh.scale.set(1, 1, 1);
     record.mesh.geometry.dispose();
     record.mesh.geometry = new THREE.PlaneGeometry(pose.width, pose.height);
-    record.texture.wrapS = THREE.RepeatWrapping;
-    record.texture.center.set(0.5, 0.5);
-    record.texture.repeat.x = mirror ? -1 : 1;
+    record.texture.flipY = flipY;
+    record.texture.wrapS = THREE.ClampToEdgeWrapping;
+    record.texture.wrapT = THREE.ClampToEdgeWrapping;
+    record.texture.repeat.set(1, 1);
     record.texture.offset.set(0, 0);
+    record.texture.center.set(0, 0);
     record.texture.needsUpdate = true;
   }
 

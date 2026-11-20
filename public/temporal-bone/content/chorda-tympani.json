@@ -1,0 +1,61 @@
+{
+  "id": "chorda-tympani",
+  "model_version": "openear-zeta-ras-1",
+  "info": {
+    "summary": {
+      "ko": "[샘플] 고실끈신경의 해부 설명. 검토자가 채울 자리이며, 교재에서 옮긴 문장이 아닙니다.",
+      "en": "[Sample] Anatomy note for the chorda tympani. Placeholder for a reviewer, not copied from a textbook."
+    },
+    "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
+    "status": "미검증"
+  },
+  "function": {
+    "physiology": {
+      "text": {
+        "ko": "[샘플] 고실끈신경의 생리적 역할. 검토자가 채웁니다.",
+        "en": "[Sample] Physiological role of the chorda tympani. A reviewer fills this in."
+      },
+      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
+      "status": "미검증"
+    },
+    "injury": {
+      "text": {
+        "ko": "[샘플] 고실끈신경의 손상이나 기능 이상이 임상에서 어떻게 나타나는지. 검토 전입니다.",
+        "en": "[Sample] Clinical consequences if the chorda tympani is injured or not working. Unreviewed placeholder."
+      },
+      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
+      "status": "미검증"
+    },
+    "tests": {
+      "text": {
+        "ko": "[샘플] 고실끈신경의 관련 검사. 검토자가 채웁니다.",
+        "en": "[Sample] Related tests for the chorda tympani. Unreviewed placeholder."
+      },
+      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
+      "status": "미검증"
+    }
+  },
+  "related": [
+    "facial-nerve"
+  ],
+  "surgical_points": [
+    {
+      "id": "chorda-tympani-center",
+      "title": {
+        "ko": "고실끈신경 중심(샘플)",
+        "en": "Chorda tympani center (sample)"
+      },
+      "body": {
+        "ko": "[샘플] 메시 경계상자의 중심입니다. 수술 랜드마크가 아닙니다.",
+        "en": "[Sample] Center of the mesh bounding box. Not a surgical landmark."
+      },
+      "position_mm": [
+        22.34,
+        26.17,
+        30.22
+      ],
+      "source": "샘플 좌표. 구조 경계상자 중심이며 실측 랜드마크가 아닙니다.",
+      "status": "미검증"
+    }
+  ]
+}

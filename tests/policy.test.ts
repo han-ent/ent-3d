@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import en from '../src/shared/i18n/en.json';
@@ -11,6 +11,14 @@ describe('project policy', () => {
     expect(Object.keys(en).sort()).toEqual(Object.keys(ko).sort());
     expect(ko['info.function']).toBe('기능적 역할');
     expect(ko['info.summary']).toBe('해부');
+  });
+
+  it('bundles the Draco decoder locally', () => {
+    const viewer = readFileSync(resolve(root, 'src/shared/viewer/Viewer.ts'), 'utf8');
+    expect(viewer).toContain("publicUrl('draco/')");
+    expect(viewer).not.toMatch(/https?:\/\//);
+    expect(existsSync(resolve(root, 'public/draco/draco_decoder.wasm'))).toBe(true);
+    expect(existsSync(resolve(root, 'public/draco/draco_wasm_wrapper.js'))).toBe(true);
   });
 
   it('caches large assets in the service worker', () => {

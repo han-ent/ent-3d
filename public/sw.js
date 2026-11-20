@@ -4,8 +4,8 @@
    network-first, with the previous response kept for offline reloads.
    Scope is the site base (/ent-3d/ when hosted as a project page).
 */
-const SHELL_CACHE = 'ent-3d-shell-v2';
-const ASSET_CACHE = 'ent-3d-assets-v2';
+const SHELL_CACHE = 'ent-3d-shell-v3';
+const ASSET_CACHE = 'ent-3d-assets-v3';
 const ASSET = /\.(?:glb|gltf|png|webp|json|wasm|webmanifest)$/i;
 
 self.addEventListener('install', (event) => {

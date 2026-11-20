@@ -13,10 +13,13 @@ const identity: VolumeMeta = {
   direction: [1, 0, 0, 0, 1, 0, 0, 0, 1],
   dims: [4, 4, 4],
   voxel_origin: 'center',
+  texture_flip_y: false,
+  index_digits: 3,
+  file_extension: 'webp',
   planes: {
-    axial: { axis: 1, folder: 'ct/axial' },
-    coronal: { axis: 2, folder: 'ct/coronal' },
-    sagittal: { axis: 0, folder: 'ct/sagittal' },
+    axial: { axis: 2, folder: 'ct/axial', col_axis: 0, row_axis: 1, row_0_is_max: true },
+    coronal: { axis: 1, folder: 'ct/coronal', col_axis: 0, row_axis: 2, row_0_is_max: true },
+    sagittal: { axis: 0, folder: 'ct/sagittal', col_axis: 1, row_axis: 2, row_0_is_max: true },
   },
 };
 
@@ -30,24 +33,31 @@ describe('CT millimetre placement', () => {
     expect(voxelCenter(swapped, 1, 0, 0)).toEqual([0, 2, 0]);
   });
 
-  it('centers an axial slice and sizes it in millimetres', () => {
-    expect(planeAxes('axial')).toEqual({ normal: 1, u: 0, v: 2 });
+  it('centers an axial slice and points local +Y at the low row when flipY is false', () => {
+    expect(planeAxes('axial')).toEqual({ normal: 2, col: 0, row: 1 });
     const pose = slicePose(identity, 'axial', 1);
-    expect(pose.position).toEqual([3, 2, 3]);
-    expect(pose.normal).toEqual([0, 1, 0]);
+    expect(pose.position).toEqual([3, 3, 2]);
+    expect(pose.normal).toEqual([0, 0, 1]);
+    expect(pose.u).toEqual([1, 0, 0]);
+    expect(pose.v[0]).toBeCloseTo(0);
+    expect(pose.v[1]).toBeCloseTo(-1);
+    expect(pose.v[2]).toBeCloseTo(0);
     expect(pose.width).toBe(8);
     expect(pose.height).toBe(8);
   });
 
-  it('matches the sample volume axes used by the slice files', () => {
+  it('matches the ZETA volume axes and the published slice size', () => {
     const volume = JSON.parse(
       readFileSync(resolve(import.meta.dirname, '../public/temporal-bone/ct/volume.json'), 'utf8'),
     ) as VolumeMeta;
+    expect(volume.texture_flip_y).toBe(false);
     expect(volume.planes.axial.axis).toBe(planeAxes('axial').normal);
     expect(volume.planes.coronal.axis).toBe(planeAxes('coronal').normal);
     expect(volume.planes.sagittal.axis).toBe(planeAxes('sagittal').normal);
-    const pose = slicePose(volume, 'coronal', 0);
-    expect(pose.width).toBe(volume.dims[0] * volume.spacing_mm[0]);
-    expect(pose.height).toBe(volume.dims[1] * volume.spacing_mm[1]);
+    const pose = slicePose(volume, 'axial', volume.planes.axial.initial_index ?? 0);
+    expect(pose.width).toBeCloseTo(volume.dims[0] * volume.spacing_mm[0]);
+    expect(pose.height).toBeCloseTo(volume.dims[1] * volume.spacing_mm[1]);
+    expect(pose.position[2]).toBeCloseTo(volume.origin_mm[2] + (volume.planes.axial.initial_index ?? 0) * volume.spacing_mm[2]);
+    expect(pose.v[1]).toBeLessThan(0);
   });
 });

@@ -42,7 +42,7 @@ npm run preview
 
 단위는 밀리미터입니다. 메시를 줄이거나 키우지 않습니다. 원점이 화면 밖으로 멀리 있으면 `manifest.json`의 `viewer_offset_mm`만 바꿉니다. 이 값은 뷰어 묶음의 평행이동이고, 거리 계산은 바뀌지 않습니다.
 
-샘플의 축은 +X 가쪽, +Y 위, +Z 앞입니다. 실제 OpenEar 파일을 넣으면 파일에 들어 있는 밀리미터를 그대로 쓰고, 축 설명 문장만 JSON에서 고칩니다.
+지금 측두골은 오른쪽 귀이고 축은 RAS입니다. +X 오른쪽(가쪽), +Y 앞, +Z 위. 메시 파일은 원본 밀리미터 그대로이고, 화면 중심만 `viewer_offset_mm`로 옮깁니다.
 
 화면의 축척 막대는 카메라가 보는 깊이에서 몇 밀리미터인지 보여 줍니다. 두 점 측정은 표면을 두 번 눌러 유클리드 거리를 밀리미터로 냅니다.
 
@@ -56,9 +56,11 @@ npm run preview
 6. CT를 바꿀 때는 `ct/volume.json`의 간격·원점·방향·크기와 슬라이스 PNG를 맞춥니다.
 7. 수술 시점은 `presets.json` 입니다. 카메라와 자르기 평면은 표본 밀리미터입니다.
 
-`npm run generate:placeholders` 는 샘플 glb와 합성 슬라이스만 다시 만듭니다. content JSON은 건드리지 않습니다.
+지금 `public/temporal-bone` 은 OpenEar ZETA입니다. glb는 Draco 압축이고, CT는 `ct/{axial,coronal,sagittal}/*.webp` (0.25 mm)입니다. Draco 디코더는 `public/draco/` 에 있고 three 패키지에서 복사한 것이며 외부 CDN을 쓰지 않습니다.
 
-지금 저장소의 glb와 슬라이스는 **샘플**입니다. OpenEar 실측이 아닙니다. 화면과 파일 이름에 SAMPLE이라고 적혀 있습니다.
+뼈와 구불정맥굴·경막만 삼각형 수를 줄였습니다. 구불정맥굴·경막은 기본 불투명도 0.35이고, 분할 경계의 절단면이 있으며 구불정맥굴과 중두개와 경막이 섞였을 수 있어 상태는 `미검증`입니다. 반고리관과 목정맥공은 없습니다 (1.5단계).
+
+`npm run generate:placeholders` 는 이 실측 파일을 덮어쓰지 않도록 막아 두었습니다.
 
 ## 내용 고치기
 

@@ -29,39 +29,46 @@ export function voxelCenter(volume: VolumeMeta, i: number, j: number, k: number)
 }
 
 /**
- * In-plane axes chosen so the image "up" direction matches the specimen:
- * axial — anterior up; coronal and sagittal — superior up.
+ * RAS stacks: axial is constant Z, coronal constant Y, sagittal constant X.
+ * Columns follow the first in-plane axis. Rows follow the second, with file row 0 at the high end.
  */
 export function planeAxes(plane: 'axial' | 'coronal' | 'sagittal'): {
   normal: 0 | 1 | 2;
-  u: 0 | 1 | 2;
-  v: 0 | 1 | 2;
+  col: 0 | 1 | 2;
+  row: 0 | 1 | 2;
 } {
-  if (plane === 'axial') return { normal: 1, u: 0, v: 2 };
-  if (plane === 'coronal') return { normal: 2, u: 0, v: 1 };
-  return { normal: 0, u: 2, v: 1 };
+  if (plane === 'axial') return { normal: 2, col: 0, row: 1 };
+  if (plane === 'coronal') return { normal: 1, col: 0, row: 2 };
+  return { normal: 0, col: 1, row: 2 };
 }
 
 export function slicePose(volume: VolumeMeta, plane: 'axial' | 'coronal' | 'sagittal', index: number): SlicePose {
-  const axes = planeAxes(plane);
+  const def = volume.planes[plane];
   const ijk: Vec3 = [
     (volume.dims[0] - 1) / 2,
     (volume.dims[1] - 1) / 2,
     (volume.dims[2] - 1) / 2,
   ];
-  ijk[axes.normal] = index;
+  ijk[def.axis] = index;
+  const u = directionColumn(volume.direction, def.col_axis);
+  let v = directionColumn(volume.direction, def.row_axis);
+  // flipY false puts file row 0 at texture v=0, the bottom of the plane (local −Y).
+  // When that row is the high end of the row axis, local +Y must point toward the low end.
+  if (!volume.texture_flip_y && def.row_0_is_max) {
+    v = [-v[0], -v[1], -v[2]];
+  }
   return {
     position: voxelCenter(volume, ijk[0], ijk[1], ijk[2]),
-    normal: directionColumn(volume.direction, axes.normal),
-    u: directionColumn(volume.direction, axes.u),
-    v: directionColumn(volume.direction, axes.v),
-    width: volume.dims[axes.u] * volume.spacing_mm[axes.u],
-    height: volume.dims[axes.v] * volume.spacing_mm[axes.v],
+    normal: directionColumn(volume.direction, def.axis),
+    u,
+    v,
+    width: volume.dims[def.col_axis] * volume.spacing_mm[def.col_axis],
+    height: volume.dims[def.row_axis] * volume.spacing_mm[def.row_axis],
   };
 }
 
-export function sliceFile(folder: string, index: number): string {
-  return `${folder}/${String(index).padStart(2, '0')}.png`;
+export function sliceFile(folder: string, index: number, digits = 3, extension = 'webp'): string {
+  return `${folder}/${String(index).padStart(digits, '0')}.${extension}`;
 }
 
 export function clampIndex(index: number, count: number): number {

@@ -56,6 +56,7 @@ export type Manifest = {
   };
   layers: LayerDef[];
   structures: StructureDef[];
+  missing_structures?: MissingStructure[];
 };
 
 export type SurgicalPoint = {
@@ -139,6 +140,10 @@ export type VolumeMeta = {
   ];
   dims: Vec3;
   voxel_origin: 'center';
+  /** When false, image row 0 is sampled at texture v = 0. */
+  texture_flip_y: boolean;
+  index_digits: number;
+  file_extension: string;
   planes: {
     axial: PlaneDef;
     coronal: PlaneDef;
@@ -147,9 +152,21 @@ export type VolumeMeta = {
 };
 
 export type PlaneDef = {
-  /** 0 = i, 1 = j, 2 = k */
+  /** Constant axis: 0 = i, 1 = j, 2 = k. */
   axis: 0 | 1 | 2;
   folder: string;
+  /** Image columns increase along this axis. */
+  col_axis: 0 | 1 | 2;
+  /** Image rows run along this axis. */
+  row_axis: 0 | 1 | 2;
+  /** File row 0 is the high end of row_axis (anterior or superior in the ZETA stacks). */
+  row_0_is_max: boolean;
+  initial_index?: number;
+};
+
+export type MissingStructure = {
+  name: string;
+  note: string;
 };
 
 export type SchemaIssue = { path: string; message: string };

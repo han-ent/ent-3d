@@ -67,14 +67,14 @@
 
 ## ct/volume.json
 
-| 필드 | 의미 |
-| --- | --- |
-| `spacing_mm` | 복셀 간격 |
-| `origin_mm` | 복셀 (0,0,0)의 **중심** |
-| `direction` | 행 우선 3×3. 열 0/1/2가 i/j/k가 증가하는 방향 |
-| `dims` | i, j, k 개수 |
-| `planes.axial.axis` | 1 (위아래, j). 앞쪽이 화면 위 |
-| `planes.coronal.axis` | 2 (앞뒤, k). 위쪽이 화면 위 |
-| `planes.sagittal.axis` | 0 (좌우, i). 위쪽이 화면 위 |
+ZETA CT는 RAS, 0.25 mm, `texture_flip_y: false` 입니다. 원점은 복셀 (0,0,0)의 중심입니다.
 
-슬라이스 파일은 `{folder}/00.png`처럼 인덱스를 두 자리로 적습니다. 평면의 가로·세로는 `dims * spacing` 밀리미터이고, 메시와 같은 공간에 놓입니다.
+| 평면 | 고정 축 | 가로 (열) | 세로 (행) | 파일 행 0 |
+| --- | --- | --- | --- | --- |
+| axial | z (위) | x | y | y 최대 (앞) |
+| coronal | y (앞) | x | z | z 최대 (위) |
+| sagittal | x (오른쪽) | y | z | z 최대 (위) |
+
+`direction`은 행 우선 3×3이고 열 0/1/2가 i/j/k 방향입니다. 슬라이스 파일은 `{folder}/{index}` 를 `index_digits` 자리와 `file_extension`으로 만듭니다. ZETA는 `161.webp`처럼 세 자리 webp입니다.
+
+`flipY`가 false이면 파일의 첫 행은 텍스처 v=0, 즉 평면의 아래쪽에 붙습니다. `row_0_is_max`가 true이면 그 아래쪽이 행 축의 큰 값이 되도록 평면의 세로 축을 뒤집습니다. 메시와 같은 RAS 밀리미터에 놓입니다.

@@ -1,5 +1,5 @@
 import '../styles/app.css';
-import { planeAxes, sliceFile, slicePose, clampIndex } from '../shared/ct';
+import { sliceFile, slicePose, clampIndex } from '../shared/ct';
 import { applyI18n, getLang, initI18n, onLangChange, t, text } from '../shared/i18n';
 import { distanceMm, formatMm } from '../shared/measurement';
 import { fetchJson, publicUrl } from '../shared/paths';
@@ -42,7 +42,7 @@ workspace.innerHTML = `
     <div class="stage-status" id="stage-status" data-i18n="temporal.loading"></div>
     <div class="hud">
       <div class="hud-card">
-        <span>SAMPLE</span>
+        <span id="specimen-chip">ZETA</span>
         <span class="scale-bar-line" data-scale-line></span>
         <span data-scale-label>10 mm</span>
         <div data-i18n="coord.units"></div>
@@ -211,7 +211,7 @@ function renderCtLabels(): void {
     const count = ct.dims[axis];
     const index = clampIndex(planeState[plane].index, count);
     const pose = slicePose(ct, plane, index);
-    const coord = pose.position[planeAxes(plane).normal];
+    const coord = pose.position[axis];
     label.textContent = `${t(`ct.${plane}`)} ${index + 1}/${count} · ${coord.toFixed(1)} mm`;
   });
 }
@@ -445,10 +445,19 @@ async function syncPlane(plane: PlaneName): Promise<void> {
   const pose = slicePose(volume, plane, state.index);
   let image: HTMLImageElement | null = null;
   if (state.visible) {
-    const url = publicUrl(`${DATA}/${sliceFile(volume.planes[plane].folder, state.index)}`);
+    const url = publicUrl(
+      `${DATA}/${sliceFile(volume.planes[plane].folder, state.index, volume.index_digits, volume.file_extension)}`,
+    );
     image = await loadImage(url);
   }
-  viewer.setPlane({ id: plane, visible: state.visible, opacity: state.opacity, pose, image });
+  viewer.setPlane({
+    id: plane,
+    visible: state.visible,
+    opacity: state.opacity,
+    pose,
+    image,
+    flipY: volume.texture_flip_y,
+  });
   renderCtLabels();
 }
 
@@ -539,7 +548,8 @@ function buildCt(): void {
   ctControls.replaceChildren();
   (['axial', 'coronal', 'sagittal'] as const).forEach((plane) => {
     const count = volume!.dims[volume!.planes[plane].axis];
-    planeState[plane].index = Math.floor((count - 1) / 2);
+    const initial = volume!.planes[plane].initial_index;
+    planeState[plane].index = clampIndex(initial ?? Math.floor((count - 1) / 2), count);
     const block = document.createElement('div');
     block.className = 'ct-block';
     block.innerHTML = `

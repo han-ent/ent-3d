@@ -288,6 +288,15 @@ export function validateVolume(data: unknown): SchemaIssue[] {
   if (data.voxel_origin !== 'center') {
     issues.push({ path: 'voxel_origin', message: 'only "center" is supported (origin is the center of voxel 0,0,0)' });
   }
+  if (typeof data.texture_flip_y !== 'boolean') {
+    issues.push({ path: 'texture_flip_y', message: 'expected boolean' });
+  }
+  if (!isNum(data.index_digits) || data.index_digits < 1 || !Number.isInteger(data.index_digits)) {
+    issues.push({ path: 'index_digits', message: 'expected a positive integer' });
+  }
+  if (typeof data.file_extension !== 'string' || !/^[a-z0-9]+$/.test(data.file_extension)) {
+    issues.push({ path: 'file_extension', message: 'expected a file extension such as webp' });
+  }
   const planes = data.planes;
   if (!isObject(planes)) {
     issues.push({ path: 'planes', message: 'expected object' });
@@ -299,11 +308,22 @@ export function validateVolume(data: unknown): SchemaIssue[] {
         issues.push({ path, message: 'expected object' });
         return;
       }
-      if (plane.axis !== 0 && plane.axis !== 1 && plane.axis !== 2) {
-        issues.push({ path: `${path}.axis`, message: 'axis must be 0 (i), 1 (j), or 2 (k)' });
+      for (const key of ['axis', 'col_axis', 'row_axis'] as const) {
+        if (plane[key] !== 0 && plane[key] !== 1 && plane[key] !== 2) {
+          issues.push({ path: `${path}.${key}`, message: 'axis must be 0 (i), 1 (j), or 2 (k)' });
+        }
+      }
+      if (plane.axis === plane.col_axis || plane.axis === plane.row_axis || plane.col_axis === plane.row_axis) {
+        issues.push({ path, message: 'axis, col_axis, and row_axis must be three different axes' });
+      }
+      if (typeof plane.row_0_is_max !== 'boolean') {
+        issues.push({ path: `${path}.row_0_is_max`, message: 'expected boolean' });
       }
       if (typeof plane.folder !== 'string' || plane.folder.trim() === '') {
         issues.push({ path: `${path}.folder`, message: 'expected folder path' });
+      }
+      if (plane.initial_index !== undefined && (!isNum(plane.initial_index) || plane.initial_index < 0)) {
+        issues.push({ path: `${path}.initial_index`, message: 'expected a non-negative index' });
       }
     });
   }

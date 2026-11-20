@@ -1,0 +1,61 @@
+{
+  "id": "sinus-dura",
+  "model_version": "openear-zeta-ras-1",
+  "info": {
+    "summary": {
+      "ko": "[미검증] 구불정맥굴·경막으로 표시한 메시입니다. 분할 경계에 평평한 절단면이 있고, 구불정맥굴과 중두개와 경막이 한 덩어리로 섞여 있을 수 있습니다. 확인 전입니다.",
+      "en": "[Unverified] Labeled sigmoid sinus / dura. The mesh has flat crop faces at the segmentation bounds and may mix the sigmoid sinus with middle-fossa dura. Not reviewed."
+    },
+    "source": "에셋 메모 (분할 결과). 임상 검수 전.",
+    "status": "미검증"
+  },
+  "function": {
+    "physiology": {
+      "text": {
+        "ko": "[샘플] 구불정맥굴·경막의 생리적 역할. 검토자가 채웁니다.",
+        "en": "[Sample] Physiological role of the sigmoid sinus / dura. A reviewer fills this in."
+      },
+      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
+      "status": "미검증"
+    },
+    "injury": {
+      "text": {
+        "ko": "[샘플] 구불정맥굴·경막의 손상이나 기능 이상이 임상에서 어떻게 나타나는지. 검토 전입니다.",
+        "en": "[Sample] Clinical consequences if the sigmoid sinus / dura is injured or not working. Unreviewed placeholder."
+      },
+      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
+      "status": "미검증"
+    },
+    "tests": {
+      "text": {
+        "ko": "[샘플] 구불정맥굴·경막의 관련 검사. 검토자가 채웁니다.",
+        "en": "[Sample] Related tests for the sigmoid sinus / dura. Unreviewed placeholder."
+      },
+      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
+      "status": "미검증"
+    }
+  },
+  "related": [
+    "bone"
+  ],
+  "surgical_points": [
+    {
+      "id": "sinus-dura-center",
+      "title": {
+        "ko": "구불정맥굴·경막 중심(샘플)",
+        "en": "Sigmoid sinus / dura center (sample)"
+      },
+      "body": {
+        "ko": "[샘플] 메시 경계상자의 중심입니다. 수술 랜드마크가 아닙니다.",
+        "en": "[Sample] Center of the mesh bounding box. Not a surgical landmark."
+      },
+      "position_mm": [
+        22.07,
+        16.92,
+        28.98
+      ],
+      "source": "샘플 좌표. 구조 경계상자 중심이며 실측 랜드마크가 아닙니다.",
+      "status": "미검증"
+    }
+  ]
+}
