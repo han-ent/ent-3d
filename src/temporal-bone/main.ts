@@ -112,7 +112,7 @@ workspace.innerHTML = `
   </section>
 `;
 
-document.body.className = 'app-body';
+  document.body.className = 'app-body';
 document.body.replaceChildren(header, workspace);
 
 const canvas = workspace.querySelector<HTMLCanvasElement>('#view')!;
@@ -227,7 +227,10 @@ function renderPeek(): void {
   const structure = selected ? structureById(selected) : undefined;
   const content = selected ? contentOf(selected) : undefined;
   const step = activeStep ? findStep(activeStep) : undefined;
-  if (structure) {
+  if (mode === 'quiz') {
+    peekTitle.textContent = t('quiz.title');
+    peekLine.textContent = quiz?.question.mode === 'locate' ? quiz.question.label : t('quiz.promptName');
+  } else if (structure) {
     peekTitle.textContent = text(structure.name);
     const fn = content ? text(content.function) : '';
     peekLine.textContent = isPendingText(fn) ? t('sheet.pending') : firstLine(fn);
@@ -239,6 +242,7 @@ function renderPeek(): void {
     peekLine.textContent = t('sheet.emptyLine');
   }
   peekActions.replaceChildren();
+  stageCaption.textContent = mode === 'quiz' || !step ? '' : text(step.title);
   if (!selected || mode === 'quiz') return;
   const isolate = document.createElement('button');
   isolate.type = 'button';
@@ -262,7 +266,6 @@ function renderPeek(): void {
     renderChips();
   });
   peekActions.append(isolate, hide);
-  stageCaption.textContent = step ? text(step.title) : '';
 }
 
 function paragraphHtml(value: string, review: StructureContent['review']): string {
@@ -279,6 +282,10 @@ function paragraphHtml(value: string, review: StructureContent['review']): strin
 }
 
 function renderInfo(): void {
+  if (mode === 'quiz') {
+    infoBody.innerHTML = '';
+    return;
+  }
   const structure = selected ? structureById(selected) : undefined;
   const content = selected ? contentOf(selected) : undefined;
   if (!structure || !content) {
@@ -495,6 +502,7 @@ function renderOrient(): void {
 
 function setMode(next: 'view' | 'measure' | 'quiz'): void {
   mode = next;
+  document.body.classList.toggle('is-quiz', next === 'quiz');
   viewer?.setMode(next);
   workspace.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.mode === next));
@@ -507,6 +515,7 @@ function setMode(next: 'view' | 'measure' | 'quiz'): void {
   renderMeasure(viewer?.measurementPoints() ?? []);
   renderQuiz();
   renderPeek();
+  renderInfo();
 }
 
 function selectStructure(id: string, frame: boolean): void {
@@ -528,7 +537,7 @@ function answerQuiz(id: string): void {
   quiz.total += 1;
   if (correct) quiz.score += 1;
   quiz.feedback = correct ? t('quiz.correct') : t('quiz.wrong');
-  viewer?.highlight(quiz.question.structureId, true, true);
+  viewer?.highlight(quiz.question.structureId, true, true, 42, true);
   if (quiz.total >= QUIZ_LENGTH) quiz.finished = true;
   renderQuiz();
 }
@@ -550,7 +559,7 @@ function nextQuestion(): void {
   quiz.answered = false;
   quiz.feedback = '';
   quiz.finished = false;
-  if (question.mode === 'name') viewer?.highlight(question.structureId, true, true);
+  if (question.mode === 'name') viewer?.highlight(question.structureId, true, true, 42, true);
   else viewer?.highlight(null, false);
   renderQuiz();
 }
@@ -559,13 +568,13 @@ function startQuiz(kind: 'name' | 'locate'): void {
   if (!manifest) return;
   const items = manifest.structures.map((structure) => ({ id: structure.id, name: structure.name }));
   const question = kind === 'name' ? makeNameQuestion(items, getLang()) : makeLocateQuestion(items, getLang());
+  activeStep = null;
   quiz = { kind, question, score: 0, total: 0, answered: false, feedback: '', finished: false };
   setMode('quiz');
   openSheet(true);
-  if (question.mode === 'name') viewer?.highlight(question.structureId, true, true);
+  if (question.mode === 'name') viewer?.highlight(question.structureId, true, true, 42, true);
   else viewer?.highlight(null, false);
   renderQuiz();
-  quizCard.scrollIntoView({ block: 'nearest' });
 }
 
 function applyStep(step: DissectionStep): void {

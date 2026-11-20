@@ -21,7 +21,7 @@
           "visible": ["facial-nerve", "chorda-tympani", "malleus", "incus", "stapes"],
           "ghosted": ["bone", "sinus-dura"],
           "hidden": ["scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery", "tympanic-membrane", "external-auditory-canal"],
-          "camera": { "position": [74, 2, 42], "target": [46, 10, 36], "up": [0, 0, 1], "fov": 30 }
+          "camera": { "position": [134.4, -38.8, 68.3], "target": [42, 12, 36], "up": [0, 0, 1], "fov": 28 }
         },
         {
           "id": "antrum",
@@ -42,7 +42,7 @@
             "source": "유양동 메시가 없습니다. 침골 경계상자 뒤쪽(y약 17 mm)과 뼈 뒤쪽 피질(y약 −7 mm) 사이, 가쪽 피질보다 안쪽에 둔 추정점입니다. 실측 랜드마크가 아닙니다.",
             "review": "미검증"
           },
-          "camera": { "position": [72, -4, 40], "target": [32, 6, 34], "up": [0, 0, 1], "fov": 22 }
+          "camera": { "position": [121.6, -46.7, 70.9], "target": [32, 6, 34], "up": [0, 0, 1], "fov": 28 }
         },
         {
           "id": "identify-facial-nerve",
@@ -57,7 +57,7 @@
           "visible": ["facial-nerve", "chorda-tympani", "incus", "malleus", "stapes"],
           "ghosted": ["bone", "sinus-dura"],
           "hidden": ["scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery", "tympanic-membrane", "external-auditory-canal"],
-          "camera": { "position": [70, 6, 28], "target": [21.2, 19.5, 32], "up": [0, 0, 1], "fov": 18 }
+          "camera": { "position": [104.7, -46.1, 62.9], "target": [22, 20, 32], "up": [0, 0, 1], "fov": 28 }
         },
         {
           "id": "posterior-tympanotomy",
@@ -72,7 +72,7 @@
           "visible": ["facial-nerve", "chorda-tympani", "incus", "malleus", "stapes", "tympanic-membrane"],
           "ghosted": ["bone"],
           "hidden": ["scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery", "external-auditory-canal", "sinus-dura"],
-          "camera": { "position": [70, 4, 26], "target": [24.9, 19.8, 29.8], "up": [0, 0, 1], "fov": 18 }
+          "camera": { "position": [79.1, -72.8, 54], "target": [24.5, 20, 30], "up": [0, 0, 1], "fov": 28 }
         }
       ]
     },
@@ -90,10 +90,10 @@
           "identify": ["tympanic-membrane", "malleus"],
           "danger": ["facial-nerve", "chorda-tympani"],
           "highlight": "tympanic-membrane",
-          "visible": ["tympanic-membrane", "malleus", "incus", "stapes"],
-          "ghosted": ["bone", "facial-nerve", "chorda-tympani"],
+          "visible": ["tympanic-membrane", "malleus", "incus", "stapes", "facial-nerve", "chorda-tympani"],
+          "ghosted": ["bone"],
           "hidden": ["external-auditory-canal", "sinus-dura", "scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery"],
-          "camera": { "position": [72, 25.2, 31.6], "target": [25.28, 25.35, 31.58], "up": [0, 0, 1], "fov": 16 }
+          "camera": { "position": [135.2, 27.5, 40.4], "target": [25.28, 25.35, 31.58], "up": [0, 0, 1], "fov": 28 }
         }
       ]
     },
@@ -114,7 +114,7 @@
           "visible": ["scala-vestibuli", "scala-tympani", "facial-nerve", "cochleovestibular-nerve", "carotid-artery", "malleus", "incus", "stapes", "chorda-tympani"],
           "ghosted": ["bone"],
           "hidden": ["external-auditory-canal", "tympanic-membrane", "sinus-dura"],
-          "camera": { "position": [22, 16, 78], "target": [20.5, 21.5, 36], "up": [0, 1, 0], "fov": 24 }
+          "camera": { "position": [26.4, 4.7, 144.9], "target": [21, 21, 36], "up": [0, 1, 0], "fov": 28 }
         }
       ]
     }

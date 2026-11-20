@@ -8,7 +8,7 @@ import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
-import { DEFAULT_CAMERA, DEFAULT_FOV } from '../view-pose';
+import { DEFAULT_CAMERA, DEFAULT_FOV, SELECTION_SPAN_MM } from '../view-pose';
 
 export type PickHit = {
   structureId: string;
@@ -59,7 +59,9 @@ type Tween = {
 const SVG_NS = ['http', '://www.w3.org/2000/svg'].join('');
 const TWEEN_MS = 500;
 const STAGE = '#C4C2BC';
-const OUTLINE = '#F7F5F0';
+const OUTLINE = '#8C2F1B';
+const DIM_GRAY = '#D5D3CE';
+const INTRO_LABELS = ['malleus', 'incus', 'stapes', 'facial-nerve', 'scala-vestibuli'];
 
 const GIZMO_AXES: { id: string; dir: Vec3; text: string }[] = [
   { id: 'lat', dir: [1, 0, 0], text: '외' },
@@ -111,6 +113,8 @@ export class EntViewer {
   private pointer = new THREE.Vector2();
   private offset: Vec3;
   private mode: 'view' | 'measure' | 'quiz' = 'view';
+  private labelsHidden = false;
+  private outlineUniform = { value: 0.45 };
   private selected: string | null = null;
   private dimOthers = false;
   private linked = new Set<string>();
@@ -180,11 +184,12 @@ export class EntViewer {
       toneMapped: false,
     });
     this.outlineMaterial.onBeforeCompile = (shader) => {
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <begin_vertex>',
-        '#include <begin_vertex>\ntransformed += normalize(normal) * 0.28;',
-      );
+      shader.uniforms.uOutline = this.outlineUniform;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nuniform float uOutline;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * uOutline;');
     };
+    this.outlineMaterial.customProgramCacheKey = () => 'ent3d-outline';
 
     this.crosshair = this.makeCrosshair();
     this.world.add(this.crosshair);
@@ -232,7 +237,15 @@ export class EntViewer {
 
   setMode(mode: 'view' | 'measure' | 'quiz'): void {
     this.mode = mode;
-    if (mode === 'quiz') this.clearMeasurement();
+    this.labelsHidden = mode === 'quiz';
+    if (mode === 'quiz') {
+      this.clearMeasurement();
+      this.presetVis = null;
+      this.boneTransparent = true;
+      this.isolateId = null;
+      this.refreshLook();
+    }
+    this.syncCallouts();
   }
 
   onPick(handler: (hit: PickHit | null) => void): void {
@@ -349,12 +362,12 @@ export class EntViewer {
   }
 
   /** Quiz highlight. The target stays opaque and is drawn in front of bone. */
-  highlight(id: string | null, dimOthers: boolean, frame = false): void {
+  highlight(id: string | null, dimOthers: boolean, frame = false, spanMm = SELECTION_SPAN_MM, fit = false): void {
     this.selected = id;
     this.dimOthers = dimOthers && id !== null;
     this.linked.clear();
     this.refreshLook();
-    if (id && frame) this.frameStructure(id);
+    if (id && frame) this.frameStructure(id, spanMm, fit);
   }
 
   /** Kept so related structures can be named. Opacity stays on the selection rule. */
@@ -373,27 +386,29 @@ export class EntViewer {
     this.dimOthers = false;
     this.linked.clear();
     this.isolateId = null;
-    this.userHidden.clear();
-    this.boneTransparent = false;
+    this.userHidden = new Set(['external-auditory-canal']);
+    this.boneTransparent = true;
+    this.labelsHidden = this.mode === 'quiz';
     this.setMarker(null, '');
     this.refreshLook();
     this.moveCamera(this.worldPoint(DEFAULT_CAMERA.position), this.worldPoint(DEFAULT_CAMERA.target), DEFAULT_CAMERA.up, DEFAULT_CAMERA.fov, immediate);
     this.setClipping(null);
   }
 
-  frameStructure(id: string): void {
+  frameStructure(id: string, spanMm = SELECTION_SPAN_MM, fit = false): void {
     const record = this.records.get(id);
     if (!record) return;
     record.object.updateWorldMatrix(true, true);
     const box = new THREE.Box3().setFromObject(record.object);
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3());
-    const radius = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.4);
     const direction = this.camera.position.clone().sub(this.controls.target);
-    if (direction.lengthSq() < 1e-4) direction.set(1, -0.15, 0.25);
+    if (direction.lengthSq() < 1e-4) direction.set(1, -0.05, 0.15);
     direction.normalize();
+    const radius = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
+    const span = fit ? Math.min(spanMm, Math.max(16, radius * 7)) : spanMm;
     const fov = (this.camera.fov * Math.PI) / 180;
-    const distance = Math.max((radius / Math.sin(fov / 2)) * 0.92, radius * 2.4);
+    const distance = span / (2 * Math.tan(fov / 2));
     const position = center.clone().add(direction.multiplyScalar(distance));
     this.moveCamera([position.x, position.y, position.z], [center.x, center.y, center.z], [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
   }
@@ -407,7 +422,7 @@ export class EntViewer {
     this.isolateId = null;
     const highlight = preset.highlight ?? null;
     this.selected = highlight;
-    this.dimOthers = highlight !== null;
+    this.dimOthers = false;
     this.linked.clear();
     this.refreshLook();
     const position = preset.camera.position;
@@ -538,6 +553,10 @@ export class EntViewer {
     if (!this.running) return;
     this.stepTween(performance.now());
     this.keyLight.position.copy(this.camera.position);
+    const distance = this.camera.position.distanceTo(this.controls.target);
+    const worldHeight = 2 * Math.tan((this.camera.fov * Math.PI) / 360) * Math.max(distance, 0.001);
+    const pxPerMm = this.canvas.clientHeight / worldHeight;
+    this.outlineUniform.value = Math.min(1.4, Math.max(0.2, 2.6 / Math.max(pxPerMm, 0.5)));
     this.controls.update();
     this.updateScaleBar();
     this.projectCallouts();
@@ -598,15 +617,18 @@ export class EntViewer {
     const visible = this.shown(record);
     record.object.visible = visible;
     const onTop = record.id === this.selected && visible;
+    const dimmed = this.dimOthers && this.selected !== null && record.id !== this.selected;
+    const defaultGhost = !this.presetVis && record.id === 'sinus-dura';
     const opacity = displayOpacity({
       id: record.id,
       base: record.opacity,
       selectedId: this.selected,
       dimOthers: this.dimOthers,
-      ghost: this.presetVis?.ghosted.has(record.id) === true,
+      ghost: this.presetVis?.ghosted.has(record.id) === true || defaultGhost,
       boneTransparent: this.boneTransparent,
     });
     for (const material of record.materials) {
+      material.color.set(dimmed ? DIM_GRAY : record.color);
       material.opacity = opacity;
       material.transparent = opacity < 0.98;
       material.depthWrite = !onTop && opacity >= 0.9;
@@ -743,8 +765,16 @@ export class EntViewer {
 
   private syncCallouts(): void {
     const wanted = new Set<string>();
-    if (this.selected && this.records.get(this.selected)?.object.visible) wanted.add(this.selected);
-    if (this.marker?.visible && this.markerLabel) wanted.add('marker');
+    if (!this.labelsHidden) {
+      if (this.selected && this.records.get(this.selected)?.object.visible) wanted.add(this.selected);
+      else if (!this.selected) {
+        for (const id of INTRO_LABELS) {
+          const record = this.records.get(id);
+          if (record?.object.visible) wanted.add(id);
+        }
+      }
+      if (this.marker?.visible && this.markerLabel) wanted.add('marker');
+    }
     for (const [id, button] of this.calloutButtons) {
       if (!wanted.has(id)) {
         button.remove();
@@ -772,6 +802,15 @@ export class EntViewer {
     const height = this.canvas.clientHeight;
     this.leaderSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     this.leaderSvg.replaceChildren();
+    const fans: Array<[number, number]> = [
+      [34, -40],
+      [-48, -16],
+      [40, 26],
+      [-36, 34],
+      [12, -58],
+      [52, 8],
+    ];
+    let fan = 0;
     const place = (id: string, anchor: THREE.Vector3, text: string) => {
       const button = this.calloutButtons.get(id);
       if (!button) return;
@@ -784,9 +823,11 @@ export class EntViewer {
       button.hidden = false;
       const x = (ndc.x * 0.5 + 0.5) * width;
       const y = (-ndc.y * 0.5 + 0.5) * height;
-      let left = x + 18;
-      let top = y - 28;
-      if (left > width - 120) left = x - 18;
+      const shift = fans[fan % fans.length] ?? [28, -28];
+      fan += 1;
+      let left = x + shift[0];
+      let top = y + shift[1];
+      if (left > width - 96) left = x - Math.abs(shift[0]);
       top = Math.max(8, Math.min(height - 28, top));
       left = Math.max(8, Math.min(width - 8, left));
       button.style.left = `${left}px`;

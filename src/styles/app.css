@@ -268,6 +268,13 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 
 .sheet.is-open { flex: 1 1 58%; max-height: none; }
 
+body.is-quiz .sheet.is-open {
+  flex: 0 0 46%;
+  max-height: 46%;
+}
+
+body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
+
 .sheet-handle {
   flex: none;
   width: 100%;

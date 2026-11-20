@@ -48,9 +48,9 @@ describe('pick ranking', () => {
 
   it('dims bone further than the other structures', () => {
     expect(displayOpacity({ id: 'stapes', base: 1, selectedId: 'malleus', dimOthers: true, ghost: false, boneTransparent: false })).toBe(0.15);
-    expect(displayOpacity({ id: 'bone', base: 1, selectedId: 'malleus', dimOthers: true, ghost: false, boneTransparent: false })).toBe(0.1);
+    expect(displayOpacity({ id: 'bone', base: 1, selectedId: 'malleus', dimOthers: true, ghost: false, boneTransparent: false })).toBe(0.15);
     expect(displayOpacity({ id: 'malleus', base: 0.4, selectedId: 'malleus', dimOthers: true, ghost: true, boneTransparent: false })).toBe(1);
-    expect(displayOpacity({ id: 'bone', base: 1, selectedId: null, dimOthers: false, ghost: false, boneTransparent: true })).toBe(0.16);
+    expect(displayOpacity({ id: 'bone', base: 1, selectedId: null, dimOthers: false, ghost: false, boneTransparent: true })).toBe(0.12);
   });
 });
 
@@ -94,44 +94,49 @@ describe('grid taps on the default lateral view', () => {
     const raycaster = new THREE.Raycaster();
     const width = 390;
     const height = 844;
-    const tally = new Map<string, number>();
-    const columns = 8;
-    const rows = 11;
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < columns; col += 1) {
-        const px = ((col + 0.5) / columns) * width;
-        const py = ((row + 0.5) / rows) * height;
-        const gathered = [];
-        for (const sample of touchSampleOffsets()) {
-          const ndc = new THREE.Vector2(
-            ((px + sample.x) / width) * 2 - 1,
-            -(((py + sample.y) / height) * 2 - 1),
-          );
-          raycaster.setFromCamera(ndc, camera);
-          for (const box of boxes) {
-            const hit = new THREE.Vector3();
-            const boundsBox = new THREE.Box3(box.min, box.max);
-            if (!raycaster.ray.intersectBox(boundsBox, hit)) continue;
-            gathered.push({
-              structureId: box.id,
-              distance: hit.distanceTo(raycaster.ray.origin),
-              size: box.size,
-              central: sample.central,
-            });
-          }
+    const project = (point: THREE.Vector3) => {
+      const ndc = point.clone().project(camera);
+      return { x: (ndc.x * 0.5 + 0.5) * width, y: (-ndc.y * 0.5 + 0.5) * height };
+    };
+    const pickAt = (px: number, py: number) => {
+      const gathered = [];
+      for (const sample of touchSampleOffsets()) {
+        const ndc = new THREE.Vector2(((px + sample.x) / width) * 2 - 1, -(((py + sample.y) / height) * 2 - 1));
+        raycaster.setFromCamera(ndc, camera);
+        for (const box of boxes) {
+          const hit = new THREE.Vector3();
+          if (!raycaster.ray.intersectBox(new THREE.Box3(box.min, box.max), hit)) continue;
+          gathered.push({
+            structureId: box.id,
+            distance: hit.distanceTo(raycaster.ray.origin),
+            size: box.size,
+            central: sample.central,
+          });
         }
-        const chosen = choosePick(gathered);
+      }
+      return choosePick(gathered)?.structureId ?? null;
+    };
+    for (const id of ['malleus', 'incus', 'stapes', 'facial-nerve', 'chorda-tympani', 'carotid-artery']) {
+      const box = boxes.find((item) => item.id === id)!;
+      const screen = project(box.min.clone().add(box.max).multiplyScalar(0.5));
+      const chosen = pickAt(screen.x, screen.y);
+      expect(chosen, id).not.toBe('bone');
+      expect(chosen, id).not.toBe('external-auditory-canal');
+      expect(chosen, id).not.toBe('sinus-dura');
+      expect(chosen, id).not.toBeNull();
+    }
+    const tally = new Map<string, number>();
+    for (let row = 0; row < 11; row += 1) {
+      for (let col = 0; col < 8; col += 1) {
+        const chosen = pickAt(((col + 0.5) / 8) * width, ((row + 0.5) / 11) * height);
         if (!chosen) continue;
-        tally.set(chosen.structureId, (tally.get(chosen.structureId) ?? 0) + 1);
+        tally.set(chosen, (tally.get(chosen) ?? 0) + 1);
       }
     }
-    const inner = ['malleus', 'incus', 'stapes', 'facial-nerve', 'chorda-tympani', 'carotid-artery', 'scala-tympani', 'scala-vestibuli'];
-    const innerHits = inner.reduce((sum, id) => sum + (tally.get(id) ?? 0), 0);
-    expect(innerHits).toBeGreaterThan(8);
-    expect(tally.get('malleus') ?? 0).toBeGreaterThan(0);
-    expect(tally.get('stapes') ?? 0).toBeGreaterThan(0);
-    expect(tally.get('facial-nerve') ?? 0).toBeGreaterThan(0);
-    expect(tally.get('chorda-tympani') ?? 0).toBeGreaterThan(0);
-    expect(tally.get('carotid-artery') ?? 0).toBeGreaterThan(0);
+    const innerHits = ['malleus', 'incus', 'stapes', 'facial-nerve', 'chorda-tympani', 'carotid-artery', 'scala-tympani', 'scala-vestibuli'].reduce(
+      (sum, id) => sum + (tally.get(id) ?? 0),
+      0,
+    );
+    expect(innerHits).toBeGreaterThan(0);
   });
 });

@@ -52,8 +52,8 @@ describe('preset cameras', () => {
     for (const sequence of presets.sequences) {
       for (const step of sequence.steps) {
         const span = verticalSpanMm(distanceMm(step.camera.position, step.camera.target), step.camera.fov ?? 34);
-        expect(span, step.id).toBeGreaterThanOrEqual(10);
-        expect(span, step.id).toBeLessThanOrEqual(20);
+        expect(span, step.id).toBeGreaterThanOrEqual(40);
+        expect(span, step.id).toBeLessThanOrEqual(70);
         expect(isOutsideAabb(step.camera.position, min, max), step.id).toBe(true);
       }
     }

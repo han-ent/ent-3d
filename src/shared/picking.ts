@@ -69,12 +69,12 @@ export type OpacityInput = {
   boneTransparent: boolean;
 };
 
-/** Opacity used while a structure is selected. Bone drops further than the other structures. */
+/** Opacity used while a structure is selected. Unselected structures fall to a light gray wash. */
 export function displayOpacity(input: OpacityInput): number {
   if (input.selectedId !== null && input.id === input.selectedId) return 1;
-  if (input.dimOthers && input.selectedId !== null) return input.id === 'bone' ? 0.1 : 0.15;
+  if (input.dimOthers && input.selectedId !== null) return 0.15;
   let opacity = input.base;
-  if (input.id === 'bone' && input.boneTransparent) opacity = Math.min(opacity, 0.16);
-  if (input.ghost) opacity = Math.min(opacity, 0.12);
+  if (input.id === 'bone' && input.boneTransparent) opacity = Math.min(opacity, 0.12);
+  if (input.ghost) opacity = Math.min(opacity, 0.1);
   return opacity;
 }

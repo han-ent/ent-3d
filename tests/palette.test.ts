@@ -12,8 +12,8 @@ describe('anatomical colours', () => {
     expect(ANATOMICAL_COLORS.vein).toBe('#2F5FA8');
     expect(ANATOMICAL_COLORS.dura).toBe('#B8B0A0');
     expect(ANATOMICAL_COLORS.facialNerve).toBe('#E3B629');
-    expect(ANATOMICAL_COLORS.bone).toBe('#E8DFC8');
-    expect(ANATOMICAL_COLORS.ossicle).toBe('#D6C49A');
+    expect(ANATOMICAL_COLORS.bone).toBe('#F3F0E6');
+    expect(ANATOMICAL_COLORS.ossicle).toBe('#C9842A');
     expect(ANATOMICAL_COLORS.softTissue).toBe('#D9B8B0');
     expect(ANATOMICAL_COLORS.scalaVestibuli).not.toBe(ANATOMICAL_COLORS.scalaTympani);
     expect(ANATOMICAL_COLORS.chorda).not.toBe(ANATOMICAL_COLORS.cochleovestibular);
