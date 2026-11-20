@@ -1,0 +1,276 @@
+{
+  "specimen": {
+    "id": "openear-zeta",
+    "name": "OpenEar ZETA",
+    "model_version": "openear-zeta-ras-1",
+    "licence": "CC-BY-4.0",
+    "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+    "citation": "Sieber D, Erfurt P, John S, et al. The OpenEar library of 3D models of the human temporal bone based on computed tomography and micro-slicing. Sci Data. 2018;6:180297.",
+    "article_url": "https://www.nature.com/articles/sdata2018297",
+    "data_url": "https://zenodo.org/records/1473724",
+    "geometry": "openear",
+    "geometry_note": {
+      "ko": "오른쪽 측두골 ZETA. 메시는 원본 RAS 밀리미터이며 파일을 recenter 하지 않았습니다. 뼈와 구불정맥굴·경막만 삼각형 수를 줄였고, 구불정맥굴·경막은 분할 경계의 절단면이 있으며 구불정맥굴과 중두개와 경막이 섞였을 수 있습니다. 반고리관과 목정맥공은 없습니다 (1.5단계).",
+      "en": "Right temporal bone, specimen ZETA. Meshes keep their original RAS millimetres and were not recentered. Only the bone and sinus/dura meshes were decimated. Sinus/dura has flat crop faces at the segmentation bounds and may mix the sigmoid sinus with middle-fossa dura. Semicircular canals and the jugular bulb are absent (stage 1.5)."
+    }
+  },
+  "model_version": "openear-zeta-ras-1",
+  "viewer_offset_mm": [
+    -22.710914611816406,
+    -28.73894953727722,
+    -29.496832251548767
+  ],
+  "coordinate_system": {
+    "units": "mm",
+    "x": {
+      "ko": "오른쪽(+X) / 왼쪽(−X). 오른쪽 귀에서 +X는 가쪽",
+      "en": "right +X / left −X. On this right ear, +X is lateral"
+    },
+    "y": {
+      "ko": "앞(+Y) / 뒤(−Y)",
+      "en": "anterior +Y / posterior −Y"
+    },
+    "z": {
+      "ko": "위(+Z) / 아래(−Z)",
+      "en": "superior +Z / inferior −Z"
+    },
+    "note": {
+      "ko": "RAS 밀리미터입니다. 꼭짓점은 그대로 두고, 화면에서만 viewer_offset_mm만큼 평행이동합니다. 배율은 1입니다.",
+      "en": "RAS millimetres. Vertices stay as published; viewer_offset_mm is only a view translation. Scale is 1."
+    }
+  },
+  "layers": [
+    {
+      "id": "membrane",
+      "name": {
+        "ko": "고막",
+        "en": "Tympanic membrane"
+      },
+      "opacity": 1
+    },
+    {
+      "id": "ossicles",
+      "name": {
+        "ko": "이소골",
+        "en": "Ossicles"
+      },
+      "opacity": 1
+    },
+    {
+      "id": "inner-ear",
+      "name": {
+        "ko": "달팽이관",
+        "en": "Cochlea"
+      },
+      "opacity": 1
+    },
+    {
+      "id": "nerve",
+      "name": {
+        "ko": "신경",
+        "en": "Nerve"
+      },
+      "opacity": 1
+    },
+    {
+      "id": "canal",
+      "name": {
+        "ko": "바깥귀길",
+        "en": "Ear canal"
+      },
+      "opacity": 0.45
+    },
+    {
+      "id": "vessel",
+      "name": {
+        "ko": "속목동맥",
+        "en": "Carotid artery"
+      },
+      "opacity": 1
+    },
+    {
+      "id": "sinus",
+      "name": {
+        "ko": "구불정맥굴·경막",
+        "en": "Sigmoid sinus / dura"
+      },
+      "opacity": 0.35
+    },
+    {
+      "id": "bone",
+      "name": {
+        "ko": "뼈",
+        "en": "Bone"
+      },
+      "opacity": 0.28
+    }
+  ],
+  "structures": [
+    {
+      "id": "scala-tympani",
+      "file": "models/scala-tympani.glb",
+      "name": {
+        "ko": "고실계단",
+        "en": "Scala tympani"
+      },
+      "color": "#80ae80",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scala-tympani.json"
+    },
+    {
+      "id": "scala-vestibuli",
+      "file": "models/scala-vestibuli.glb",
+      "name": {
+        "ko": "안뜰계단",
+        "en": "Scala vestibuli"
+      },
+      "color": "#f1d691",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scala-vestibuli.json"
+    },
+    {
+      "id": "malleus",
+      "file": "models/malleus.glb",
+      "name": {
+        "ko": "망치뼈",
+        "en": "Malleus"
+      },
+      "color": "#b17a65",
+      "layer": "ossicles",
+      "status": "미검증",
+      "content": "content/malleus.json"
+    },
+    {
+      "id": "incus",
+      "file": "models/incus.glb",
+      "name": {
+        "ko": "모루뼈",
+        "en": "Incus"
+      },
+      "color": "#6fb8d2",
+      "layer": "ossicles",
+      "status": "미검증",
+      "content": "content/incus.json"
+    },
+    {
+      "id": "stapes",
+      "file": "models/stapes.glb",
+      "name": {
+        "ko": "등자뼈",
+        "en": "Stapes"
+      },
+      "color": "#d8654f",
+      "layer": "ossicles",
+      "status": "미검증",
+      "content": "content/stapes.json"
+    },
+    {
+      "id": "facial-nerve",
+      "file": "models/facial-nerve.glb",
+      "name": {
+        "ko": "얼굴신경",
+        "en": "Facial nerve"
+      },
+      "color": "#90ee90",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/facial-nerve.json"
+    },
+    {
+      "id": "chorda-tympani",
+      "file": "models/chorda-tympani.glb",
+      "name": {
+        "ko": "고실끈신경",
+        "en": "Chorda tympani"
+      },
+      "color": "#c06858",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/chorda-tympani.json"
+    },
+    {
+      "id": "cochleovestibular-nerve",
+      "file": "models/cochleovestibular-nerve.glb",
+      "name": {
+        "ko": "달팽이안뜰신경",
+        "en": "Cochleovestibular nerve"
+      },
+      "color": "#dd8265",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/cochleovestibular-nerve.json"
+    },
+    {
+      "id": "tympanic-membrane",
+      "file": "models/tympanic-membrane.glb",
+      "name": {
+        "ko": "고막",
+        "en": "Tympanic membrane"
+      },
+      "color": "#c8c8eb",
+      "layer": "membrane",
+      "status": "미검증",
+      "content": "content/tympanic-membrane.json"
+    },
+    {
+      "id": "external-auditory-canal",
+      "file": "models/external-auditory-canal.glb",
+      "name": {
+        "ko": "바깥귀길",
+        "en": "External auditory canal"
+      },
+      "color": "#b17a65",
+      "layer": "canal",
+      "status": "미검증",
+      "content": "content/external-auditory-canal.json"
+    },
+    {
+      "id": "sinus-dura",
+      "file": "models/sinus-dura.glb",
+      "name": {
+        "ko": "구불정맥굴·경막",
+        "en": "Sigmoid sinus / dura"
+      },
+      "color": "#6fb8d2",
+      "layer": "sinus",
+      "status": "미검증",
+      "content": "content/sinus-dura.json"
+    },
+    {
+      "id": "carotid-artery",
+      "file": "models/carotid-artery.glb",
+      "name": {
+        "ko": "속목동맥",
+        "en": "Internal carotid artery"
+      },
+      "color": "#80ae80",
+      "layer": "vessel",
+      "status": "미검증",
+      "content": "content/carotid-artery.json"
+    },
+    {
+      "id": "bone",
+      "file": "models/bone.glb",
+      "name": {
+        "ko": "측두골",
+        "en": "Temporal bone"
+      },
+      "color": "#fafad2",
+      "layer": "bone",
+      "status": "미검증",
+      "content": "content/bone.json"
+    }
+  ],
+  "missing_structures": [
+    {
+      "name": "Semicircular canals",
+      "note": "Not separately segmented in Segmentation.seg.nrrd or supplied as a PLY. Planned for stage 1.5 (manual segmentation)."
+    },
+    {
+      "name": "Jugular bulb",
+      "note": "Not separately segmented in Segmentation.seg.nrrd or supplied as a PLY. Planned for stage 1.5 (manual segmentation). May be partly included in Sinus Dura, but that was not verified."
+    }
+  ]
+}
