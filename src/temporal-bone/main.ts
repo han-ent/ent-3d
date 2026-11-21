@@ -992,19 +992,9 @@ function applyStage(distance: number): void {
     else if (distance > 70 && (deep || middle)) hidden.push(structure.id);
     else if (distance > 28 && deep) hidden.push(structure.id);
   }
-  if (selected) {
-    const keep = new Set<string>([selected]);
-    for (const structure of manifest.structures) {
-      if (structure.id === selected || structure.parent === selected) keep.add(structure.id);
-      if (structure.id === structureById(selected)?.parent) keep.add(structure.id);
-    }
-    for (const structure of manifest.structures) {
-      if (structure.parent && keep.has(structure.parent)) keep.add(structure.id);
-    }
-    viewer.setStageHidden(hidden.filter((id) => !keep.has(id)));
-  } else {
-    viewer.setStageHidden(hidden);
-  }
+  // A selected structure is framed with its neighbours, so the distance
+  // stages must not hide the ossicles or the inner ear around it.
+  viewer.setStageHidden(selected ? [] : hidden);
   renderCrumbs();
 }
 

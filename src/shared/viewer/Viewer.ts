@@ -6,11 +6,11 @@ import type { ContourSource } from '../ct-slice';
 import { displayOpacity, choosePick, isEnvelope, touchSampleOffsets, type PickCandidate } from '../picking';
 import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
-import { chooseScaleMm, worldClippingPlane } from '../measurement';
+import { chooseScaleMm, distanceMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
 import { estimateLabelSize, placeLabels, type Placement, type StudyLabel } from '../labels';
-import { DEFAULT_CAMERA, DEFAULT_FOV, SELECTION_SPAN_MM } from '../view-pose';
+import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM, verticalSpanMm } from '../view-pose';
 
 export type PickHit = {
   structureId: string;
@@ -443,11 +443,8 @@ export class EntViewer {
     this.dimOthers = id !== null;
     this.linked.clear();
     this.refreshLook();
-    if (id && frame) {
-      const record = this.records.get(id);
-      const span = (record?.size ?? 40) < 18 ? 10 : 36;
-      this.frameStructure(id, span);
-    } else this.syncCallouts();
+    if (id && frame) this.frameStructure(id);
+    else this.syncCallouts();
   }
 
   /** Quiz highlight. The target stays opaque and is drawn in front of bone. */
@@ -484,6 +481,21 @@ export class EntViewer {
     this.setClipping(null);
   }
 
+  private boundingRadius(id: string): number {
+    const box = new THREE.Box3();
+    for (const itemId of [id, ...this.descendantIds(id)]) {
+      const record = this.records.get(itemId);
+      if (!record || record.aggregate) continue;
+      record.object.updateWorldMatrix(true, true);
+      const visible = record.object.visible;
+      record.object.visible = true;
+      box.expandByObject(record.object);
+      record.object.visible = visible;
+    }
+    if (box.isEmpty()) return 4;
+    return Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
+  }
+
   frameStructure(id: string, spanMm = SELECTION_SPAN_MM, fit = false): void {
     const box = new THREE.Box3();
     const ids = [id, ...this.descendantIds(id)];
@@ -502,7 +514,8 @@ export class EntViewer {
     if (direction.lengthSq() < 1e-4) direction.set(1, -0.05, 0.15);
     direction.normalize();
     const radius = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
-    const span = fit ? Math.min(spanMm, Math.max(16, radius * 7)) : spanMm;
+    const framed = framingSpanMm(radius, this.canvas.clientWidth, this.canvas.clientHeight);
+    const span = fit ? Math.min(spanMm, Math.max(16, radius * 7)) : framed;
     const fov = (this.camera.fov * Math.PI) / 180;
     const distance = span / (2 * Math.tan(fov / 2));
     const position = center.clone().add(direction.multiplyScalar(distance));
@@ -524,7 +537,23 @@ export class EntViewer {
     const position = preset.camera.position;
     const target = preset.camera.target;
     const up = preset.camera.up ?? [0, -1, 0];
-    this.moveCamera(this.worldPoint(position), this.worldPoint(target), up, preset.camera.fov ?? DEFAULT_FOV, false);
+    const fov = preset.camera.fov ?? DEFAULT_FOV;
+    const authored = verticalSpanMm(distanceMm(position, target), fov);
+    const radius = highlight ? this.boundingRadius(highlight) : 8;
+    const span = Math.max(authored, framingSpanMm(radius, this.canvas.clientWidth, this.canvas.clientHeight));
+    const distance = span / (2 * Math.tan((fov * Math.PI) / 360));
+    const direction = [
+      position[0] - target[0],
+      position[1] - target[1],
+      position[2] - target[2],
+    ];
+    const length = Math.hypot(direction[0], direction[1], direction[2]) || 1;
+    const next: Vec3 = [
+      target[0] + (direction[0] / length) * distance,
+      target[1] + (direction[1] / length) * distance,
+      target[2] + (direction[2] / length) * distance,
+    ];
+    this.moveCamera(this.worldPoint(next), this.worldPoint(target), up, fov, false);
     this.setClipping(preset.clipping?.enabled ? preset.clipping : null);
   }
 
@@ -757,7 +786,9 @@ export class EntViewer {
     record.object.visible = visible;
     const inSelection = this.selected !== null && (record.id === this.selected || this.ancestorIs(record.id, this.selected));
     const onTop = inSelection && visible;
-    const close = this.cameraDistance() < 42 && this.selected !== null && this.selected !== 'bone';
+    // Selection framing sits near 60–80 mm so the scale bar reads about 10 mm.
+    // Neighbours stay coloured through that range. Presets leave dimOthers off.
+    const close = this.dimOthers && this.selected !== null && this.selected !== 'bone' && this.cameraDistance() < 160;
     const envelope = record.id === 'bone' || record.id === 'sinus-dura' || record.id === 'external-auditory-canal';
     const dimmed = this.dimOthers && this.selected !== null && !inSelection && !close;
     const defaultGhost = !this.presetVis && record.id === 'sinus-dura';

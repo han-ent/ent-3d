@@ -14,6 +14,23 @@ export const DEFAULT_CAMERA = {
   fov: DEFAULT_FOV,
 };
 
+/**
+ * Vertical field that frames one structure with its neighbours.
+ * `radiusMm` is the bounding-sphere radius. The view is at least 1.6× that
+ * sphere (and never under 8 mm), and at least wide enough that a phone shows
+ * about a 10 mm scale bar.
+ */
+export function framingSpanMm(radiusMm: number, viewWidthPx: number, viewHeightPx: number): number {
+  const diameter = Math.max(radiusMm * 2, 0);
+  const fitted = Math.max(8, diameter * 1.6);
+  const height = Math.max(viewHeightPx, 1);
+  const width = Math.max(viewWidthPx, 1);
+  const aspect = width / height;
+  const fitBoth = Math.max(fitted, fitted / aspect);
+  const spanFor10mmScale = (height * 10) / 96;
+  return Math.max(fitBoth, spanFor10mmScale);
+}
+
 /** Vertical field used when framing one structure, so neighbours stay in view. */
 export const SELECTION_SPAN_MM = 58;
 
