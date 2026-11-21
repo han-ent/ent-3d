@@ -1,0 +1,25 @@
+{
+  "id": "scc-posterior",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "가장 뒤쪽에 있는 후반고리관 활입니다.",
+    "en": "Posterior canal arch, the part farthest posteriorly."
+  },
+  "function": {
+    "ko": "상반고리관과 총각을 공유하며, 총각은 따로 나누지 않았습니다.",
+    "en": "Shares the common crus with the superior canal; the crus is not a separate mesh."
+  },
+  "clinical": {
+    "ko": "상반고리관과 총각을 공유하며, 총각은 따로 나누지 않았습니다.",
+    "en": "Shares the common crus with the superior canal; the crus is not a separate mesh."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "audit",
+      "verified": false
+    }
+  ],
+  "review": "미검증"
+}

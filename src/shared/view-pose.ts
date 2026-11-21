@@ -8,9 +8,9 @@ import type { Vec3 } from './types';
 export const DEFAULT_FOV = 32;
 
 export const DEFAULT_CAMERA = {
-  position: [320, 22, 40] as Vec3,
-  target: [24, 22, 33] as Vec3,
-  up: [0, 0, 1] as Vec3,
+  position: [24, 8, -150] as Vec3,
+  target: [23, 30, 30] as Vec3,
+  up: [0, -1, 0] as Vec3,
   fov: DEFAULT_FOV,
 };
 

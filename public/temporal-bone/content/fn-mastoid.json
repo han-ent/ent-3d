@@ -1,0 +1,29 @@
+{
+  "id": "fn-mastoid",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "제2슬에서 메시 끝까지의 하행 분절입니다.",
+    "en": "The descending segment from the second genu to the distal end of the mesh."
+  },
+  "function": {
+    "ko": "이복근릉이 경유돌공을 향합니다.",
+    "en": "The digastric ridge points toward the stylomastoid foramen."
+  },
+  "clinical": {
+    "ko": "이복근릉이 경유돌공을 향합니다.",
+    "en": "The digastric ridge points toward the stylomastoid foramen."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p1, p10",
+      "verified": false
+    }
+  ],
+  "review": "미검증",
+  "related": [
+    "facial-nerve",
+    "chorda-tympani"
+  ]
+}

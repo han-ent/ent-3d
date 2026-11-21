@@ -1,6 +1,6 @@
 {
   "id": "sinus-dura",
-  "model_version": "openear-zeta-ras-1",
+  "model_version": "openear-zeta-frame-2",
   "anatomy": {
     "ko": "추체부 후면은 구불정맥동, 상추체정맥동, 하추체정맥동의 고랑(sulcus)으로 테가 지어져 후두개와 전벽을 이룸\n유양 외피질 후방 근처의 emissary vein 구멍은 sigmoid sulcus와 교통함\n경정맥공의 후방 구획(전통적 pars venosa, 또는 sigmoid compartment)이 구불정맥동을 받고, 경정맥구는 그 외측의 돔형 공간으로 중이 바로 아래에 위치함\nasterion은 횡정맥동–구불정맥동 이행부의 대략적 표지로, retrosigmoid 천공 설계에 쓰임",
     "en": ""

@@ -1,0 +1,174 @@
+{
+  "model_version": "openear-zeta-frame-2",
+  "frame": {
+    "x": "anterior",
+    "y": "inferior",
+    "z": "medial"
+  },
+  "labyrinth": {
+    "parentVertices": 10000,
+    "children": {
+      "scc-lateral": {
+        "exclusiveVertices": 1274,
+        "exportedVertices": 1329
+      },
+      "scc-superior": {
+        "exclusiveVertices": 1733,
+        "exportedVertices": 1802
+      },
+      "scc-posterior": {
+        "exclusiveVertices": 1019,
+        "exportedVertices": 1081
+      },
+      "vestibule": {
+        "exclusiveVertices": 2440,
+        "exportedVertices": 2586
+      },
+      "scala-vestibuli": {
+        "exclusiveVertices": 3534,
+        "exportedVertices": 3534
+      }
+    },
+    "exclusiveSum": 10000
+  },
+  "scala-tympani": {
+    "parentVertices": 8000,
+    "children": {
+      "scala-tympani-basal": {
+        "exclusiveVertices": 2631,
+        "exportedVertices": 2841,
+        "faces": 5256
+      },
+      "scala-tympani-middle": {
+        "exclusiveVertices": 3797,
+        "exportedVertices": 4168,
+        "faces": 7598
+      },
+      "scala-tympani-apical": {
+        "exclusiveVertices": 1572,
+        "exportedVertices": 1733,
+        "faces": 3142
+      }
+    },
+    "exclusiveSum": 8000
+  },
+  "scala-vestibuli": {
+    "parentVertices": 3534,
+    "children": {
+      "scala-vestibuli-basal": {
+        "exclusiveVertices": 1281,
+        "exportedVertices": 1390,
+        "faces": 2490
+      },
+      "scala-vestibuli-middle": {
+        "exclusiveVertices": 1599,
+        "exportedVertices": 1807,
+        "faces": 3195
+      },
+      "scala-vestibuli-apical": {
+        "exclusiveVertices": 654,
+        "exportedVertices": 751,
+        "faces": 1306
+      }
+    },
+    "exclusiveSum": 3534
+  },
+  "facial-nerve": {
+    "parentVertices": 10000,
+    "children": {
+      "fn-meatal": {
+        "exclusiveVertices": 1778,
+        "exportedVertices": 1803,
+        "faces": 3554
+      },
+      "fn-labyrinthine": {
+        "exclusiveVertices": 989,
+        "exportedVertices": 1036,
+        "faces": 1978
+      },
+      "fn-geniculate": {
+        "exclusiveVertices": 473,
+        "exportedVertices": 520,
+        "faces": 946
+      },
+      "fn-tympanic": {
+        "exclusiveVertices": 801,
+        "exportedVertices": 855,
+        "faces": 1602
+      },
+      "fn-second-genu": {
+        "exclusiveVertices": 983,
+        "exportedVertices": 1044,
+        "faces": 1966
+      },
+      "fn-mastoid": {
+        "exclusiveVertices": 4976,
+        "exportedVertices": 5008,
+        "faces": 9950
+      }
+    },
+    "segments": {
+      "fn-meatal": [
+        0.0,
+        3.75
+      ],
+      "fn-labyrinthine": [
+        3.75,
+        7.550000000000001
+      ],
+      "fn-geniculate": [
+        7.550000000000001,
+        9.55
+      ],
+      "fn-tympanic": [
+        9.55,
+        12.75
+      ],
+      "fn-second-genu": [
+        12.75,
+        15.75
+      ],
+      "fn-mastoid": [
+        15.75,
+        28.239339921599722
+      ]
+    },
+    "arcMm": 27.239339921599722,
+    "exclusiveSum": 10000
+  },
+  "tympanic-membrane": {
+    "parentVertices": 4000,
+    "children": {
+      "tm-pars-tensa": {
+        "exclusiveVertices": 3535,
+        "exportedVertices": 3580,
+        "faces": 7068
+      },
+      "tm-pars-flaccida": {
+        "exclusiveVertices": 465,
+        "exportedVertices": 510,
+        "faces": 928
+      }
+    },
+    "method": "superior-12-percent-fallback",
+    "exclusiveSum": 4000
+  },
+  "landmarkCount": 43,
+  "ctLabelCount": 20,
+  "registration": {
+    "method": "Umeyama similarity on 5 pairs. The stylized surface was authored in the ZETA millimetre frame, so the pairs coincide.",
+    "scale": 0.9999999999999999,
+    "rmsMm": 1.4648213755271157e-14,
+    "maxMm": 2.161031364628563e-14,
+    "within5Percent": true,
+    "pairs": [
+      "EAC porus",
+      "mastoid tip",
+      "zygomatic root",
+      "stylomastoid foramen",
+      "IAC medial"
+    ],
+    "review": "\ubbf8\uac80\uc99d",
+    "license": "Original stylized mesh. Z-Anatomy LICENSE checked 2026-11-21 is CC BY-SA 4.0, but the redistributable file is a 293 MB Blender template and was not decimated into this GLB."
+  }
+}

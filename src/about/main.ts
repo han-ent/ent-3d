@@ -30,6 +30,9 @@ main.innerHTML = `
     </ul>
     <h2 data-i18n="about.sampleTitle"></h2>
     <p data-i18n="about.sampleBody"></p>
+    <h2 data-i18n="about.upperTitle"></h2>
+    <p data-i18n="about.upperBody"></p>
+    <p><a href="https://github.com/LluisV/Z-Anatomy">Z-Anatomy</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></p>
     <h2 data-i18n="about.vorTitle"></h2>
     <p data-i18n="about.vorBody"></p>
     <h2 data-i18n="about.reviewTitle"></h2>

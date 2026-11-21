@@ -1,0 +1,28 @@
+{
+  "id": "fn-second-genu",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "아래로 꺾이는 둘째 곡률 정점 앞뒤 1.5 mm입니다.",
+    "en": "1.5 mm on either side of the second curvature peak, where the nerve turns inferiorly."
+  },
+  "function": {
+    "ko": "추체융기, 외측반고리관 근처에 있습니다.",
+    "en": "Near the pyramidal eminence and the lateral canal."
+  },
+  "clinical": {
+    "ko": "추체융기, 외측반고리관 근처에 있습니다.",
+    "en": "Near the pyramidal eminence and the lateral canal."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p7",
+      "verified": false
+    }
+  ],
+  "review": "미검증",
+  "related": [
+    "facial-nerve"
+  ]
+}

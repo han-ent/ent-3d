@@ -1,0 +1,25 @@
+{
+  "id": "vestibule",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "와우 전정계와 세 반고리관 활을 분리하고 남은 중심 공간입니다.",
+    "en": "Central chamber remaining after the cochlear scala and the three canal arches were separated."
+  },
+  "function": {
+    "ko": "난원창이 여기로 열립니다.",
+    "en": "The oval window opens into it."
+  },
+  "clinical": {
+    "ko": "난원창이 여기로 열립니다.",
+    "en": "The oval window opens into it."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "audit",
+      "verified": false
+    }
+  ],
+  "review": "미검증"
+}

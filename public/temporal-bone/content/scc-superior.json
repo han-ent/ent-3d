@@ -1,0 +1,25 @@
+{
+  "id": "scc-superior",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "가장 위쪽에 있는 상반고리관 활입니다.",
+    "en": "Superior canal arch, the part farthest superiorly."
+  },
+  "function": {
+    "ko": "궁상융기와 관련됩니다. 절단 경계는 미검증입니다.",
+    "en": "Related to the arcuate eminence. The cut is unverified."
+  },
+  "clinical": {
+    "ko": "궁상융기와 관련됩니다. 절단 경계는 미검증입니다.",
+    "en": "Related to the arcuate eminence. The cut is unverified."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "audit",
+      "verified": false
+    }
+  ],
+  "review": "미검증"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "tm-pars-flaccida",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "외측돌기보다 위쪽의 작은 고막입니다.",
+    "en": "The small superior cap of the membrane above the lateral process."
+  },
+  "function": {
+    "ko": "Prussak 공간 쪽으로 함몰합니다.",
+    "en": "Retracts toward Prussak space."
+  },
+  "clinical": {
+    "ko": "Prussak 공간 쪽으로 함몰합니다.",
+    "en": "Retracts toward Prussak space."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p5",
+      "verified": false
+    }
+  ],
+  "review": "미검증"
+}

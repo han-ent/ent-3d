@@ -8,6 +8,8 @@ import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
+import { GIZMO_AXES } from '../frame';
+import { estimateLabelSize, placeLabels, type Placement, type StudyLabel } from '../labels';
 import { DEFAULT_CAMERA, DEFAULT_FOV, SELECTION_SPAN_MM } from '../view-pose';
 
 export type PickHit = {
@@ -28,6 +30,8 @@ type StructureRecord = {
   size: number;
   color: string;
   label: string;
+  parentId: string | null;
+  aggregate: boolean;
 };
 
 type PlaneRecord = {
@@ -62,15 +66,6 @@ const STAGE = '#C4C2BC';
 const OUTLINE = '#8C2F1B';
 const DIM_GRAY = '#D5D3CE';
 const INTRO_LABELS = ['malleus', 'incus', 'stapes', 'facial-nerve', 'scala-vestibuli'];
-
-const GIZMO_AXES: { id: string; dir: Vec3; text: string }[] = [
-  { id: 'lat', dir: [1, 0, 0], text: '외' },
-  { id: 'med', dir: [-1, 0, 0], text: '내' },
-  { id: 'ant', dir: [0, 1, 0], text: '전' },
-  { id: 'post', dir: [0, -1, 0], text: '후' },
-  { id: 'sup', dir: [0, 0, 1], text: '상' },
-  { id: 'inf', dir: [0, 0, -1], text: '하' },
-];
 
 function isMesh(obj: THREE.Object3D): obj is THREE.Mesh {
   return (obj as THREE.Mesh).isMesh === true;
@@ -128,6 +123,23 @@ export class EntViewer {
   private onPickHandler: ((hit: PickHit | null) => void) | null = null;
   private onMeasureHandler: ((points: Vec3[]) => void) | null = null;
   private onLabelHandler: ((id: string) => void) | null = null;
+  private onFrameHandler: ((distanceMm: number) => void) | null = null;
+  private onShiftHandler: ((pointMm: Vec3) => void) | null = null;
+  private parentOf = new Map<string, string>();
+  private stageHidden = new Set<string>();
+  private studyLabels: StudyLabel[] = [];
+  private labelMode: 'basic' | 'surgical' | 'all' = 'basic';
+  private studyLayer: HTMLElement | null = null;
+  private studyButtons = new Map<string, HTMLButtonElement>();
+  private labelPlan: Placement[] = [];
+  private labelPlanAt = 0;
+  private flashId: string | null = null;
+  private flashUntil = 0;
+  private upperBody: THREE.Mesh | null = null;
+  private earHotspot: THREE.Mesh | null = null;
+  private cutCenter = new THREE.Vector3();
+  private cutRadius = { value: 0 };
+  private eacMm: Vec3 | null = null;
   private resizeObserver: ResizeObserver;
   private running = true;
   private tween: Tween | null = null;
@@ -154,15 +166,15 @@ export class EntViewer {
     this.draco.setDecoderPath(publicUrl('draco/'));
     this.loader.setDRACOLoader(this.draco);
 
-    this.camera = new THREE.PerspectiveCamera(DEFAULT_FOV, 1, 0.05, 4000);
-    this.camera.up.set(0, 0, 1);
+    this.camera = new THREE.PerspectiveCamera(DEFAULT_FOV, 1, 0.05, 8000);
+    this.camera.up.set(0, -1, 0);
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
     this.controls.rotateSpeed = 0.85;
     this.controls.zoomSpeed = 0.85;
     this.controls.minDistance = 2;
-    this.controls.maxDistance = 500;
+    this.controls.maxDistance = 1600;
 
     this.world.name = 'specimen';
     this.world.position.set(this.offset[0], this.offset[1], this.offset[2]);
@@ -211,7 +223,9 @@ export class EntViewer {
       label.textContent = axis.text;
       this.gizmo.append(label);
     }
-    parent.append(this.calloutLayer, this.gizmo);
+    this.studyLayer = document.createElement('div');
+    this.studyLayer.className = 'study-layer';
+    parent.append(this.calloutLayer, this.studyLayer, this.gizmo);
     this.frameDefault(true);
 
     canvas.addEventListener('pointerdown', this.onPointerDown);
@@ -260,7 +274,71 @@ export class EntViewer {
     this.onLabelHandler = handler;
   }
 
-  async loadStructure(id: string, url: string, color: string, layer: string, opacity: number, label: string): Promise<void> {
+  onFrame(handler: (distanceMm: number) => void): void {
+    this.onFrameHandler = handler;
+  }
+
+  onShiftPoint(handler: (pointMm: Vec3) => void): void {
+    this.onShiftHandler = handler;
+  }
+
+  cameraDistance(): number {
+    return this.camera.position.distanceTo(this.controls.target);
+  }
+
+  flyTo(position: Vec3, target: Vec3, up: Vec3 = [0, -1, 0], fov = DEFAULT_FOV): void {
+    this.moveCamera(this.worldPoint(position), this.worldPoint(target), up, fov, false);
+  }
+
+  structureCenter(id: string): Vec3 | null {
+    const record = this.records.get(id);
+    if (!record) return null;
+    const box = new THREE.Box3();
+    record.object.updateWorldMatrix(true, true);
+    record.object.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.geometry) return;
+      if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+      if (!mesh.geometry.boundingBox) return;
+      const next = mesh.geometry.boundingBox.clone();
+      mesh.updateWorldMatrix(true, false);
+      next.applyMatrix4(mesh.matrixWorld);
+      box.union(next);
+    });
+    if (box.isEmpty()) return null;
+    const local = this.world.worldToLocal(box.getCenter(new THREE.Vector3()));
+    return [local.x, local.y, local.z];
+  }
+
+  setStageHidden(ids: Iterable<string>): void {
+    this.stageHidden = new Set(ids);
+    this.refreshLook();
+  }
+
+  setLabelMode(mode: 'basic' | 'surgical' | 'all'): void {
+    this.labelMode = mode;
+    this.labelPlanAt = 0;
+  }
+
+  setStudyLabels(labels: StudyLabel[]): void {
+    this.studyLabels = labels;
+    this.labelPlanAt = 0;
+  }
+
+  flash(id: string): void {
+    this.flashId = id;
+    this.flashUntil = performance.now() + 700;
+  }
+
+  async loadStructure(
+    id: string,
+    url: string,
+    color: string,
+    layer: string,
+    opacity: number,
+    label: string,
+    meta?: { parentId?: string; aggregate?: boolean },
+  ): Promise<void> {
     const gltf = await this.loader.loadAsync(url);
     const root = gltf.scene;
     const materials: THREE.MeshStandardMaterial[] = [];
@@ -311,7 +389,10 @@ export class EntViewer {
       size,
       color,
       label,
+      parentId: meta?.parentId ?? null,
+      aggregate: meta?.aggregate === true,
     };
+    if (meta?.parentId) this.parentOf.set(id, meta.parentId);
     this.records.set(id, record);
     this.applyLook(record);
   }
@@ -357,8 +438,11 @@ export class EntViewer {
     this.dimOthers = id !== null;
     this.linked.clear();
     this.refreshLook();
-    if (id && frame) this.frameStructure(id);
-    else this.syncCallouts();
+    if (id && frame) {
+      const record = this.records.get(id);
+      const span = (record?.size ?? 40) < 18 ? 10 : 36;
+      this.frameStructure(id, span);
+    } else this.syncCallouts();
   }
 
   /** Quiz highlight. The target stays opaque and is drawn in front of bone. */
@@ -396,10 +480,17 @@ export class EntViewer {
   }
 
   frameStructure(id: string, spanMm = SELECTION_SPAN_MM, fit = false): void {
-    const record = this.records.get(id);
-    if (!record) return;
-    record.object.updateWorldMatrix(true, true);
-    const box = new THREE.Box3().setFromObject(record.object);
+    const box = new THREE.Box3();
+    const ids = [id, ...this.descendantIds(id)];
+    for (const itemId of ids) {
+      const record = this.records.get(itemId);
+      if (!record || record.aggregate) continue;
+      record.object.updateWorldMatrix(true, true);
+      const visible = record.object.visible;
+      record.object.visible = true;
+      box.expandByObject(record.object);
+      record.object.visible = visible;
+    }
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3());
     const direction = this.camera.position.clone().sub(this.controls.target);
@@ -427,7 +518,7 @@ export class EntViewer {
     this.refreshLook();
     const position = preset.camera.position;
     const target = preset.camera.target;
-    const up = preset.camera.up ?? [0, 0, 1];
+    const up = preset.camera.up ?? [0, -1, 0];
     this.moveCamera(this.worldPoint(position), this.worldPoint(target), up, preset.camera.fov ?? DEFAULT_FOV, false);
     this.setClipping(preset.clipping?.enabled ? preset.clipping : null);
   }
@@ -542,6 +633,7 @@ export class EntViewer {
     this.outlineMaterial.dispose();
     this.renderer.dispose();
     this.calloutLayer.remove();
+    this.studyLayer?.remove();
     this.gizmo.remove();
   }
 
@@ -560,7 +652,9 @@ export class EntViewer {
     this.controls.update();
     this.updateScaleBar();
     this.projectCallouts();
+    this.projectStudyLabels();
     this.projectGizmo();
+    this.onFrameHandler?.(distance);
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -605,25 +699,66 @@ export class EntViewer {
   }
 
   private shown(record: StructureRecord): boolean {
-    if (this.userHidden.has(record.id)) return false;
-    if (this.isolateId) return record.id === this.isolateId;
+    if (record.aggregate) return false;
+    if (this.userHidden.has(record.id) || (record.parentId && this.userHidden.has(record.parentId))) return false;
+    if (this.stageHidden.has(record.id)) return false;
+    if (this.isolateId) return record.id === this.isolateId || record.parentId === this.isolateId || this.ancestorIs(record.id, this.isolateId);
     if (!this.presetVis) return true;
-    if (this.presetVis.hidden.has(record.id)) return false;
-    if (this.presetVis.visible && !this.presetVis.visible.has(record.id) && !this.presetVis.ghosted.has(record.id)) return false;
+    const hidden = this.presetVis.hidden.has(record.id) || this.ancestorHidden(record.id);
+    if (hidden) return false;
+    if (this.presetVis.visible && !this.presetListed(record.id)) return false;
     return true;
+  }
+
+  private descendantIds(id: string): string[] {
+    const found: string[] = [];
+    for (const [child, parent] of this.parentOf) {
+      if (parent === id || this.ancestorIs(child, id)) found.push(child);
+    }
+    return found;
+  }
+
+  private ancestorIs(id: string, target: string): boolean {
+    let parent = this.parentOf.get(id) ?? null;
+    while (parent) {
+      if (parent === target) return true;
+      parent = this.parentOf.get(parent) ?? null;
+    }
+    return false;
+  }
+
+  private ancestorHidden(id: string): boolean {
+    let parent = this.parentOf.get(id) ?? null;
+    while (parent) {
+      if (this.presetVis?.hidden.has(parent)) return true;
+      parent = this.parentOf.get(parent) ?? null;
+    }
+    return false;
+  }
+
+  private presetListed(id: string): boolean {
+    if (!this.presetVis?.visible) return true;
+    if (this.presetVis.visible.has(id) || this.presetVis.ghosted.has(id)) return true;
+    let parent = this.parentOf.get(id) ?? null;
+    while (parent) {
+      if (this.presetVis.visible.has(parent) || this.presetVis.ghosted.has(parent)) return true;
+      parent = this.parentOf.get(parent) ?? null;
+    }
+    return false;
   }
 
   private applyLook(record: StructureRecord): void {
     const visible = this.shown(record);
     record.object.visible = visible;
-    const onTop = record.id === this.selected && visible;
-    const dimmed = this.dimOthers && this.selected !== null && record.id !== this.selected;
+    const inSelection = this.selected !== null && (record.id === this.selected || this.ancestorIs(record.id, this.selected));
+    const onTop = inSelection && visible;
+    const dimmed = this.dimOthers && this.selected !== null && !inSelection;
     const defaultGhost = !this.presetVis && record.id === 'sinus-dura';
     const opacity = displayOpacity({
       id: record.id,
       base: record.opacity,
-      selectedId: this.selected,
-      dimOthers: this.dimOthers,
+      selectedId: inSelection ? record.id : this.selected,
+      dimOthers: this.dimOthers && !inSelection,
       ghost: this.presetVis?.ghosted.has(record.id) === true || defaultGhost,
       boneTransparent: this.boneTransparent,
     });
@@ -638,7 +773,8 @@ export class EntViewer {
       material.polygonOffsetUnits = 1;
     }
     for (const mesh of record.meshes) mesh.renderOrder = onTop ? 30 : 0;
-    for (const outline of record.outlines) outline.visible = onTop;
+    const flashing = this.flashId === record.id && performance.now() < this.flashUntil;
+    for (const outline of record.outlines) outline.visible = onTop || flashing;
   }
 
   private setClipping(clip: { normal: Vec3; constant: number } | null): void {
@@ -766,8 +902,8 @@ export class EntViewer {
   private syncCallouts(): void {
     const wanted = new Set<string>();
     if (!this.labelsHidden) {
-      if (this.selected && this.records.get(this.selected)?.object.visible) wanted.add(this.selected);
-      else if (!this.selected) {
+      if (this.studyLabels.length === 0 && this.selected && this.records.get(this.selected)?.object.visible) wanted.add(this.selected);
+      else if (!this.selected && this.studyLabels.length === 0) {
         for (const id of INTRO_LABELS) {
           const record = this.records.get(id);
           if (record?.object.visible) wanted.add(id);
@@ -855,6 +991,187 @@ export class EntViewer {
     }
   }
 
+  loadUpperBody(url: string, eacMm: Vec3): Promise<void> {
+    this.eacMm = eacMm;
+    const center = new THREE.Vector3(eacMm[0] + this.offset[0], eacMm[1] + this.offset[1], eacMm[2] + this.offset[2]);
+    this.cutCenter.copy(center);
+    return this.loader.loadAsync(url).then((gltf) => {
+      const meshes: THREE.Mesh[] = [];
+      gltf.scene.traverse((obj) => {
+        if (isMesh(obj)) meshes.push(obj);
+      });
+      const mesh = meshes[0];
+      if (!mesh) return;
+      const material = new THREE.MeshStandardMaterial({
+        color: '#e7d2c4',
+        roughness: 0.72,
+        metalness: 0,
+        transparent: true,
+        opacity: 1,
+      });
+      material.onBeforeCompile = (shader) => {
+        shader.uniforms.uCutCenter = { value: this.cutCenter };
+        shader.uniforms.uCutRadius = this.cutRadius;
+        shader.vertexShader = shader.vertexShader.replace(
+          '#include <project_vertex>',
+          '#include <project_vertex>\nvEntWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+        );
+        shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;');
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;')
+          .replace(
+            '#include <dithering_fragment>',
+            `if (uCutRadius > 0.0) {
+              float dist = distance(vEntWorld, uCutCenter);
+              if (dist < uCutRadius) discard;
+              gl_FragColor.a *= smoothstep(uCutRadius, uCutRadius + 10.0, dist);
+            }
+            #include <dithering_fragment>`,
+          );
+      };
+      material.customProgramCacheKey = () => 'ent3d-skin-cut';
+      mesh.material = material;
+      mesh.userData.structureId = 'upper-body';
+      mesh.userData.kind = 'structure';
+      this.pickables.push(mesh);
+      this.world.add(mesh);
+      this.upperBody = mesh;
+      const hotspot = new THREE.Mesh(
+        new THREE.SphereGeometry(12, 16, 12),
+        new THREE.MeshBasicMaterial({ color: '#8C2F1B', transparent: true, opacity: 0.01, depthWrite: false }),
+      );
+      hotspot.position.set(eacMm[0], eacMm[1], eacMm[2]);
+      hotspot.userData.structureId = 'ear-hotspot';
+      hotspot.userData.kind = 'structure';
+      this.pickables.push(hotspot);
+      this.world.add(hotspot);
+      this.earHotspot = hotspot;
+    });
+  }
+
+  setCutaway(radiusMm: number, skinOpacity: number): void {
+    this.cutRadius.value = radiusMm;
+    if (this.upperBody) {
+      const material = this.upperBody.material as THREE.MeshStandardMaterial;
+      material.opacity = skinOpacity;
+      material.transparent = skinOpacity < 0.98;
+      this.upperBody.visible = skinOpacity > 0.02;
+    }
+    if (this.earHotspot) this.earHotspot.visible = radiusMm < 8;
+  }
+
+  private projectStudyLabels(): void {
+    if (!this.studyLayer) return;
+    const now = performance.now();
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    if (now - this.labelPlanAt > 100) {
+      this.labelPlanAt = now;
+      this.labelPlan = this.layoutStudyLabels(width, height);
+    }
+    const wanted = new Set(this.labelPlan.map((item) => item.id));
+    for (const [id, button] of this.studyButtons) {
+      if (!wanted.has(id)) {
+        button.remove();
+        this.studyButtons.delete(id);
+      }
+    }
+    this.studyLayer.querySelectorAll('svg').forEach((node) => node.remove());
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'leaders');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    this.studyLayer.append(svg);
+    for (const item of this.labelPlan) {
+      let button = this.studyButtons.get(item.id);
+      if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.addEventListener('pointerup', (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+          this.onLabelHandler?.(item.id);
+        });
+        this.studyLayer.append(button);
+        this.studyButtons.set(item.id, button);
+      }
+      const source = this.studyLabels.find((label) => label.id === item.id);
+      button.className = item.mode === 'dot' ? 'study-dot' : 'study-label';
+      button.textContent = item.mode === 'dot' ? '' : source?.text ?? '';
+      button.style.left = `${item.x}px`;
+      button.style.top = `${item.y}px`;
+      button.style.opacity = item.dimmed ? '0.38' : '1';
+      button.dataset.priority = String(source?.priority ?? 0);
+      if (item.mode === 'label' && source) {
+        const anchor = this.projectSpecimen(source.position, width, height);
+        if (anchor) {
+          const line = document.createElementNS(SVG_NS, 'line');
+          line.setAttribute('x1', String(anchor.x));
+          line.setAttribute('y1', String(anchor.y));
+          line.setAttribute('x2', String(item.x));
+          line.setAttribute('y2', String(item.y + 8));
+          line.setAttribute('stroke', '#222');
+          line.setAttribute('stroke-width', '1');
+          svg.append(line);
+        }
+      }
+    }
+  }
+
+  private layoutStudyLabels(width: number, height: number): Placement[] {
+    const distance = this.cameraDistance();
+    const inputs = [];
+    for (const label of this.studyLabels) {
+      const tiers = distance > 60 ? ['region', 'surface'] : distance > 20 ? ['structure'] : ['structure', 'subpart'];
+      if (!tiers.includes(label.tier)) continue;
+      if (this.labelMode !== 'all' && !label.modes.includes(this.labelMode)) continue;
+      if (label.tier === 'subpart' && label.parentId !== this.selected && label.id !== this.selected) continue;
+      if (distance > 220 && label.tier === 'region') continue;
+      const anchor = this.projectSpecimen(label.position, width, height);
+      if (!anchor || anchor.behind) continue;
+      const size = estimateLabelSize(label.text);
+      const occluded = this.anchorOccluded(label.position);
+      let priority = label.priority;
+      if (label.id === this.selected || label.parentId === this.selected) priority += 80;
+      inputs.push({
+        id: label.id,
+        priority,
+        anchorX: anchor.x,
+        anchorY: anchor.y,
+        width: size.width,
+        height: size.height,
+        occluded,
+      });
+    }
+    return placeLabels(inputs, width, height, { top: 58, right: 8, bottom: 108, left: 8 });
+  }
+
+  private projectSpecimen(position: Vec3, width: number, height: number): { x: number; y: number; behind: boolean } | null {
+    const world = new THREE.Vector3(position[0] + this.offset[0], position[1] + this.offset[1], position[2] + this.offset[2]);
+    const ndc = world.project(this.camera);
+    if (ndc.z > 1) return { x: 0, y: 0, behind: true };
+    return { x: (ndc.x * 0.5 + 0.5) * width, y: (-ndc.y * 0.5 + 0.5) * height, behind: false };
+  }
+
+  private anchorOccluded(position: Vec3): boolean {
+    const world = new THREE.Vector3(position[0] + this.offset[0], position[1] + this.offset[1], position[2] + this.offset[2]);
+    const direction = world.clone().sub(this.camera.position);
+    const length = direction.length();
+    if (length < 0.5) return false;
+    this.raycaster.set(this.camera.position, direction.normalize());
+    const hits = this.raycaster.intersectObjects(this.pickables, false);
+    for (const hit of hits) {
+      if (!isShown(hit.object)) continue;
+      if (hit.distance >= length - 0.8) return false;
+      const id = String(hit.object.userData.structureId ?? '');
+      const record = this.records.get(id);
+      const opacity = record?.materials[0]?.opacity ?? 1;
+      if (id === 'bone' && opacity < 0.4) continue;
+      if (id === 'upper-body' && this.cutRadius.value > 5) continue;
+      if (opacity >= 0.45) return true;
+    }
+    return false;
+  }
+
   private projectGizmo(): void {
     const direction = new THREE.Vector3();
     this.camera.getWorldDirection(direction);
@@ -870,6 +1187,11 @@ export class EntViewer {
     this.gizmoSvg.replaceChildren();
     for (const axis of GIZMO_AXES) {
       const tip = project(axis.dir[0] * 1.05, axis.dir[1] * 1.05, axis.dir[2] * 1.05);
+      if (Math.hypot(tip.x - origin.x, tip.y - origin.y) < 10) {
+        const hiddenLabel = this.gizmo.querySelector<HTMLElement>(`[data-axis="${axis.id}"]`);
+        if (hiddenLabel) hiddenLabel.hidden = true;
+        continue;
+      }
       const line = document.createElementNS(SVG_NS, 'line');
       line.setAttribute('x1', String(origin.x));
       line.setAttribute('y1', String(origin.y));
@@ -881,6 +1203,9 @@ export class EntViewer {
       const label = this.gizmo.querySelector<HTMLElement>(`[data-axis="${axis.id}"]`);
       if (!label) continue;
       const textPos = project(axis.dir[0] * 1.35, axis.dir[1] * 1.35, axis.dir[2] * 1.35);
+      const separated = Math.hypot(textPos.x - origin.x, textPos.y - origin.y) > 16;
+      label.hidden = !separated;
+      if (!separated) continue;
       label.style.left = `${textPos.x}px`;
       label.style.top = `${textPos.y}px`;
     }
@@ -895,6 +1220,11 @@ export class EntViewer {
     const moved = Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y);
     this.down = null;
     if (moved > 10) return;
+    if (event.shiftKey) {
+      const hit = this.cast(event.clientX, event.clientY);
+      if (hit) this.onShiftHandler?.(hit.pointMm);
+      return;
+    }
     const hit = this.cast(event.clientX, event.clientY);
     if (this.mode === 'measure') {
       if (!hit || hit.kind !== 'structure') return;

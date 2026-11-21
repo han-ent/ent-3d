@@ -1,6 +1,6 @@
 {
   "id": "facial-nerve",
-  "model_version": "openear-zeta-ras-1",
+  "model_version": "openear-zeta-frame-2",
   "anatomy": {
     "ko": "측두골 내에서는 fallopian canal을 따라 내이도(IAC) 기저(fundus)에서 stylomastoid foramen까지 주행하며, IAC 안에서는 섬유초·내신경막이 없고 얇은 거미막으로 둘러싸임\n미로 분절(labyrinthine segment)은 첫 분절로 가장 짧고 좁으며 와우 상방을 지나 슬상신경절와(geniculate fossa)로 열리고, 슬상신경절은 상고실 전방의 supratubal recess(STR) 바로 심부에 있으며 중두개와와는 매우 얇은 골로 분리됨(Cummings는 약 25%에서 골 결손)\n제1슬에서 greater superficial petrosal nerve(GSPN)가 전방으로 나가고 본간은 급히 후하방으로 고실(수평) 분절에 들어가 cochleariform process 상방을 스친 뒤 oval window niche의 상벽을 이룸\npyramidal eminence에서 제2슬을 이루어 유양(수직) 분절로 이행하며, 제2슬은 외측반고리관의 전하방·침골 단돌기를 지나는 선의 전방에 위치하고, 수직 분절을 상방 연장하면 외측반고리관 융기를 대략 이등분함",
     "en": ""

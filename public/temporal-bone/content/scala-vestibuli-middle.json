@@ -1,0 +1,25 @@
+{
+  "id": "scala-vestibuli-middle",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "전정계의 중간회전입니다.",
+    "en": "Middle turn of the cochlear scala vestibuli."
+  },
+  "function": {
+    "ko": "고실계와 같은 와우축 각도로 나눴습니다.",
+    "en": "Angle split about the same modiolus axis as the scala tympani."
+  },
+  "clinical": {
+    "ko": "고실계와 같은 와우축 각도로 나눴습니다.",
+    "en": "Angle split about the same modiolus axis as the scala tympani."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "audit",
+      "verified": false
+    }
+  ],
+  "review": "미검증"
+}

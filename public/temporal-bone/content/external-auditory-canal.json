@@ -1,6 +1,6 @@
 {
   "id": "external-auditory-canal",
-  "model_version": "openear-zeta-ras-1",
+  "model_version": "openear-zeta-frame-2",
   "anatomy": {
     "ko": "[샘플] 설명 자리. 검토자가 채웁니다.",
     "en": "[Sample] placeholder."

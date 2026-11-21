@@ -1,0 +1,16 @@
+{
+  "method": "Umeyama similarity on 5 pairs. The stylized surface was authored in the ZETA millimetre frame, so the pairs coincide.",
+  "scale": 0.9999999999999999,
+  "rmsMm": 1.4648213755271157e-14,
+  "maxMm": 2.161031364628563e-14,
+  "within5Percent": true,
+  "pairs": [
+    "EAC porus",
+    "mastoid tip",
+    "zygomatic root",
+    "stylomastoid foramen",
+    "IAC medial"
+  ],
+  "review": "\ubbf8\uac80\uc99d",
+  "license": "Original stylized mesh. Z-Anatomy LICENSE checked 2026-11-21 is CC BY-SA 4.0, but the redistributable file is a 293 MB Blender template and was not decimated into this GLB."
+}

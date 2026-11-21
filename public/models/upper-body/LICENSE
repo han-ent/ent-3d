@@ -1,0 +1,24 @@
+ENT 3D upper-body mesh
+
+This GLB is an original stylized head, neck, and shoulders made for the
+temporal-bone entry screen. It is not a scan and not a Z-Anatomy extract.
+
+Z-Anatomy was checked before choosing this mesh.
+
+- https://github.com/LluisV/Z-Anatomy LICENSE (retrieved 2026-11-21) is the
+  full Creative Commons Attribution-ShareAlike 4.0 International deed.
+  That license allows public redistribution, including on a website, if
+  attribution is kept and adaptations stay under CC BY-SA or a compatible
+  license.
+- https://github.com/Z-Anatomy/Models-of-human-anatomy License.txt says the
+  same and asks for attribution to BodyParts3D (CC BY-SA 2.1 Japan) and
+  Z-Anatomy (CC BY-SA 4.0).
+
+The redistributable model in that repository is a Blender application
+template whose Startup.blend is about 293 MB. This build environment had
+no Blender binary with which to export and decimate a head–neck–shoulders
+subset under 5 MB, so that file is not shipped here. The stylized mesh in
+this folder is original and is not offered under CC BY-SA.
+
+Attribution for the licence check, and for OpenEar ZETA (CC BY 4.0), is on
+the sources page of this site.

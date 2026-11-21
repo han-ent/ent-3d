@@ -1,0 +1,25 @@
+{
+  "id": "labyrinth",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "분할 전 전정계 메시입니다. 와우 전정계, 전정, 세 반고리관이 들어 있습니다.",
+    "en": "The unsplit mesh that was labeled scala vestibuli. It contains the cochlear scala vestibuli, the vestibule, and all three semicircular canals."
+  },
+  "function": {
+    "ko": "자식 구조를 고르면 해당 부분만 봅니다.",
+    "en": "Parent aggregate. Select a child to study one part."
+  },
+  "clinical": {
+    "ko": "자식 구조를 고르면 해당 부분만 봅니다.",
+    "en": "Parent aggregate. Select a child to study one part."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "audit",
+      "verified": false
+    }
+  ],
+  "review": "미검증"
+}
