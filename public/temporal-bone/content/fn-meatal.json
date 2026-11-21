@@ -1,0 +1,28 @@
+{
+  "id": "fn-meatal",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "와우전정신경에 가까운, 안면신경 메시의 안쪽 끝입니다.",
+    "en": "Medial end of the facial-nerve mesh, while it is still near the cochleovestibular nerve."
+  },
+  "function": {
+    "ko": "기저부에서 Bill bar가 뒤쪽 표지입니다. 길이는 기하학적 추정치이며 미검증입니다.",
+    "en": "Bill bar is the posterior landmark at the fundus. Length is geometric and unverified."
+  },
+  "clinical": {
+    "ko": "기저부에서 Bill bar가 뒤쪽 표지입니다. 길이는 기하학적 추정치이며 미검증입니다.",
+    "en": "Bill bar is the posterior landmark at the fundus. Length is geometric and unverified."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "p9",
+      "verified": false
+    }
+  ],
+  "review": "미검증",
+  "related": [
+    "facial-nerve"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "fn-tympanic",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "제1슬 이후, 제2굽이 이전의 후가쪽 주행입니다.",
+    "en": "The posterolateral run after the first genu and before the second bend."
+  },
+  "function": {
+    "ko": "난원창 위를 지납니다. 결손이 흔하다고 가르치나 수치는 다시 확인하지 않았습니다.",
+    "en": "Passes above the oval window. Dehiscence is often taught here; the percentage was not rechecked."
+  },
+  "clinical": {
+    "ko": "난원창 위를 지납니다. 결손이 흔하다고 가르치나 수치는 다시 확인하지 않았습니다.",
+    "en": "Passes above the oval window. Dehiscence is often taught here; the percentage was not rechecked."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p7",
+      "verified": false
+    }
+  ],
+  "review": "미검증",
+  "related": [
+    "facial-nerve"
+  ]
+}

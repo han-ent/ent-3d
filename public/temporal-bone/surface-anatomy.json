@@ -1,0 +1,204 @@
+{
+  "model_version": "openear-zeta-frame-2",
+  "review": "미검증",
+  "labels": [
+    {
+      "id": "helix",
+      "en": "Helix",
+      "ko": "이륜",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        32.755,
+        33.332,
+        4.962
+      ],
+      "review": "미검증",
+      "tier": "surface",
+      "method": "zanatomy"
+    },
+    {
+      "id": "crus-helix",
+      "en": "Crus of helix",
+      "ko": "이륜각",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        37.077,
+        30.028,
+        11.125
+      ],
+      "review": "미검증",
+      "tier": "surface",
+      "method": "zanatomy"
+    },
+    {
+      "id": "antihelix",
+      "en": "Antihelix",
+      "ko": "대이륜",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        33.492,
+        46.389,
+        9.021
+      ],
+      "review": "미검증",
+      "tier": "surface",
+      "method": "zanatomy"
+    },
+    {
+      "id": "cymba",
+      "en": "Cymba conchae",
+      "ko": "이갑개정",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        33.475,
+        40.506,
+        16.187
+      ],
+      "review": "미검증",
+      "tier": "surface",
+      "method": "zanatomy"
+    },
+    {
+      "id": "cavum",
+      "en": "Cavum conchae",
+      "ko": "이갑개강",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        38.913,
+        50.353,
+        22.074
+      ],
+      "review": "미검증",
+      "tier": "surface",
+      "method": "zanatomy"
+    },
+    {
+      "id": "tragus",
+      "en": "Tragus",
+      "ko": "이주",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        47.554,
+        47.098,
+        19.853
+      ],
+      "review": "미검증",
+      "tier": "surface",
+      "method": "zanatomy"
+    },
+    {
+      "id": "antitragus",
+      "en": "Antitragus",
+      "ko": "대이주",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        40.24,
+        58.735,
+        14.926
+      ],
+      "review": "미검증",
+      "tier": "surface",
+      "method": "zanatomy"
+    },
+    {
+      "id": "intertragic-notch",
+      "en": "Intertragic notch",
+      "ko": "주간절흔",
+      "anatomy": "Midpoint of the Z-Anatomy tragus and antitragus.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        43.897,
+        52.916,
+        17.39
+      ],
+      "review": "미검증",
+      "tier": "surface"
+    },
+    {
+      "id": "lobule",
+      "en": "Lobule",
+      "ko": "이수(귓불)",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        43.323,
+        68.75,
+        20.239
+      ],
+      "review": "미검증",
+      "tier": "surface",
+      "method": "zanatomy"
+    }
+  ],
+  "note": "Auricle points are centroids of Z-Anatomy cartilage parts. Periauricular skin points were removed because this template has no skin mesh."
+}

@@ -1,0 +1,25 @@
+{
+  "id": "scala-tympani-basal",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "정원창에서 시작하는 고실계의 첫 회전입니다.",
+    "en": "First full turn of the scala tympani about the modiolus, starting at the round window."
+  },
+  "function": {
+    "ko": "갑각이 이 회전 가쪽면에 있습니다.",
+    "en": "The promontory overlies this turn."
+  },
+  "clinical": {
+    "ko": "갑각이 이 회전 가쪽면에 있습니다.",
+    "en": "The promontory overlies this turn."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "audit",
+      "verified": false
+    }
+  ],
+  "review": "미검증"
+}

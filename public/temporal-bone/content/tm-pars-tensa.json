@@ -1,0 +1,25 @@
+{
+  "id": "tm-pars-tensa",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "추골 외측돌기보다 아래쪽 고막입니다.",
+    "en": "The tympanic membrane inferior to the malleus lateral process."
+  },
+  "function": {
+    "ko": "추골병이 묻혀 있습니다.",
+    "en": "The manubrium is embedded in it."
+  },
+  "clinical": {
+    "ko": "추골병이 묻혀 있습니다.",
+    "en": "The manubrium is embedded in it."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p5",
+      "verified": false
+    }
+  ],
+  "review": "미검증"
+}

@@ -1,120 +1,420 @@
 {
-  "model_version": "openear-zeta-ras-1",
+  "model_version": "openear-zeta-frame-2",
   "note": {
-    "ko": "단계마다 카메라와 보이는 구조가 바뀝니다. 뼈를 갈아내는 기능은 없습니다. 유양동 점의 좌표는 실측이 아니며 미검증입니다.",
-    "en": "Each step changes the camera and which structures show. Bone is not drilled. The antrum point is not a measured landmark and is unverified."
+    "ko": "카메라의 위쪽은 머리의 위(−Y)입니다. 축은 +X 앞, +Y 아래, +Z 안쪽입니다. 뼈를 갈아내는 기능은 없습니다. 유양동 점은 추정이며 미검증입니다.",
+    "en": "Camera up is head-superior (−Y). Axes are +X anterior, +Y inferior, +Z medial. Bone is not drilled. The antrum point is an estimate and is unverified."
   },
   "sequences": [
     {
       "id": "mastoidectomy",
-      "title": { "ko": "유양돌기 절제", "en": "Mastoidectomy" },
+      "title": {
+        "ko": "유양돌기 절제",
+        "en": "Mastoidectomy"
+      },
       "steps": [
         {
           "id": "cortical-mastoidectomy",
-          "title": { "ko": "피질 유양돌기 절제", "en": "Cortical mastoidectomy" },
+          "title": {
+            "ko": "피질 유양돌기 절제",
+            "en": "Cortical mastoidectomy"
+          },
           "instructions": {
             "ko": "가쪽 유양 피질을 뒤에서 봅니다. 와우는 이 단계에서 숨깁니다.",
             "en": "Look at the lateral mastoid cortex from behind. The cochlea stays hidden."
           },
-          "identify": ["facial-nerve", "sinus-dura"],
-          "danger": ["facial-nerve", "sinus-dura"],
-          "visible": ["facial-nerve", "chorda-tympani", "malleus", "incus", "stapes"],
-          "ghosted": ["bone", "sinus-dura"],
-          "hidden": ["scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery", "tympanic-membrane", "external-auditory-canal"],
-          "camera": { "position": [134.4, -38.8, 68.3], "target": [42, 12, 36], "up": [0, 0, 1], "fov": 28 }
+          "identify": [
+            "facial-nerve",
+            "sinus-dura"
+          ],
+          "danger": [
+            "facial-nerve",
+            "sinus-dura"
+          ],
+          "visible": [
+            "facial-nerve",
+            "chorda-tympani",
+            "malleus",
+            "incus",
+            "stapes"
+          ],
+          "ghosted": [
+            "bone",
+            "sinus-dura"
+          ],
+          "hidden": [
+            "scala-vestibuli",
+            "scala-tympani",
+            "cochleovestibular-nerve",
+            "carotid-artery",
+            "tympanic-membrane",
+            "external-auditory-canal",
+            "vestibule",
+            "scc-lateral",
+            "scc-superior",
+            "scc-posterior",
+            "labyrinth"
+          ],
+          "camera": {
+            "position": [
+              -55,
+              78,
+              -48
+            ],
+            "target": [
+              8,
+              48,
+              14
+            ],
+            "up": [
+              0,
+              -1,
+              0
+            ],
+            "fov": 28
+          }
         },
         {
           "id": "antrum",
-          "title": { "ko": "유양동", "en": "Antrum" },
+          "title": {
+            "ko": "유양동",
+            "en": "Antrum"
+          },
           "instructions": {
             "ko": "유양동 메시는 없습니다. 점은 추정 위치이며 미검증입니다.",
             "en": "There is no antrum mesh. The point is an estimate and is unverified."
           },
           "identify": [],
-          "danger": ["facial-nerve", "sinus-dura"],
-          "visible": ["facial-nerve", "chorda-tympani", "malleus", "incus", "stapes"],
-          "ghosted": ["bone", "sinus-dura"],
-          "hidden": ["scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery", "tympanic-membrane", "external-auditory-canal"],
+          "danger": [
+            "facial-nerve",
+            "sinus-dura"
+          ],
+          "visible": [
+            "facial-nerve",
+            "chorda-tympani",
+            "malleus",
+            "incus",
+            "stapes"
+          ],
+          "ghosted": [
+            "bone",
+            "sinus-dura"
+          ],
+          "hidden": [
+            "scala-vestibuli",
+            "scala-tympani",
+            "cochleovestibular-nerve",
+            "carotid-artery",
+            "tympanic-membrane",
+            "external-auditory-canal",
+            "vestibule",
+            "scc-lateral",
+            "scc-superior",
+            "scc-posterior",
+            "labyrinth"
+          ],
           "marker": {
             "id": "antrum-estimate",
-            "label": { "ko": "유양동", "en": "Antrum" },
-            "position_mm": [32, 6, 34],
-            "source": "유양동 메시가 없습니다. 침골 경계상자 뒤쪽(y약 17 mm)과 뼈 뒤쪽 피질(y약 −7 mm) 사이, 가쪽 피질보다 안쪽에 둔 추정점입니다. 실측 랜드마크가 아닙니다.",
+            "label": {
+              "ko": "유양동",
+              "en": "Antrum"
+            },
+            "position_mm": [
+              24.15,
+              18.46,
+              24.56
+            ],
+            "source": "유양동 메시는 없습니다. Henle 극 추정점에서 안쪽·뒤·위로 둔 점이며 미검증입니다.",
             "review": "미검증"
           },
-          "camera": { "position": [121.6, -46.7, 70.9], "target": [32, 6, 34], "up": [0, 0, 1], "fov": 28 }
+          "camera": {
+            "position": [
+              -28,
+              62,
+              -36
+            ],
+            "target": [
+              24.15,
+              18.46,
+              24.56
+            ],
+            "up": [
+              0,
+              -1,
+              0
+            ],
+            "fov": 28
+          }
         },
         {
           "id": "identify-facial-nerve",
-          "title": { "ko": "안면신경 확인", "en": "Identify the facial nerve" },
+          "title": {
+            "ko": "안면신경 확인",
+            "en": "Identify the facial nerve"
+          },
           "instructions": {
             "ko": "뒤가쪽에서 안면신경을 봅니다. 와우를 정면으로 보지 않습니다.",
             "en": "The facial nerve from posterolateral. This view does not face the cochlea."
           },
-          "identify": ["facial-nerve"],
-          "danger": ["facial-nerve", "sinus-dura", "chorda-tympani"],
+          "identify": [
+            "facial-nerve"
+          ],
+          "danger": [
+            "facial-nerve",
+            "sinus-dura",
+            "chorda-tympani"
+          ],
           "highlight": "facial-nerve",
-          "visible": ["facial-nerve", "chorda-tympani", "incus", "malleus", "stapes"],
-          "ghosted": ["bone", "sinus-dura"],
-          "hidden": ["scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery", "tympanic-membrane", "external-auditory-canal"],
-          "camera": { "position": [104.7, -46.1, 62.9], "target": [22, 20, 32], "up": [0, 0, 1], "fov": 28 }
+          "visible": [
+            "facial-nerve",
+            "chorda-tympani",
+            "incus",
+            "malleus",
+            "stapes"
+          ],
+          "ghosted": [
+            "bone",
+            "sinus-dura"
+          ],
+          "hidden": [
+            "scala-vestibuli",
+            "scala-tympani",
+            "cochleovestibular-nerve",
+            "carotid-artery",
+            "tympanic-membrane",
+            "external-auditory-canal",
+            "vestibule",
+            "scc-lateral",
+            "scc-superior",
+            "scc-posterior",
+            "labyrinth"
+          ],
+          "camera": {
+            "position": [
+              -18,
+              58,
+              -42
+            ],
+            "target": [
+              20,
+              28,
+              31
+            ],
+            "up": [
+              0,
+              -1,
+              0
+            ],
+            "fov": 28
+          }
         },
         {
           "id": "posterior-tympanotomy",
-          "title": { "ko": "후고실 개방", "en": "Posterior tympanotomy" },
+          "title": {
+            "ko": "후고실 개방",
+            "en": "Posterior tympanotomy"
+          },
           "instructions": {
             "ko": "안면신경과 고삭신경 사이로 침골을 봅니다.",
             "en": "The incus between the facial nerve and the chorda tympani."
           },
-          "identify": ["incus", "facial-nerve", "chorda-tympani"],
-          "danger": ["facial-nerve", "chorda-tympani"],
+          "identify": [
+            "incus",
+            "facial-nerve",
+            "chorda-tympani"
+          ],
+          "danger": [
+            "facial-nerve",
+            "chorda-tympani"
+          ],
           "highlight": "incus",
-          "visible": ["facial-nerve", "chorda-tympani", "incus", "malleus", "stapes", "tympanic-membrane"],
-          "ghosted": ["bone"],
-          "hidden": ["scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery", "external-auditory-canal", "sinus-dura"],
-          "camera": { "position": [79.1, -72.8, 54], "target": [24.5, 20, 30], "up": [0, 0, 1], "fov": 28 }
+          "visible": [
+            "facial-nerve",
+            "chorda-tympani",
+            "incus",
+            "malleus",
+            "stapes",
+            "tympanic-membrane"
+          ],
+          "ghosted": [
+            "bone"
+          ],
+          "hidden": [
+            "scala-vestibuli",
+            "scala-tympani",
+            "cochleovestibular-nerve",
+            "carotid-artery",
+            "external-auditory-canal",
+            "sinus-dura",
+            "vestibule",
+            "scc-lateral",
+            "scc-superior",
+            "scc-posterior",
+            "labyrinth"
+          ],
+          "camera": {
+            "position": [
+              -25,
+              59,
+              -54
+            ],
+            "target": [
+              23,
+              22,
+              30
+            ],
+            "up": [
+              0,
+              -1,
+              0
+            ],
+            "fov": 28
+          }
         }
       ]
     },
     {
       "id": "transcanal",
-      "title": { "ko": "경외이도", "en": "Transcanal" },
+      "title": {
+        "ko": "경외이도",
+        "en": "Transcanal"
+      },
       "steps": [
         {
           "id": "transcanal-view",
-          "title": { "ko": "고막과 이소골", "en": "Tympanic membrane and ossicles" },
+          "title": {
+            "ko": "고막과 이소골",
+            "en": "Tympanic membrane and ossicles"
+          },
           "instructions": {
             "ko": "외이도 축에서 고막과 추골을 봅니다. 외이도 메시는 숨겨 고막이 보이게 합니다.",
             "en": "Along the canal axis, toward the tympanic membrane and malleus. The canal mesh is hidden so the membrane shows."
           },
-          "identify": ["tympanic-membrane", "malleus"],
-          "danger": ["facial-nerve", "chorda-tympani"],
+          "identify": [
+            "tympanic-membrane",
+            "malleus"
+          ],
+          "danger": [
+            "facial-nerve",
+            "chorda-tympani"
+          ],
           "highlight": "tympanic-membrane",
-          "visible": ["tympanic-membrane", "malleus", "incus", "stapes", "facial-nerve", "chorda-tympani"],
-          "ghosted": ["bone"],
-          "hidden": ["external-auditory-canal", "sinus-dura", "scala-vestibuli", "scala-tympani", "cochleovestibular-nerve", "carotid-artery"],
-          "camera": { "position": [135.2, 27.5, 40.4], "target": [25.28, 25.35, 31.58], "up": [0, 0, 1], "fov": 28 }
+          "visible": [
+            "tympanic-membrane",
+            "malleus",
+            "incus",
+            "stapes",
+            "facial-nerve",
+            "chorda-tympani"
+          ],
+          "ghosted": [
+            "bone"
+          ],
+          "hidden": [
+            "external-auditory-canal",
+            "sinus-dura",
+            "scala-vestibuli",
+            "scala-tympani",
+            "cochleovestibular-nerve",
+            "carotid-artery",
+            "vestibule",
+            "scc-lateral",
+            "scc-superior",
+            "scc-posterior",
+            "labyrinth"
+          ],
+          "camera": {
+            "position": [
+              33.3,
+              13.4,
+              -68.4
+            ],
+            "target": [
+              25.28,
+              25.35,
+              31.58
+            ],
+            "up": [
+              0,
+              -1,
+              0
+            ],
+            "fov": 28
+          }
         }
       ]
     },
     {
       "id": "middle-cranial-fossa",
-      "title": { "ko": "중두개와", "en": "Middle cranial fossa" },
+      "title": {
+        "ko": "중두개와",
+        "en": "Middle cranial fossa"
+      },
       "steps": [
         {
           "id": "mcf-view",
-          "title": { "ko": "위에서 본 와우", "en": "Cochlea from above" },
+          "title": {
+            "ko": "위에서 본 와우",
+            "en": "Cochlea from above"
+          },
           "instructions": {
             "ko": "위에서 와우와 안면신경을 봅니다.",
             "en": "The cochlea and facial nerve from above."
           },
-          "identify": ["scala-vestibuli", "facial-nerve"],
-          "danger": ["facial-nerve", "carotid-artery"],
+          "identify": [
+            "scala-vestibuli",
+            "facial-nerve"
+          ],
+          "danger": [
+            "facial-nerve",
+            "carotid-artery"
+          ],
           "highlight": "scala-vestibuli",
-          "visible": ["scala-vestibuli", "scala-tympani", "facial-nerve", "cochleovestibular-nerve", "carotid-artery", "malleus", "incus", "stapes", "chorda-tympani"],
-          "ghosted": ["bone"],
-          "hidden": ["external-auditory-canal", "tympanic-membrane", "sinus-dura"],
-          "camera": { "position": [26.4, 4.7, 144.9], "target": [21, 21, 36], "up": [0, 1, 0], "fov": 28 }
+          "visible": [
+            "scala-vestibuli",
+            "scala-tympani",
+            "facial-nerve",
+            "cochleovestibular-nerve",
+            "carotid-artery",
+            "malleus",
+            "incus",
+            "stapes",
+            "chorda-tympani",
+            "vestibule",
+            "scc-lateral",
+            "scc-superior",
+            "scc-posterior"
+          ],
+          "ghosted": [
+            "bone"
+          ],
+          "hidden": [
+            "external-auditory-canal",
+            "tympanic-membrane",
+            "sinus-dura",
+            "vestibule",
+            "scc-lateral",
+            "scc-superior",
+            "scc-posterior",
+            "labyrinth"
+          ],
+          "camera": {
+            "position": [
+              22,
+              -83,
+              38
+            ],
+            "target": [
+              22,
+              22,
+              38
+            ],
+            "up": [
+              1,
+              0,
+              0
+            ],
+            "fov": 28
+          }
         }
       ]
     }

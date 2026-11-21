@@ -1,0 +1,30 @@
+ENT 3D upper-body meshes
+
+skull.glb and auricle.glb are a decimated extract of the Z-Anatomy Blender
+template (Startup.blend), which is Creative Commons Attribution-ShareAlike
+4.0 International.
+
+Checked 2026-11-21:
+- https://github.com/LluisV/Z-Anatomy LICENSE is CC BY-SA 4.0
+- https://github.com/Z-Anatomy/Models-of-human-anatomy License.txt is CC BY-SA 4.0
+  and requires attribution to BodyParts3D (CC BY-SA 2.1 Japan) and Z-Anatomy
+
+Included, right and left where the template has both:
+frontal, parietal, occipital, sphenoid, temporal, mandible, maxilla,
+zygomatic, nasal, ethmoid, vomer, lacrimal, inferior nasal concha, hyoid,
+atlas, axis, C3–C7, clavicles, and the right auricle cartilage parts
+(helix, antihelix, crura, tragus, antitragus, lobule, concha, cymba, cavum).
+
+The Integument collection and the External ear collection in that template
+contain no mesh. There is no skin surface to export. The auricle here is the
+cartilage parts, not a skin envelope.
+
+The extract was decimated, rigidly mapped into the OpenEar ZETA millimetre
+frame (+X anterior, +Y inferior, +Z medial), and translated so the right
+ear-canal estimate meets the ZETA canal. Scale is 1.0. A mastoid-tip match
+would have needed a scale of about 0.75, outside the 5% band, so it was not
+applied. That registration is unverified.
+
+Changes: decimation, unit conversion from metres, axis remap, translation.
+Share-alike: CC BY-SA 4.0.
+https://creativecommons.org/licenses/by-sa/4.0/

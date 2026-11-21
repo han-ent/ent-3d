@@ -1,6 +1,6 @@
 {
   "id": "scala-vestibuli",
-  "model_version": "openear-zeta-ras-1",
+  "model_version": "openear-zeta-frame-2",
   "anatomy": {
     "ko": "와우관(cochlear duct)은 정상적으로 약 2¼ 회전하며 중심의 나선신경절(spiral ganglion)과 축주(modiolus)를 감고, 구심섬유가 modiolus에서 내이도(IAC)로 들어가 와우신경을 이룸\n단면에서는 basilar membrane이 scala tympani(IAC 쪽)와 scala vestibuli(중이 쪽)를 나누고, scala media는 basilar membrane과 Reissner막 사이의 내림프 공간임\n정원창(round window)은 scala tympani로 열리고, 와우수도관(cochlear aqueduct)은 와우 기저의 scala tympani로 연결됨\n와우는 중고실 내측벽에 갑각(promontory)을 만들고, 그 전방 이관 개구의 내측에 내경동맥이 있으며, 슬상신경절은 와우 바로 상방에 위치함",
     "en": ""

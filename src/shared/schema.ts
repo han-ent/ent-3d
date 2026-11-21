@@ -134,6 +134,18 @@ export function validateManifest(data: unknown): SchemaIssue[] {
       if (typeof structure.content !== 'string' || !structure.content.endsWith('.json')) {
         issues.push({ path: `${path}.content`, message: 'expected a .json content path' });
       }
+      if (structure.parent !== undefined && (typeof structure.parent !== 'string' || structure.parent.trim() === '')) {
+        issues.push({ path: `${path}.parent`, message: 'expected a structure id' });
+      }
+    });
+    data.structures.forEach((structure, i) => {
+      if (!isObject(structure) || typeof structure.parent !== 'string') return;
+      if (!structureIds.has(structure.parent)) {
+        issues.push({ path: `structures[${i}].parent`, message: `unknown structure id ${structure.parent}` });
+      }
+      if (structure.parent === structure.id) {
+        issues.push({ path: `structures[${i}].parent`, message: 'a structure cannot parent itself' });
+      }
     });
   }
 

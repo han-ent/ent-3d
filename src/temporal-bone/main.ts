@@ -1,4 +1,6 @@
 import '../styles/app.css';
+import { anatomicalPlaneName, ctEdgeLabels } from '../shared/frame';
+import { displayEnglish, englishFirst, type LabelMode, type StudyLabel } from '../shared/labels';
 import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
 import { sliceFile, slicePose, clampIndex } from '../shared/ct';
 import { firstLine, isPendingText, paragraphLines, sentenceNeedsSourceCheck } from '../shared/content-display';
@@ -43,6 +45,12 @@ workspace.innerHTML = `
       <span class="scale-bar-line" data-scale-line></span>
       <span data-scale-label>10 mm</span>
     </div>
+    <div class="labelbar" id="labelbar" role="toolbar">
+      <button type="button" data-labels="basic" data-i18n="labels.basic"></button>
+      <button type="button" data-labels="surgical" data-i18n="labels.surgical"></button>
+      <button type="button" data-labels="all" data-i18n="labels.all"></button>
+    </div>
+    <div class="crumbs" id="crumbs"></div>
     <div class="measure-card" id="measure-readout" hidden>
       <div id="measure-text"></div>
       <button type="button" id="measure-clear" data-i18n="measure.clear"></button>
@@ -50,8 +58,8 @@ workspace.innerHTML = `
     <p class="stage-caption" id="stage-caption"></p>
     <div class="modebar" role="toolbar">
       <button type="button" data-mode="view" data-i18n="mode.view"></button>
-      <button type="button" data-mode="measure" data-i18n="mode.measure"></button>
-      <button type="button" data-mode="quiz" data-i18n="mode.quiz"></button>
+      <button type="button" data-mode="measure" data-dev-only data-i18n="mode.measure"></button>
+      <button type="button" data-mode="quiz" data-dev-only data-i18n="mode.quiz"></button>
       <button type="button" id="frame-btn" data-i18n="mode.frame"></button>
       <button type="button" id="bone-btn" data-i18n="bone.transparent"></button>
     </div>
@@ -147,6 +155,27 @@ let contents = new Map<string, StructureContent>();
 let presets: PresetFile | null = null;
 let volume: VolumeMeta | null = null;
 let viewer: EntViewer | null = null;
+type XyzItem = {
+  id: string;
+  parent?: string;
+  en: string;
+  ko: string;
+  anatomy: string;
+  clinical: string;
+  sources: { citation: string; page: string; verified: boolean }[];
+  review: string;
+  xyz_mm: [number, number, number];
+  surgical?: boolean;
+  tier?: string;
+};
+type CtAnnotation = XyzItem & { plane: SliceName; slice_index: number; xy: [number, number] };
+let landmarks: XyzItem[] = [];
+let surfaceLabels: XyzItem[] = [];
+let ctLabels: CtAnnotation[] = [];
+let labelMode: LabelMode = 'basic';
+let eacMm: [number, number, number] | null = null;
+let stageName = '';
+let devLandmark: string | null = null;
 let mode: 'view' | 'measure' | 'quiz' = 'view';
 let selected: string | null = null;
 let activeSequence = '';
@@ -182,7 +211,7 @@ function structureById(id: string): StructureDef | undefined {
 function structureLabel(id: string): string {
   const structure = structureById(id);
   if (!structure) return id;
-  return getLang() === 'ko' ? `${structure.name.ko} ${structure.name.en}` : structure.name.en;
+  return englishFirst(structure.name.en, structure.name.ko);
 }
 
 function findStep(id: string): DissectionStep | undefined {
@@ -203,7 +232,14 @@ function paintStatic(): void {
   applyI18n(document.body);
   searchInput.placeholder = t('sheet.search');
   searchInput.setAttribute('aria-label', t('sheet.search'));
+  workspace.querySelectorAll<HTMLElement>('[data-dev-only]').forEach((node) => {
+    node.hidden = !DEV;
+  });
   boneBtn.textContent = viewer?.boneIsTransparent() ? t('bone.solid') : t('bone.transparent');
+  workspace.querySelectorAll<HTMLButtonElement>('[data-labels]').forEach((button) => {
+    button.setAttribute('aria-pressed', String(button.dataset.labels === labelMode));
+  });
+  renderCrumbs();
   boneBtn.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
   for (const structure of manifest?.structures ?? []) viewer?.setLabel(structure.id, structureLabel(structure.id));
   renderMeasure(viewer?.measurementPoints() ?? []);
@@ -231,7 +267,7 @@ function renderPeek(): void {
     peekTitle.textContent = t('quiz.title');
     peekLine.textContent = quiz?.question.mode === 'locate' ? quiz.question.label : t('quiz.promptName');
   } else if (structure) {
-    peekTitle.textContent = text(structure.name);
+    peekTitle.textContent = structureLabel(structure.id);
     const fn = content ? text(content.function) : '';
     peekLine.textContent = isPendingText(fn) ? t('sheet.pending') : firstLine(fn);
   } else if (step) {
@@ -315,9 +351,7 @@ function renderInfo(): void {
       return `<button type="button" class="text-btn" data-related="${escapeHtml(id)}">${escapeHtml(label)}</button>`;
     })
     .join('');
-  const english = getLang() === 'ko' ? `<span class="en-name">${escapeHtml(structure.name.en)}</span>` : '';
   infoBody.innerHTML = `
-    <h2>${escapeHtml(text(structure.name))} ${english}</h2>
     <h3>${escapeHtml(t('info.summary'))}</h3>
     ${paragraphHtml(anatomy, content.review)}
     <h3>${escapeHtml(t('info.function'))}</h3>
@@ -358,10 +392,11 @@ function renderChips(): void {
       button.className = 'chip';
       button.dataset.select = structure.id;
       if (structure.id === selected) button.classList.add('is-active');
-      button.innerHTML = `<i class="swatch" style="background:${structure.color}"></i><span>${escapeHtml(text(structure.name))}</span>`;
+      button.innerHTML = `<i class="swatch" style="background:${structure.color}"></i><span>${escapeHtml(structureLabel(structure.id))}</span>`;
       button.addEventListener('click', () => {
         if (mode === 'quiz') return;
         setMode('view');
+        viewer?.flash(structure.id);
         selectStructure(structure.id, true);
       });
       const hide = document.createElement('button');
@@ -478,24 +513,8 @@ function renderQuiz(): void {
   quizBody.querySelector('#quiz-next')?.addEventListener('click', nextQuestion);
 }
 
-function renderDev(): void {
-  devCard.hidden = !DEV || !manifest;
-  if (!DEV || !manifest) return;
-  const offset = manifest.viewer_offset_mm.map((value) => value.toFixed(2)).join(', ');
-  devBody.innerHTML = `
-    <p class="source-line">${escapeHtml(t('common.version'))} ${escapeHtml(manifest.model_version)}</p>
-    <p class="source-line">viewer_offset_mm ${escapeHtml(offset)}</p>
-    <p class="source-line">${escapeHtml(text(manifest.coordinate_system.note))}</p>
-  `;
-}
-
 function renderOrient(): void {
-  const labels =
-    activePlane === 'axial'
-      ? { left: '내', top: '전', right: '외', bottom: '후' }
-      : activePlane === 'coronal'
-        ? { left: '내', top: '상', right: '외', bottom: '하' }
-        : { left: '후', top: '상', right: '전', bottom: '하' };
+  const labels = ctEdgeLabels(activePlane);
   ctOrientTop.innerHTML = `<span>${labels.left}</span><span>${labels.top}</span><span>${labels.right}</span>`;
   ctOrientBottom.innerHTML = `<span></span><span>${labels.bottom}</span><span></span>`;
 }
@@ -522,6 +541,7 @@ function selectStructure(id: string, frame: boolean): void {
   selected = id;
   const structure = structureById(id);
   if (structure) viewer?.setHidden(id, false);
+  viewer?.flash(id);
   viewer?.select(id, frame);
   const sheetBody = document.querySelector<HTMLElement>('#sheet-body');
   if (sheetBody) sheetBody.scrollTop = 0;
@@ -707,7 +727,8 @@ async function drawCt(): Promise<void> {
   }
   const pose = slicePose(volume, plane, index);
   const axis = volume.planes[plane].axis;
-  ctReadout.textContent = `${t(`ct.${plane}`)} ${index + 1}/${volume.dims[axis]} · ${pose.position[axis].toFixed(1)} mm`;
+  ctReadout.textContent = `${t(`ct.anatomical.${anatomicalPlaneName(plane)}`)} ${index + 1}/${volume.dims[axis]} · ${pose.position[axis].toFixed(1)} mm`;
+  drawCtLabels(ctx, plane, index);
 }
 
 async function syncFloatPlanes(): Promise<void> {
@@ -738,7 +759,7 @@ function buildCt(): void {
     button.type = 'button';
     button.className = 'text-btn';
     button.dataset.ctPlane = plane;
-    button.textContent = t(`ct.${plane}`);
+    button.textContent = t(`ct.anatomical.${anatomicalPlaneName(plane)}`);
     button.addEventListener('click', () => {
       activePlane = plane;
       const slider = workspace.querySelector<HTMLInputElement>('#ct-index')!;
@@ -792,6 +813,12 @@ function buildCt(): void {
 }
 
 function onPick(hit: PickHit | null): void {
+  if (hit && (hit.structureId === 'upper-body' || hit.structureId === 'ear-hotspot' || hit.structureId === 'skull-layer')) {
+    if (!eacMm) return;
+    const distance = Math.hypot(hit.pointMm[0] - eacMm[0], hit.pointMm[1] - eacMm[1], hit.pointMm[2] - eacMm[2]);
+    if (hit.structureId === 'ear-hotspot' || distance < 48) flyStage(stageName === 'body' ? 'ear' : 'bone');
+    return;
+  }
   if (mode === 'quiz' && quiz && !quiz.answered && quiz.question.mode === 'locate') {
     if (hit) answerQuiz(hit.structureId);
     return;
@@ -808,6 +835,14 @@ function onPick(hit: PickHit | null): void {
   orientPoint(hit.pointMm);
   selectStructure(hit.structureId, true);
 }
+
+workspace.querySelectorAll<HTMLButtonElement>('[data-labels]').forEach((button) => {
+  button.addEventListener('click', () => {
+    labelMode = (button.dataset.labels as LabelMode) || 'basic';
+    viewer?.setLabelMode(labelMode);
+    paintStatic();
+  });
+});
 
 workspace.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((button) => {
   button.addEventListener('click', () => {
@@ -866,6 +901,224 @@ onLangChange(() => {
   paintStatic();
 });
 
+function drawCtLabels(ctx: CanvasRenderingContext2D, plane: SliceName, index: number): void {
+  ctx.save();
+  ctx.font = '12px sans-serif';
+  ctx.textBaseline = 'top';
+  const nearby = ctLabels
+    .filter(
+      (label) =>
+        label.plane === plane &&
+        Math.abs(label.slice_index - index) <= 10 &&
+        label.xy[0] > 0.02 &&
+        label.xy[0] < 0.98 &&
+        label.xy[1] > 0.02 &&
+        label.xy[1] < 0.98,
+    )
+    .sort((a, b) => Math.abs(a.slice_index - index) - Math.abs(b.slice_index - index))
+    .slice(0, 8);
+  for (const label of nearby) {
+    const x = label.xy[0] * ctCanvas.width;
+    const y = label.xy[1] * ctCanvas.height;
+    const caption = englishFirst(label.en, label.ko);
+    const width = Math.min(ctx.measureText(caption).width + 8, ctCanvas.width - 8);
+    ctx.fillStyle = 'rgba(247,245,240,0.88)';
+    ctx.fillRect(x + 6, y - 2, width, 16);
+    ctx.fillStyle = '#222';
+    ctx.fillText(caption, x + 10, y, width - 8);
+  }
+  ctx.restore();
+}
+
+function renderCrumbs(): void {
+  const crumbs = workspace.querySelector<HTMLElement>('#crumbs');
+  if (!crumbs) return;
+  const steps = [
+    { id: 'body', key: 'crumbs.body' },
+    { id: 'ear', key: 'crumbs.ear' },
+    { id: 'bone', key: 'crumbs.bone' },
+    { id: 'inner', key: 'crumbs.inner' },
+  ];
+  crumbs.replaceChildren();
+  steps.forEach((step, index) => {
+    if (index) {
+      const sep = document.createElement('span');
+      sep.textContent = ' / ';
+      crumbs.append(sep);
+    }
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = t(step.key);
+    button.classList.toggle('is-active', stageName.startsWith(step.id));
+    button.addEventListener('click', () => flyStage(step.id));
+    crumbs.append(button);
+  });
+}
+
+function flyStage(stage: string): void {
+  if (!viewer || !eacMm) return;
+  const eac = eacMm;
+  if (stage === 'body') {
+    const center: [number, number, number] = [eac[0] + 20, eac[1] - 8, eac[2] + 92];
+    viewer.flyTo([center[0] + 150, center[1] - 20, center[2] - 470], center, [0, -1, 0], 32);
+  } else if (stage === 'ear') {
+    viewer.flyTo([eac[0] + 40, eac[1] - 30, eac[2] - 140], eac, [0, -1, 0], 32);
+  } else if (stage === 'bone') {
+    viewer.flyTo([eac[0] + 10, eac[1] - 20, eac[2] - 55], eac, [0, -1, 0], 32);
+  } else {
+    viewer.flyTo([eac[0], eac[1] - 6, eac[2] - 16], [eac[0] - 4, eac[1] + 2, eac[2] + 8], [0, -1, 0], 32);
+  }
+}
+
+function applyStage(distance: number): void {
+  if (!viewer || !manifest) return;
+  const next = distance > 160 ? 'body' : distance > 70 ? 'ear' : distance > 28 ? 'bone' : 'inner';
+  let radius = Math.max(0, Math.min(72, (150 - distance) * 0.7));
+  let skinOpacity = distance > 120 ? 1 : distance < 22 ? 0 : (distance - 22) / 98;
+  if (selected && distance < 160) {
+    radius = Math.max(radius, 30);
+    skinOpacity = Math.min(skinOpacity, 0.2);
+  }
+  document.body.dataset.distance = distance.toFixed(0);
+  viewer.setCutaway(radius, skinOpacity);
+  const key = `${next}:${selected ?? ''}`;
+  if (key === stageName) return;
+  stageName = key;
+  const hidden: string[] = [];
+  for (const structure of manifest.structures) {
+    const deep = structure.layer === 'inner-ear' || (structure.layer === 'nerve' && structure.id !== 'chorda-tympani');
+    const middle = structure.layer === 'ossicles' || structure.layer === 'membrane' || structure.id === 'chorda-tympani';
+    if (distance > 160) hidden.push(structure.id);
+    else if (distance > 70 && (deep || middle)) hidden.push(structure.id);
+    else if (distance > 28 && deep) hidden.push(structure.id);
+  }
+  // A selected structure is framed with its neighbours, so the distance
+  // stages must not hide the ossicles or the inner ear around it.
+  viewer.setStageHidden(selected ? [] : hidden);
+  renderCrumbs();
+}
+
+function refreshStudyLabels(): void {
+  if (!viewer || !manifest) return;
+  const parents = new Set(manifest.structures.map((item) => item.parent).filter((id): id is string => Boolean(id)));
+  const labels: StudyLabel[] = [];
+  const regionOf: Record<string, { id: string; en: string; ko: string }> = {
+    ossicles: { id: 'region-ossicles', en: 'Ossicles', ko: '이소골' },
+    'inner-ear': { id: 'region-inner', en: 'Inner ear', ko: '내이' },
+    nerve: { id: 'region-nerve', en: 'Nerves', ko: '신경' },
+    membrane: { id: 'region-middle', en: 'Middle ear', ko: '중이' },
+    canal: { id: 'region-middle', en: 'Middle ear', ko: '중이' },
+  };
+  const buckets = new Map<string, [number, number, number][]>();
+  for (const structure of manifest.structures) {
+    const center = viewer.structureCenter(structure.id);
+    if (!center) continue;
+    const region = regionOf[structure.layer];
+    if (region) {
+      const list = buckets.get(region.id) ?? [];
+      list.push(center);
+      buckets.set(region.id, list);
+    }
+    const english = displayEnglish(structure.name.en);
+    labels.push({
+      id: structure.id,
+      text: english,
+      en: english,
+      ko: structure.name.ko,
+      tier: structure.parent || parents.has(structure.id) ? (structure.parent ? 'subpart' : 'structure') : 'structure',
+      modes: ['basic', 'all'],
+      priority: structure.parent ? 25 : 45,
+      parentId: structure.parent,
+      position: center,
+    });
+  }
+  for (const [layer, region] of Object.entries(regionOf)) {
+    void layer;
+    const points = buckets.get(region.id);
+    if (!points || labels.some((item) => item.id === region.id)) continue;
+    const position: [number, number, number] = [0, 0, 0];
+    for (const point of points) {
+      position[0] += point[0];
+      position[1] += point[1];
+      position[2] += point[2];
+    }
+    position[0] /= points.length;
+    position[1] /= points.length;
+    position[2] /= points.length;
+    labels.push({
+      id: region.id,
+      text: region.en,
+      en: region.en,
+      ko: region.ko,
+      tier: 'region',
+      modes: ['basic', 'all'],
+      priority: 35,
+      position,
+    });
+  }
+  for (const item of landmarks) {
+    const english = displayEnglish(item.en);
+    labels.push({
+      id: item.id,
+      text: english,
+      en: english,
+      ko: item.ko,
+      tier: 'subpart',
+      modes: item.surgical ? ['basic', 'surgical', 'all'] : ['all'],
+      priority: item.surgical ? 60 : 18,
+      parentId: item.parent,
+      position: item.xyz_mm,
+    });
+  }
+  for (const item of surfaceLabels) {
+    const english = displayEnglish(item.en);
+    labels.push({
+      id: item.id,
+      text: english,
+      en: english,
+      ko: item.ko,
+      tier: 'surface',
+      modes: ['basic', 'all'],
+      priority: ['helix', 'tragus', 'lobule'].includes(item.id) ? 70 : 28,
+      position: item.xyz_mm,
+    });
+  }
+  viewer.setStudyLabels(labels);
+}
+
+function renderDev(): void {
+  devCard.hidden = !DEV || !manifest;
+  if (!DEV || !manifest) return;
+  const offset = manifest.viewer_offset_mm.map((value) => value.toFixed(2)).join(', ');
+  const options = landmarks
+    .map((item) => `<option value="${escapeHtml(item.id)}"${item.id === devLandmark ? ' selected' : ''}>${escapeHtml(englishFirst(item.en, item.ko))}</option>`)
+    .join('');
+  devBody.innerHTML = `
+    <p class="source-line">${escapeHtml(t('common.version'))} ${escapeHtml(manifest.model_version)}</p>
+    <p class="source-line">viewer_offset_mm ${escapeHtml(offset)}</p>
+    <p class="source-line">${escapeHtml(text(manifest.coordinate_system.note))}</p>
+    <p class="hint">${escapeHtml(t('dev.pick'))}</p>
+    <select id="dev-landmark">${options}</select>
+    <pre class="source-line" id="dev-log"></pre>
+    <button type="button" class="text-btn" id="dev-export">${escapeHtml(t('dev.export'))}</button>
+  `;
+  devBody.querySelector<HTMLSelectElement>('#dev-landmark')?.addEventListener('change', (event) => {
+    devLandmark = (event.target as HTMLSelectElement).value;
+  });
+  devBody.querySelector('#dev-export')?.addEventListener('click', () => {
+    const blob = new Blob(
+      [JSON.stringify({ model_version: manifest?.model_version, review: '미검증', landmarks }, null, 2)],
+      { type: 'application/json' },
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'landmarks.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
 async function boot(): Promise<void> {
   paintStatic();
   setMode('view');
@@ -890,15 +1143,44 @@ async function boot(): Promise<void> {
   const volumeIssues = validateVolume(volume);
   if (volumeIssues.length) throw new Error(formatIssues(volumeIssues));
 
+  const [landmarkFile, surfaceFile, ctFile] = await Promise.all([
+    fetchJson<{ landmarks: XyzItem[] }>(publicUrl(`${DATA}/landmarks.json`)),
+    fetchJson<{ labels: XyzItem[] }>(publicUrl(`${DATA}/surface-anatomy.json`)),
+    fetchJson<{ labels: CtAnnotation[] }>(publicUrl(`${DATA}/ct-labels.json`)),
+  ]);
+  landmarks = landmarkFile.landmarks;
+  surfaceLabels = surfaceFile.labels;
+  ctLabels = ctFile.labels;
+  eacMm = landmarks.find((item) => item.id === 'eac-porus')?.xyz_mm ?? null;
+
   viewer = new EntViewer(canvas, manifest.viewer_offset_mm);
   viewer.setScaleElement(workspace.querySelector('#scale-hud'));
   viewer.onPick(onPick);
   viewer.onMeasure((points) => renderMeasure(points));
+  viewer.onFrame((distance) => applyStage(distance));
+  viewer.onShiftPoint((point) => {
+    if (!DEV) return;
+    const log = devBody.querySelector<HTMLElement>('#dev-log');
+    if (log) log.textContent = point.map((value) => value.toFixed(2)).join(', ');
+    const item = landmarks.find((landmark) => landmark.id === devLandmark);
+    if (item) {
+      item.xyz_mm = [point[0], point[1], point[2]];
+      refreshStudyLabels();
+    }
+  });
   viewer.onLabel((id) => {
     openSheet(true);
-    if (id && mode !== 'quiz') selectStructure(id, false);
+    if (mode === 'quiz') return;
+    if (structureById(id)) {
+      viewer?.flash(id);
+      selectStructure(id, true);
+      return;
+    }
+    const point = landmarks.find((item) => item.id === id);
+    if (point?.parent && structureById(point.parent)) selectStructure(point.parent, true);
   });
 
+  const parents = new Set(manifest.structures.map((item) => item.parent).filter((id): id is string => Boolean(id)));
   const failures: string[] = [];
   await Promise.all(
     manifest.structures.map(async (structure) => {
@@ -911,16 +1193,33 @@ async function boot(): Promise<void> {
           structure.layer,
           layer?.opacity ?? 1,
           structureLabel(structure.id),
+          { parentId: structure.parent, aggregate: parents.has(structure.id) },
         );
       } catch {
         failures.push(structure.id);
       }
     }),
   );
+  if (eacMm) {
+    try {
+      await viewer.loadUpperBody(
+        {
+          skull: assetUrl('models/upper-body/skull.glb'),
+          auricle: assetUrl('models/upper-body/auricle.glb'),
+        },
+        eacMm,
+      );
+    } catch {
+      failures.push('upper-body');
+    }
+  }
+  refreshStudyLabels();
+  viewer.setLabelMode(labelMode);
 
   buildPresets();
   buildCt();
   viewer.start();
+  if (eacMm) flyStage('body');
   stageStatus.hidden = failures.length === 0;
   if (failures.length) stageStatus.textContent = `${t('temporal.loadError')} ${failures.join(', ')}`;
   paintStatic();

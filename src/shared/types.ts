@@ -36,6 +36,8 @@ export type StructureDef = {
   layer: string;
   status: ReviewStatus;
   content: string;
+  /** Set when this mesh is one piece of another structure. */
+  parent?: string;
 };
 
 export type CoordinateAxis = {

@@ -135,9 +135,8 @@ describe('temporal-bone manifest and content', () => {
     for (const step of mastoidectomy?.steps ?? []) {
       expect(step.hidden).toEqual(expect.arrayContaining(['scala-vestibuli', 'scala-tympani']));
     }
-    expect(manifest.missing_structures?.map((item) => item.name)).toEqual(
-      expect.arrayContaining(['Semicircular canals', 'Jugular bulb']),
-    );
+    expect(manifest.missing_structures?.map((item) => item.name)).toEqual(expect.arrayContaining(['Jugular bulb']));
+    expect(manifest.missing_structures?.some((item) => item.name === 'Semicircular canals')).toBe(false);
     for (const plane of Object.values(volume.planes)) {
       for (let index = 0; index < volume.dims[plane.axis]!; index += 1) {
         const file = resolve(data, plane.folder, `${String(index).padStart(volume.index_digits, '0')}.${volume.file_extension}`);

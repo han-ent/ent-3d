@@ -1,0 +1,13 @@
+{
+  "source": "Z-Anatomy Startup.blend, CC BY-SA 4.0, derived from BodyParts3D CC BY-SA 2.1 JP",
+  "skin": "The template's Integument and External ear collections have no mesh. skull.glb and auricle.glb are the skull, mandible, cervical vertebrae, clavicles, and right auricle cartilage.",
+  "method": "Axis remap from the Blender Z-up metres frame into ZETA millimetres, then translation onto the ZETA external auditory canal. Umeyama scale from canal to mastoid tip was 0.75, outside 1.0±5%, so scale stayed 1.0.",
+  "scale": 1.0,
+  "rawScaleFromMastoid": 0.75,
+  "rmsMm": null,
+  "mastoidResidualMm": 32.1,
+  "within5Percent": false,
+  "scaleWarning": "Matching the estimated ZETA mastoid tip would scale the skull to 0.75. That is outside 5%, so the skull stays at 1.0 and only the canal is aligned.",
+  "pairs": ["EAC porus (aligned)", "mastoid tip (reported, not used for scale)"],
+  "review": "미검증"
+}

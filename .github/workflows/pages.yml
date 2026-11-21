@@ -28,6 +28,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Reject textbook PDFs
+        run: if find . -name '*.pdf' -not -path './node_modules/*' | grep -q .; then echo 'PDF files are not allowed'; find . -name '*.pdf' -not -path './node_modules/*'; exit 1; fi
       - name: Install and build
         run: npm ci && npm run build
       - name: Setup Pages

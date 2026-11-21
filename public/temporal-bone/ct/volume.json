@@ -1,10 +1,10 @@
 {
   "id": "openear-zeta-cbct",
   "label": {
-    "ko": "OpenEar ZETA CBCT. 0.25 mm, RAS. 파일 행 0은 앞 또는 위. texture.flipY는 false.",
-    "en": "OpenEar ZETA CBCT. 0.25 mm, RAS. File row 0 is anterior or superior. texture.flipY is false."
+    "ko": "OpenEar ZETA CBCT. 0.25 mm. 파일 축은 +X 앞, +Y 아래, +Z 안쪽이라 axial 폴더는 해부학적 시상면입니다.",
+    "en": "OpenEar ZETA CBCT. 0.25 mm. File axes are +X anterior, +Y inferior, +Z medial, so the axial folder is an anatomical sagittal stack."
   },
-  "model_version": "openear-zeta-ras-1",
+  "model_version": "openear-zeta-frame-2",
   "spacing_mm": [
     0.25,
     0.25,

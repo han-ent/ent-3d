@@ -1,0 +1,28 @@
+{
+  "id": "fn-geniculate",
+  "model_version": "openear-zeta-frame-2",
+  "anatomy": {
+    "ko": "첫 곡률 정점 앞뒤 1 mm입니다.",
+    "en": "One millimetre on either side of the first curvature peak."
+  },
+  "function": {
+    "ko": "대추체신경이 여기서 나갑니다. 중두개와 쪽 결손은 인용한 장에 기술돼 있습니다.",
+    "en": "The greater superficial petrosal nerve leaves here. Dehiscence toward the middle fossa is described in the cited chapter."
+  },
+  "clinical": {
+    "ko": "대추체신경이 여기서 나갑니다. 중두개와 쪽 결손은 인용한 장에 기술돼 있습니다.",
+    "en": "The greater superficial petrosal nerve leaves here. Dehiscence toward the middle fossa is described in the cited chapter."
+  },
+  "surgical_points": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p1, p7",
+      "verified": false
+    }
+  ],
+  "review": "미검증",
+  "related": [
+    "facial-nerve"
+  ]
+}

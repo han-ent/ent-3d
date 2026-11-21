@@ -2,7 +2,7 @@
   "specimen": {
     "id": "openear-zeta",
     "name": "OpenEar ZETA",
-    "model_version": "openear-zeta-ras-1",
+    "model_version": "openear-zeta-frame-2",
     "licence": "CC-BY-4.0",
     "licence_url": "https://creativecommons.org/licenses/by/4.0/",
     "citation": "Sieber D, Erfurt P, John S, et al. The OpenEar library of 3D models of the human temporal bone based on computed tomography and micro-slicing. Sci Data. 2018;6:180297.",
@@ -10,11 +10,11 @@
     "data_url": "https://zenodo.org/records/1473724",
     "geometry": "openear",
     "geometry_note": {
-      "ko": "오른쪽 측두골 ZETA. 메시는 원본 RAS 밀리미터이며 파일을 recenter 하지 않았습니다. 뼈와 S상정맥동·경막만 삼각형 수를 줄였습니다. S상정맥동·경막은 한 메시에 섞여 있을 수 있어 미검증입니다. 반고리관과 경정맥구(jugular bulb)는 없습니다. 목정맥공(jugular foramen)은 다른 구조입니다.",
-      "en": "Right temporal bone, specimen ZETA. Meshes keep their original RAS millimetres and were not recentered. Only bone and sinus/dura were decimated. Sinus and dura may be mixed in one mesh, which is unverified. Semicircular canals and the jugular bulb are absent. The jugular foramen is a different structure."
+      "ko": "오른쪽 측두골 ZETA. 축은 +X 앞, +Y 아래, +Z 안쪽입니다. 전정계로 표시돼 있던 메시를 와우 전정계, 전정, 세 반고리관으로 나눴고, 안면신경은 6분절, 와우는 회전, 고막은 긴장부·이완부로 나눴습니다. 좌표와 분할 경계는 미검증입니다. S상정맥동·경막은 한 메시에 섞여 있을 수 있습니다. 경정맥구 메시는 없습니다.",
+      "en": "Right temporal bone, specimen ZETA. Axes are +X anterior, +Y inferior, +Z medial. The mesh labeled scala vestibuli was split into cochlear scala vestibuli, vestibule, and three semicircular canals. The facial nerve has six segments, the cochlea is split by turn, and the tympanic membrane into pars tensa and pars flaccida. Boundaries are unverified. Sinus and dura may still share one mesh. There is no jugular bulb mesh."
     }
   },
-  "model_version": "openear-zeta-ras-1",
+  "model_version": "openear-zeta-frame-2",
   "viewer_offset_mm": [
     -22.710914611816406,
     -28.73894953727722,
@@ -23,20 +23,20 @@
   "coordinate_system": {
     "units": "mm",
     "x": {
-      "ko": "오른쪽(+X) / 왼쪽(−X). 오른쪽 귀에서 +X는 가쪽",
-      "en": "right +X / left −X. On this right ear, +X is lateral"
+      "ko": "앞(+X) / 뒤(−X)",
+      "en": "anterior +X / posterior −X"
     },
     "y": {
-      "ko": "앞(+Y) / 뒤(−Y)",
-      "en": "anterior +Y / posterior −Y"
+      "ko": "아래(+Y) / 위(−Y)",
+      "en": "inferior +Y / superior −Y"
     },
     "z": {
-      "ko": "위(+Z) / 아래(−Z)",
-      "en": "superior +Z / inferior −Z"
+      "ko": "안쪽(+Z) / 가쪽(−Z). 오른쪽 귀",
+      "en": "medial +Z / lateral −Z. Right ear"
     },
     "note": {
-      "ko": "RAS 밀리미터입니다. 꼭짓점은 그대로 두고, 화면에서만 viewer_offset_mm만큼 평행이동합니다. 배율은 1입니다.",
-      "en": "RAS millimetres. Vertices stay as published; viewer_offset_mm is only a view translation. Scale is 1."
+      "ko": "메시 축은 RAS가 아닙니다. +X 앞, +Y 아래, +Z 안쪽입니다. 꼭짓점은 그대로이고 viewer_offset_mm만 화면 평행이동입니다. 배율은 1입니다.",
+      "en": "Mesh axes are not RAS. +X is anterior, +Y is inferior, +Z is medial. Vertices are unscaled; viewer_offset_mm is only a view translation."
     }
   },
   "layers": [
@@ -119,6 +119,57 @@
       "content": "content/scala-tympani.json"
     },
     {
+      "id": "scala-tympani-basal",
+      "file": "models/scala-tympani-basal.glb",
+      "name": {
+        "ko": "와우 기저회전(고실계)",
+        "en": "Basal turn (scala tympani)"
+      },
+      "color": "#7A6496",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scala-tympani-basal.json",
+      "parent": "scala-tympani"
+    },
+    {
+      "id": "scala-tympani-middle",
+      "file": "models/scala-tympani-middle.glb",
+      "name": {
+        "ko": "와우 중간회전(고실계)",
+        "en": "Middle turn (scala tympani)"
+      },
+      "color": "#8E78A8",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scala-tympani-middle.json",
+      "parent": "scala-tympani"
+    },
+    {
+      "id": "scala-tympani-apical",
+      "file": "models/scala-tympani-apical.glb",
+      "name": {
+        "ko": "와우 첨부회전(고실계)",
+        "en": "Apical turn (scala tympani)"
+      },
+      "color": "#C4B0D8",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scala-tympani-apical.json",
+      "parent": "scala-tympani"
+    },
+    {
+      "id": "labyrinth",
+      "file": "models/labyrinth.glb",
+      "name": {
+        "ko": "미로",
+        "en": "Labyrinth"
+      },
+      "color": "#EFE6F8",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/labyrinth.json"
+    },
+    {
       "id": "scala-vestibuli",
       "file": "models/scala-vestibuli.glb",
       "name": {
@@ -128,7 +179,99 @@
       "color": "#D9C6E8",
       "layer": "inner-ear",
       "status": "미검증",
-      "content": "content/scala-vestibuli.json"
+      "content": "content/scala-vestibuli.json",
+      "parent": "labyrinth"
+    },
+    {
+      "id": "scala-vestibuli-basal",
+      "file": "models/scala-vestibuli-basal.glb",
+      "name": {
+        "ko": "와우 기저회전(전정계)",
+        "en": "Basal turn (scala vestibuli)"
+      },
+      "color": "#B89AD4",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scala-vestibuli-basal.json",
+      "parent": "scala-vestibuli"
+    },
+    {
+      "id": "scala-vestibuli-middle",
+      "file": "models/scala-vestibuli-middle.glb",
+      "name": {
+        "ko": "와우 중간회전(전정계)",
+        "en": "Middle turn (scala vestibuli)"
+      },
+      "color": "#CDB6E0",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scala-vestibuli-middle.json",
+      "parent": "scala-vestibuli"
+    },
+    {
+      "id": "scala-vestibuli-apical",
+      "file": "models/scala-vestibuli-apical.glb",
+      "name": {
+        "ko": "와우 첨부회전(전정계)",
+        "en": "Apical turn (scala vestibuli)"
+      },
+      "color": "#F3E9FA",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scala-vestibuli-apical.json",
+      "parent": "scala-vestibuli"
+    },
+    {
+      "id": "vestibule",
+      "file": "models/vestibule.glb",
+      "name": {
+        "ko": "전정",
+        "en": "Vestibule"
+      },
+      "color": "#E7D9F4",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/vestibule.json",
+      "parent": "labyrinth"
+    },
+    {
+      "id": "scc-lateral",
+      "file": "models/scc-lateral.glb",
+      "name": {
+        "ko": "외측반고리관",
+        "en": "Lateral semicircular canal"
+      },
+      "color": "#6E5A9A",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scc-lateral.json",
+      "parent": "labyrinth"
+    },
+    {
+      "id": "scc-superior",
+      "file": "models/scc-superior.glb",
+      "name": {
+        "ko": "상반고리관",
+        "en": "Superior semicircular canal"
+      },
+      "color": "#A08BC4",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scc-superior.json",
+      "parent": "labyrinth"
+    },
+    {
+      "id": "scc-posterior",
+      "file": "models/scc-posterior.glb",
+      "name": {
+        "ko": "후반고리관",
+        "en": "Posterior semicircular canal"
+      },
+      "color": "#4E3C74",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/scc-posterior.json",
+      "parent": "labyrinth"
     },
     {
       "id": "malleus",
@@ -179,6 +322,84 @@
       "content": "content/facial-nerve.json"
     },
     {
+      "id": "fn-meatal",
+      "file": "models/fn-meatal.glb",
+      "name": {
+        "ko": "안면신경 내이도부",
+        "en": "Meatal segment"
+      },
+      "color": "#F6D56B",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/fn-meatal.json",
+      "parent": "facial-nerve"
+    },
+    {
+      "id": "fn-labyrinthine",
+      "file": "models/fn-labyrinthine.glb",
+      "name": {
+        "ko": "안면신경 미로부",
+        "en": "Labyrinthine segment"
+      },
+      "color": "#D4A820",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/fn-labyrinthine.json",
+      "parent": "facial-nerve"
+    },
+    {
+      "id": "fn-geniculate",
+      "file": "models/fn-geniculate.glb",
+      "name": {
+        "ko": "슬신경절",
+        "en": "Geniculate ganglion"
+      },
+      "color": "#C99612",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/fn-geniculate.json",
+      "parent": "facial-nerve"
+    },
+    {
+      "id": "fn-tympanic",
+      "file": "models/fn-tympanic.glb",
+      "name": {
+        "ko": "안면신경 고실부(수평부)",
+        "en": "Tympanic segment"
+      },
+      "color": "#F0C44A",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/fn-tympanic.json",
+      "parent": "facial-nerve"
+    },
+    {
+      "id": "fn-second-genu",
+      "file": "models/fn-second-genu.glb",
+      "name": {
+        "ko": "제2슬부",
+        "en": "Second genu"
+      },
+      "color": "#A67C10",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/fn-second-genu.json",
+      "parent": "facial-nerve"
+    },
+    {
+      "id": "fn-mastoid",
+      "file": "models/fn-mastoid.glb",
+      "name": {
+        "ko": "안면신경 유양부(수직부)",
+        "en": "Mastoid segment"
+      },
+      "color": "#8A6812",
+      "layer": "nerve",
+      "status": "미검증",
+      "content": "content/fn-mastoid.json",
+      "parent": "facial-nerve"
+    },
+    {
       "id": "chorda-tympani",
       "file": "models/chorda-tympani.glb",
       "name": {
@@ -213,6 +434,32 @@
       "layer": "membrane",
       "status": "미검증",
       "content": "content/tympanic-membrane.json"
+    },
+    {
+      "id": "tm-pars-tensa",
+      "file": "models/tm-pars-tensa.glb",
+      "name": {
+        "ko": "긴장부",
+        "en": "Pars tensa"
+      },
+      "color": "#C9A89E",
+      "layer": "membrane",
+      "status": "미검증",
+      "content": "content/tm-pars-tensa.json",
+      "parent": "tympanic-membrane"
+    },
+    {
+      "id": "tm-pars-flaccida",
+      "file": "models/tm-pars-flaccida.glb",
+      "name": {
+        "ko": "이완부",
+        "en": "Pars flaccida"
+      },
+      "color": "#E7D2C8",
+      "layer": "membrane",
+      "status": "미검증",
+      "content": "content/tm-pars-flaccida.json",
+      "parent": "tympanic-membrane"
     },
     {
       "id": "external-auditory-canal",
@@ -265,12 +512,45 @@
   ],
   "missing_structures": [
     {
-      "name": "Semicircular canals",
-      "note": "Not separately segmented in Segmentation.seg.nrrd or supplied as a PLY. Planned for stage 1.5 (manual segmentation)."
+      "name": "Jugular bulb",
+      "note": "Not segmented. A review point is in landmarks.json. This is the jugular bulb (경정맥구), not the jugular foramen (목정맥공)."
     },
     {
-      "name": "Jugular bulb",
-      "note": "Not segmented. This is the jugular bulb (경정맥구), not the jugular foramen (목정맥공). It may be partly inside Sinus Dura, but that was not verified."
+      "name": "Mastoid antrum mesh",
+      "note": "Phase 1 has a landmark only. Air-cell segmentation is later."
     }
-  ]
+  ],
+  "anatomicalFrame": {
+    "anterior": [
+      1,
+      0,
+      0
+    ],
+    "posterior": [
+      -1,
+      0,
+      0
+    ],
+    "inferior": [
+      0,
+      1,
+      0
+    ],
+    "superior": [
+      0,
+      -1,
+      0
+    ],
+    "medial": [
+      0,
+      0,
+      1
+    ],
+    "lateral": [
+      0,
+      0,
+      -1
+    ],
+    "review": "미검증"
+  }
 }
