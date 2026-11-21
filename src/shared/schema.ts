@@ -140,14 +140,23 @@ export function validateManifest(data: unknown): SchemaIssue[] {
   return issues;
 }
 
-function reviewedBlock(value: unknown, path: string, issues: SchemaIssue[]): void {
-  if (!isObject(value)) {
-    issues.push({ path, message: 'expected object with text, source, and status' });
+function sourceList(value: unknown, path: string, issues: SchemaIssue[]): void {
+  if (!Array.isArray(value)) {
+    issues.push({ path, message: 'expected an array of sources' });
     return;
   }
-  localized(value.text, `${path}.text`, issues);
-  stringField(value, 'source', path, issues);
-  status(value.status, `${path}.status`, issues);
+  value.forEach((source, index) => {
+    const itemPath = `${path}[${index}]`;
+    if (!isObject(source)) {
+      issues.push({ path: itemPath, message: 'expected object' });
+      return;
+    }
+    stringField(source, 'citation', itemPath, issues);
+    stringField(source, 'page', itemPath, issues);
+    if (typeof source.verified !== 'boolean') {
+      issues.push({ path: `${itemPath}.verified`, message: 'expected boolean' });
+    }
+  });
 }
 
 export function validateContent(data: unknown, expectedId?: string, knownIds?: ReadonlySet<string>): SchemaIssue[] {
@@ -158,20 +167,10 @@ export function validateContent(data: unknown, expectedId?: string, knownIds?: R
   if (expectedId && data.id !== expectedId) {
     issues.push({ path: 'id', message: `content id must match structure id ${expectedId}` });
   }
-  if (!isObject(data.info)) {
-    issues.push({ path: 'info', message: 'expected object' });
-  } else {
-    localized(data.info.summary, 'info.summary', issues);
-    stringField(data.info, 'source', 'info', issues);
-    status(data.info.status, 'info.status', issues);
-  }
-  if (!isObject(data.function)) {
-    issues.push({ path: 'function', message: 'expected object with physiology, injury, and tests' });
-  } else {
-    reviewedBlock(data.function.physiology, 'function.physiology', issues);
-    reviewedBlock(data.function.injury, 'function.injury', issues);
-    reviewedBlock(data.function.tests, 'function.tests', issues);
-  }
+  localized(data.anatomy, 'anatomy', issues);
+  localized(data.function, 'function', issues);
+  status(data.review, 'review', issues);
+  sourceList(data.sources, 'sources', issues);
   if (data.related !== undefined) {
     if (!Array.isArray(data.related)) {
       issues.push({ path: 'related', message: 'expected an array of structure ids' });
@@ -204,11 +203,12 @@ export function validateContent(data: unknown, expectedId?: string, knownIds?: R
         return;
       }
       stringField(point, 'id', path, issues);
-      localized(point.title, `${path}.title`, issues);
-      localized(point.body, `${path}.body`, issues);
-      vec3(point.position_mm, `${path}.position_mm`, issues);
-      stringField(point, 'source', path, issues);
-      status(point.status, `${path}.status`, issues);
+      localized(point.text, `${path}.text`, issues);
+      if (point.position_mm !== undefined) {
+        vec3(point.position_mm, `${path}.position_mm`, issues);
+        stringField(point, 'source', path, issues);
+        status(point.review, `${path}.review`, issues);
+      }
     });
   }
   return issues;
@@ -303,6 +303,28 @@ export function validatePresets(data: unknown, knownIds?: ReadonlySet<string>): 
       idList(step.danger, `${stepPath}.danger`, issues, knownIds);
       cameraFields(step.camera, `${stepPath}.camera`, issues);
       if (step.clipping !== undefined) clippingFields(step.clipping, `${stepPath}.clipping`, issues);
+      if (step.visible !== undefined) idList(step.visible, `${stepPath}.visible`, issues, knownIds);
+      if (step.hidden !== undefined) idList(step.hidden, `${stepPath}.hidden`, issues, knownIds);
+      if (step.ghosted !== undefined) idList(step.ghosted, `${stepPath}.ghosted`, issues, knownIds);
+      if (step.highlight !== undefined) {
+        if (typeof step.highlight !== 'string' || step.highlight.trim() === '') {
+          issues.push({ path: `${stepPath}.highlight`, message: 'expected a structure id' });
+        } else if (knownIds && !knownIds.has(step.highlight)) {
+          issues.push({ path: `${stepPath}.highlight`, message: `unknown structure id ${step.highlight}` });
+        }
+      }
+      if (step.marker !== undefined) {
+        const markerPath = `${stepPath}.marker`;
+        if (!isObject(step.marker)) {
+          issues.push({ path: markerPath, message: 'expected object' });
+        } else {
+          stringField(step.marker, 'id', markerPath, issues);
+          localized(step.marker.label, `${markerPath}.label`, issues);
+          vec3(step.marker.position_mm, `${markerPath}.position_mm`, issues);
+          stringField(step.marker, 'source', markerPath, issues);
+          status(step.marker.review, `${markerPath}.review`, issues);
+        }
+      }
     });
   });
   return issues;

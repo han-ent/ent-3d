@@ -1,61 +1,66 @@
 {
   "id": "sinus-dura",
   "model_version": "openear-zeta-ras-1",
-  "info": {
-    "summary": {
-      "ko": "[미검증] 구불정맥굴·경막으로 표시한 메시입니다. 분할 경계에 평평한 절단면이 있고, 구불정맥굴과 중두개와 경막이 한 덩어리로 섞여 있을 수 있습니다. 확인 전입니다.",
-      "en": "[Unverified] Labeled sigmoid sinus / dura. The mesh has flat crop faces at the segmentation bounds and may mix the sigmoid sinus with middle-fossa dura. Not reviewed."
-    },
-    "source": "에셋 메모 (분할 결과). 임상 검수 전.",
-    "status": "미검증"
+  "anatomy": {
+    "ko": "추체부 후면은 구불정맥동, 상추체정맥동, 하추체정맥동의 고랑(sulcus)으로 테가 지어져 후두개와 전벽을 이룸\n유양 외피질 후방 근처의 emissary vein 구멍은 sigmoid sulcus와 교통함\n경정맥공의 후방 구획(전통적 pars venosa, 또는 sigmoid compartment)이 구불정맥동을 받고, 경정맥구는 그 외측의 돔형 공간으로 중이 바로 아래에 위치함\nasterion은 횡정맥동–구불정맥동 이행부의 대략적 표지로, retrosigmoid 천공 설계에 쓰임",
+    "en": ""
   },
   "function": {
-    "physiology": {
-      "text": {
-        "ko": "[샘플] 구불정맥굴·경막의 생리적 역할. 검토자가 채웁니다.",
-        "en": "[Sample] Physiological role of the sigmoid sinus / dura. A reviewer fills this in."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "injury": {
-      "text": {
-        "ko": "[샘플] 구불정맥굴·경막의 손상이나 기능 이상이 임상에서 어떻게 나타나는지. 검토 전입니다.",
-        "en": "[Sample] Clinical consequences if the sigmoid sinus / dura is injured or not working. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "tests": {
-      "text": {
-        "ko": "[샘플] 구불정맥굴·경막의 관련 검사. 검토자가 채웁니다.",
-        "en": "[Sample] Related tests for the sigmoid sinus / dura. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    }
+    "ko": "횡정맥동에서 이어져 경정맥공을 통해 내경정맥으로 이어지는 후두개와 정맥 경로임\nCummings는 구불정맥동과 경정맥구를 저압·고유량 정맥 구조로 기술하며, 손상 시 출혈 처치가 필요하다고 함",
+    "en": ""
   },
-  "related": [
-    "bone"
-  ],
   "surgical_points": [
     {
-      "id": "sinus-dura-center",
-      "title": {
-        "ko": "구불정맥굴·경막 중심(샘플)",
-        "en": "Sigmoid sinus / dura center (sample)"
-      },
-      "body": {
-        "ko": "[샘플] 메시 경계상자의 중심입니다. 수술 랜드마크가 아닙니다.",
-        "en": "[Sample] Center of the mesh bounding box. Not a surgical landmark."
-      },
-      "position_mm": [
-        22.07,
-        16.92,
-        28.98
-      ],
-      "source": "샘플 좌표. 구조 경계상자 중심이며 실측 랜드마크가 아닙니다.",
-      "status": "미검증"
+      "id": "sinus-dura-p1",
+      "text": {
+        "ko": "유양돌기절제: tegmen판 확인, 구불정맥동 skeletonization, 후외이도벽 얇게 만들기가 antrum 도달의 핵심 원칙임 함기화가 나쁜 유양동에서는 구불정맥동이 피질 바로 아래, 후외이도벽에서 1 cm 이내로 전재·천재할 수 있음 (Cummings 7e Ch143 p.2168–2169, 2176)",
+        "en": ""
+      }
+    },
+    {
+      "id": "sinus-dura-p2",
+      "text": {
+        "ko": "유양돌기절제: sinodural angle을 깊게 파는 것이 antrum으로 가는 선도 경로가 되며, 손상 시 먼저 수지 압박하고 작은 열상은 bone wax, 큰 파열은 cellulose계 packing으로 남은 골연 아래를 눌러 고정함 (Francis 2e Ch3 p.25; Cummings 7e Ch143 p.2176)",
+        "en": ""
+      }
+    },
+    {
+      "id": "sinus-dura-p3",
+      "text": {
+        "ko": "후두개와·경미로 계열: 구불정맥동 상방의 골을 sinodural angle부터 제거하고 필요 시 후방 견인하여 시야를 얻음 (Cummings 7e Ch173 p.2600–2602) 중두개와 접근의 내측 한계는 상추체정맥동 고랑이며, 구불정맥동 자체가 MCF의 주 표지는 아님 (Cummings 7e Ch175 p.2631)",
+        "en": ""
+      }
     }
+  ],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "1928–1929, 1937",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch143 Mastoidectomy: Surgical Techniques",
+      "page": "2168–2169, 2176",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch173 Intratemporal Facial Nerve Surgery",
+      "page": "2600–2602",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "2625–2626, 2629, 2631–2632",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch3 Mastoidectomy",
+      "page": "25",
+      "verified": true
+    }
+  ],
+  "review": "미검증",
+  "related": [
+    "bone"
   ]
 }

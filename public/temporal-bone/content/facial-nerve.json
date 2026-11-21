@@ -1,61 +1,78 @@
 {
   "id": "facial-nerve",
   "model_version": "openear-zeta-ras-1",
-  "info": {
-    "summary": {
-      "ko": "[샘플] 얼굴신경의 해부 설명. 검토자가 채울 자리이며, 교재에서 옮긴 문장이 아닙니다.",
-      "en": "[Sample] Anatomy note for the facial nerve. Placeholder for a reviewer, not copied from a textbook."
-    },
-    "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-    "status": "미검증"
+  "anatomy": {
+    "ko": "측두골 내에서는 fallopian canal을 따라 내이도(IAC) 기저(fundus)에서 stylomastoid foramen까지 주행하며, IAC 안에서는 섬유초·내신경막이 없고 얇은 거미막으로 둘러싸임\n미로 분절(labyrinthine segment)은 첫 분절로 가장 짧고 좁으며 와우 상방을 지나 슬상신경절와(geniculate fossa)로 열리고, 슬상신경절은 상고실 전방의 supratubal recess(STR) 바로 심부에 있으며 중두개와와는 매우 얇은 골로 분리됨(Cummings는 약 25%에서 골 결손)\n제1슬에서 greater superficial petrosal nerve(GSPN)가 전방으로 나가고 본간은 급히 후하방으로 고실(수평) 분절에 들어가 cochleariform process 상방을 스친 뒤 oval window niche의 상벽을 이룸\npyramidal eminence에서 제2슬을 이루어 유양(수직) 분절로 이행하며, 제2슬은 외측반고리관의 전하방·침골 단돌기를 지나는 선의 전방에 위치하고, 수직 분절을 상방 연장하면 외측반고리관 융기를 대략 이등분함",
+    "en": ""
   },
   "function": {
-    "physiology": {
-      "text": {
-        "ko": "[샘플] 얼굴신경의 생리적 역할. 검토자가 채웁니다.",
-        "en": "[Sample] Physiological role of the facial nerve. A reviewer fills this in."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "injury": {
-      "text": {
-        "ko": "[샘플] 얼굴신경의 손상이나 기능 이상이 임상에서 어떻게 나타나는지. 검토 전입니다.",
-        "en": "[Sample] Clinical consequences if the facial nerve is injured or not working. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "tests": {
-      "text": {
-        "ko": "[샘플] 얼굴신경의 관련 검사. 검토자가 채웁니다.",
-        "en": "[Sample] Related tests for the facial nerve. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    }
+    "ko": "제2새궁 유래 구조에 원심·구심 지배를 하며, 대부분의 특수내장원심섬유는 표정근, stapedius, stylohyoid, 이복근 후복을 지배함\nnervus intermedius의 일반내장원심섬유는 GSPN·익구개신경절을 통해 누선과 비점막 분비선에, 고삭신경·악하신경절을 통해 악하선·설하선에 부교감 지배를 전달함\n특수감각섬유는 고삭신경을 통해 혀 전 2/3의 미각을, GSPN을 통해 구개·편도와의 미각을 전달하며, 이들 감각 신경세포체는 슬상신경절에 있음",
+    "en": ""
   },
-  "related": [
-    "chorda-tympani"
-  ],
   "surgical_points": [
     {
-      "id": "facial-nerve-center",
-      "title": {
-        "ko": "얼굴신경 중심(샘플)",
-        "en": "Facial nerve center (sample)"
-      },
-      "body": {
-        "ko": "[샘플] 메시 경계상자의 중심입니다. 수술 랜드마크가 아닙니다.",
-        "en": "[Sample] Center of the mesh bounding box. Not a surgical landmark."
-      },
-      "position_mm": [
-        21.06,
-        26.58,
-        33.42
-      ],
-      "source": "샘플 좌표. 구조 경계상자 중심이며 실측 랜드마크가 아닙니다.",
-      "status": "미검증"
+      "id": "facial-nerve-p1",
+      "text": {
+        "ko": "유양돌기절제: 유양 분절의 핵심 표지는 수평반고리관, 침골 단돌기, 후외이도 골벽이며 제2슬과 수직부 근위는 수평반고리관 돔의 전내측에 있음 함기화가 나쁜 contracted mastoid의 hanging tegmen 윤곽을 놓치면 원위 고실 분절과 제2슬의 의인성 손상이 잘 생기고, Francis는 이를 가장 흔한 의인성 안면신경 손상 기전으로 봄 (Cummings 7e Ch143 p.2166, 2169; Francis 2e Ch3 p.26) 진주종 연속 증례에서 탈회는 약 20%로, 가장 흔히는 oval window 바로 상방 고실 분절임 (Cummings 7e Ch143 p.2176) 이와 별도로 Ch126은 oval window 상연 탈회를 55%로 기술하므로 수치 맥락이 다름",
+        "en": ""
+      }
+    },
+    {
+      "id": "facial-nerve-p2",
+      "text": {
+        "ko": "경외이도: 수직 분절 원위와 stylomastoid foramen 근처에서 신경이 고실륜(tympanic annulus)보다 외측으로 지나가 외이도·경외이도 술식에서 손상될 수 있음 신생아는 유양돌기 첨이 미발달하여 stylomastoid foramen이 더 얕고 후이개 절개나 겸자분만에도 취약함 (Cummings 7e Ch126 p.1936; Ch143 p.2166)",
+        "en": ""
+      }
+    },
+    {
+      "id": "facial-nerve-p3",
+      "text": {
+        "ko": "중두개와: GSPN을 후방으로 추적하여 슬상신경절을 확인하며, 탈회율은 문헌에 따라 Cummings 약 25%, Francis 약 16%로 차이가 있음 경막은 후방에서 전방으로 거상해야 노출된 슬상신경절 손상을 줄일 수 있음 (Francis 2e Ch7 p.56–57) 미로 분절은 와우 기저회전의 바로 후방에 있고 와우와의 거리가 약 1 mm 이내일 수 있으며, GSPN·슬상신경절·미로 분절이 이루는 약 120° 둔각의 골 속에 와우 midturn이 있어 이 박리가 가장 위험함 (Cummings 7e Ch175 p.2631; Francis 2e Ch7 p.56, 58) IAC 기저에서는 Bill's bar가 전상방의 안면신경과 후상방의 상전정신경을 나눔",
+        "en": ""
+      }
+    },
+    {
+      "id": "facial-nerve-p4",
+      "text": {
+        "ko": "미로 분절은 좁은 골관, epineurium 부재, 척추기저동맥·외경동맥 계열의 분수계 혈행, 슬상신경절과의 인접 때문에 부종·골절·STR 박리에 특히 취약함 (Cummings 7e Ch126 p.1928, 1935–1936)",
+        "en": ""
+      }
     }
+  ],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "1928 (Key Points), 1933–1936",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch143 Mastoidectomy: Surgical Techniques",
+      "page": "2166, 2169, 2176",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "2631–2632",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch2 Anatomy of the Temporal Bone",
+      "page": "8, 10",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch3 Mastoidectomy",
+      "page": "26, 32–35",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch7 The Middle Cranial Fossa Approach to the Internal Auditory Canal",
+      "page": "56–58",
+      "verified": true
+    }
+  ],
+  "review": "미검증",
+  "related": [
+    "chorda-tympani"
   ]
 }

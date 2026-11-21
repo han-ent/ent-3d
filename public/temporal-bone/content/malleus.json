@@ -1,62 +1,57 @@
 {
   "id": "malleus",
   "model_version": "openear-zeta-ras-1",
-  "info": {
-    "summary": {
-      "ko": "[샘플] 망치뼈의 해부 설명. 검토자가 채울 자리이며, 교재에서 옮긴 문장이 아닙니다.",
-      "en": "[Sample] Anatomy note for the malleus. Placeholder for a reviewer, not copied from a textbook."
-    },
-    "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-    "status": "미검증"
+  "anatomy": {
+    "ko": "머리(head)는 침골 몸체와 관절하여 상고실(epitympanum)을 차지하는 이소골 덩어리의 일부를 이룸\n목(neck)에는 cochleariform process에서 나온 tensor tympani 건이 부착됨\n자루(manubrium)는 고막 중심에 붙어 mallear stria를 이루고 끝은 umbo에 부착되며, 외측돌기(lateral process)와 Rivinus 절흔의 극은 상고실 하연의 이경 표지임\nPrussak 공간은 pars flaccida 바로 내측, 추골 머리·목의 외측에 위치함",
+    "en": ""
   },
   "function": {
-    "physiology": {
-      "text": {
-        "ko": "[샘플] 망치뼈의 생리적 역할. 검토자가 채웁니다.",
-        "en": "[Sample] Physiological role of the malleus. A reviewer fills this in."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "injury": {
-      "text": {
-        "ko": "[샘플] 망치뼈의 손상이나 기능 이상이 임상에서 어떻게 나타나는지. 검토 전입니다.",
-        "en": "[Sample] Clinical consequences if the malleus is injured or not working. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    },
-    "tests": {
-      "text": {
-        "ko": "[샘플] 망치뼈의 관련 검사. 검토자가 채웁니다.",
-        "en": "[Sample] Related tests for the malleus. Unreviewed placeholder."
-      },
-      "source": "샘플 문안. 문헌에서 옮기지 않았으며 검수 전입니다.",
-      "status": "미검증"
-    }
+    "ko": "고막과 연결된 manubrium·lateral process를 통해 외이도 쪽 진동을 이소골 연쇄로 전달함\ntensor tympani 건이 목에 부착되어 추골을 당기는 부착점을 제공함",
+    "en": ""
   },
+  "surgical_points": [
+    {
+      "id": "malleus-p1",
+      "text": {
+        "ko": "유양돌기절제·상고실 수술: attic 진주종이 Prussak 공간에서 후상고실·antrum 또는 이소골 내측의 전상고실로 파급될 수 있어, 전방 파급을 확인·제거하려면 침골과 추골 머리 제거가 필요함 (Cummings 7e Ch126 p.1934)",
+        "en": ""
+      }
+    },
+    {
+      "id": "malleus-p2",
+      "text": {
+        "ko": "경외이도: manubrium, lateral process, umbo는 고막 표면 표지이며, scutum(골부 외이도 상내측벽)은 pars flaccida 함몰 진주종에 의해 미란되기 쉬움",
+        "en": ""
+      }
+    },
+    {
+      "id": "malleus-p3",
+      "text": {
+        "ko": "중두개와: tegmen tympani를 일부 제거하면 전방에서 incudomalleolar joint와 고실 분절 안면신경을 확인할 수 있음 (Cummings 7e Ch175 p.2631)",
+        "en": ""
+      }
+    }
+  ],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "1931, 1934",
+      "verified": true
+    },
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "2631",
+      "verified": true
+    },
+    {
+      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch2 Anatomy of the Temporal Bone",
+      "page": "8",
+      "verified": true
+    }
+  ],
+  "review": "미검증",
   "related": [
     "tympanic-membrane",
     "incus"
-  ],
-  "surgical_points": [
-    {
-      "id": "malleus-center",
-      "title": {
-        "ko": "망치뼈 중심(샘플)",
-        "en": "Malleus center (sample)"
-      },
-      "body": {
-        "ko": "[샘플] 메시 경계상자의 중심입니다. 수술 랜드마크가 아닙니다.",
-        "en": "[Sample] Center of the mesh bounding box. Not a surgical landmark."
-      },
-      "position_mm": [
-        26.39,
-        21.05,
-        31.81
-      ],
-      "source": "샘플 좌표. 구조 경계상자 중심이며 실측 랜드마크가 아닙니다.",
-      "status": "미검증"
-    }
   ]
 }

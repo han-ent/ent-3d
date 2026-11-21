@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { REVIEW_STATUSES, type Manifest, type StructureContent } from '../src/shared/types';
+import { REVIEW_STATUSES, type Manifest, type PresetFile, type StructureContent } from '../src/shared/types';
 import { validateContent, validateManifest, validatePresets, validateVolume } from '../src/shared/schema';
 
 const root = resolve(import.meta.dirname, '..');
@@ -38,18 +38,21 @@ describe('temporal-bone manifest and content', () => {
     expect(validateManifest(broken).some((issue) => issue.message.includes('scale'))).toBe(true);
   });
 
-  it('validates every content file, including function blocks', () => {
+  it('validates every content file in the draft shape', () => {
+    const pending = new Set(['bone', 'tympanic-membrane', 'external-auditory-canal', 'cochleovestibular-nerve']);
     for (const structure of manifest.structures) {
       const content = readJson(resolve(data, structure.content)) as StructureContent;
       expect(validateContent(content, structure.id, knownIds), structure.id).toEqual([]);
       expect(content.model_version).toBe(manifest.model_version);
-      expect(content.info.status).toBe('미검증');
-      for (const block of [content.function.physiology, content.function.injury, content.function.tests]) {
-        expect(block.status).toBe('미검증');
-        expect(block.source.length).toBeGreaterThan(0);
-        expect(block.text.ko.startsWith('[샘플]')).toBe(true);
+      expect(content.review).toBe('미검증');
+      expect(content.anatomy.ko.length).toBeGreaterThan(0);
+      expect(content.function.ko.length).toBeGreaterThan(0);
+      if (pending.has(structure.id)) expect(content.anatomy.ko).toContain('[샘플]');
+      else expect(content.anatomy.ko).not.toContain('[샘플]');
+      for (const point of content.surgical_points) {
+        expect(point.position_mm).toBeUndefined();
+        expect(point.text.ko.length).toBeGreaterThan(0);
       }
-      for (const point of content.surgical_points) expect(point.status).toBe('미검증');
       expect(existsSync(resolve(data, structure.file))).toBe(true);
     }
   });
@@ -61,11 +64,11 @@ describe('temporal-bone manifest and content', () => {
     expect(facial.related).toContain('chorda-tympani');
   });
 
-  it('rejects a function block without its own status', () => {
+  it('rejects content without a review state', () => {
     const content = readJson(resolve(data, 'content/malleus.json')) as StructureContent;
-    const broken = structuredClone(content) as unknown as { function: { physiology: { status?: string } } };
-    delete broken.function.physiology.status;
-    expect(validateContent(broken, 'malleus').some((issue) => issue.path === 'function.physiology.status')).toBe(true);
+    const broken = structuredClone(content) as unknown as { review?: string };
+    delete broken.review;
+    expect(validateContent(broken, 'malleus').some((issue) => issue.path === 'review')).toBe(true);
   });
 
   it('rejects a related id that is missing or self', () => {
@@ -95,9 +98,7 @@ describe('temporal-bone manifest and content', () => {
   });
 
   it('validates presets and the CT volume, and every slice file exists', () => {
-    const presets = readJson(resolve(data, 'presets.json')) as {
-      sequences: { id: string; steps: { id: string; identify: string[]; danger: string[] }[] }[];
-    };
+    const presets = readJson(resolve(data, 'presets.json')) as PresetFile;
     const volume = readJson(resolve(data, 'ct/volume.json')) as {
       dims: number[];
       spacing_mm: number[];
@@ -125,7 +126,15 @@ describe('temporal-bone manifest and content', () => {
     expect(volume.planes.sagittal?.axis).toBe(0);
     const sinus = manifest.layers.find((layer) => layer.id === 'sinus');
     expect(sinus?.opacity).toBeLessThan(0.5);
-    expect(sinus?.name.ko).toContain('구불정맥굴');
+    expect(sinus?.name.ko).toContain('S상정맥동');
+    const antrum = mastoidectomy?.steps.find((step) => step.id === 'antrum');
+    expect(antrum?.identify).toEqual([]);
+    expect(antrum?.marker?.review).toBe('미검증');
+    expect(antrum?.marker?.source?.length ?? 0).toBeGreaterThan(0);
+    expect(antrum?.highlight).toBeUndefined();
+    for (const step of mastoidectomy?.steps ?? []) {
+      expect(step.hidden).toEqual(expect.arrayContaining(['scala-vestibuli', 'scala-tympani']));
+    }
     expect(manifest.missing_structures?.map((item) => item.name)).toEqual(
       expect.arrayContaining(['Semicircular canals', 'Jugular bulb']),
     );

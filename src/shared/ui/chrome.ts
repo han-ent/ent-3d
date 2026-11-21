@@ -9,7 +9,6 @@ export function renderHeader(active: NavId): HTMLElement {
   const links: { id: NavId; key: string; href: string }[] = [
     { id: 'home', key: 'nav.home', href: pageUrl('') },
     { id: 'temporal', key: 'nav.temporal', href: pageUrl('temporal-bone') },
-    { id: 'vor', key: 'nav.vor', href: pageUrl('vor') },
     { id: 'about', key: 'nav.about', href: pageUrl('about') },
   ];
   const nav = links
@@ -56,11 +55,11 @@ export function renderFooter(): HTMLElement {
   return footer;
 }
 
-export function mountShell(active: NavId): { header: HTMLElement; main: HTMLElement; footer: HTMLElement } {
+export function mountShell(active: NavId): { header: HTMLElement; main: HTMLElement } {
   const header = renderHeader(active);
   const main = document.createElement('main');
   main.className = 'page';
-  const footer = renderFooter();
-  document.body.replaceChildren(header, main, footer);
-  return { header, main, footer };
+  document.body.classList.add('page-body');
+  document.body.replaceChildren(header, main);
+  return { header, main };
 }
