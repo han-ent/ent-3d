@@ -3,7 +3,9 @@ import { englishFirst, labelAllowed, placeLabels, tiersForDistance, type StudyLa
 
 const label = (patch: Partial<StudyLabel>): StudyLabel => ({
   id: 'malleus-umbo',
-  text: 'Umbo 제(umbo)',
+  text: 'Umbo',
+  en: 'Umbo',
+  ko: '제(umbo)',
   tier: 'subpart',
   modes: ['surgical', 'all'],
   priority: 10,

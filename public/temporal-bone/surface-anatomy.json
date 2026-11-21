@@ -6,7 +6,7 @@
       "id": "helix",
       "en": "Helix",
       "ko": "이륜",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
       "clinical": "",
       "sources": [
         {
@@ -16,18 +16,19 @@
         }
       ],
       "xyz_mm": [
-        22.249,
-        16.737,
-        7.902
+        32.755,
+        33.332,
+        4.962
       ],
       "review": "미검증",
-      "tier": "surface"
+      "tier": "surface",
+      "method": "zanatomy"
     },
     {
       "id": "crus-helix",
       "en": "Crus of helix",
       "ko": "이륜각",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
       "clinical": "",
       "sources": [
         {
@@ -37,18 +38,19 @@
         }
       ],
       "xyz_mm": [
-        30.249,
-        18.737,
-        15.902
+        37.077,
+        30.028,
+        11.125
       ],
       "review": "미검증",
-      "tier": "surface"
+      "tier": "surface",
+      "method": "zanatomy"
     },
     {
       "id": "antihelix",
       "en": "Antihelix",
       "ko": "대이륜",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
       "clinical": "",
       "sources": [
         {
@@ -58,60 +60,19 @@
         }
       ],
       "xyz_mm": [
-        26.249,
-        22.737,
-        11.902
+        33.492,
+        46.389,
+        9.021
       ],
       "review": "미검증",
-      "tier": "surface"
-    },
-    {
-      "id": "scapha",
-      "en": "Scapha",
-      "ko": "주상와",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
-      "clinical": "",
-      "sources": [
-        {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
-          "verified": false
-        }
-      ],
-      "xyz_mm": [
-        20.249,
-        20.737,
-        9.902
-      ],
-      "review": "미검증",
-      "tier": "surface"
-    },
-    {
-      "id": "triangular-fossa",
-      "en": "Triangular fossa",
-      "ko": "삼각와",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
-      "clinical": "",
-      "sources": [
-        {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
-          "verified": false
-        }
-      ],
-      "xyz_mm": [
-        28.249,
-        17.737,
-        13.902
-      ],
-      "review": "미검증",
-      "tier": "surface"
+      "tier": "surface",
+      "method": "zanatomy"
     },
     {
       "id": "cymba",
       "en": "Cymba conchae",
       "ko": "이갑개정",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
       "clinical": "",
       "sources": [
         {
@@ -121,18 +82,19 @@
         }
       ],
       "xyz_mm": [
-        28.249,
-        21.737,
-        17.902
+        33.475,
+        40.506,
+        16.187
       ],
       "review": "미검증",
-      "tier": "surface"
+      "tier": "surface",
+      "method": "zanatomy"
     },
     {
       "id": "cavum",
       "en": "Cavum conchae",
       "ko": "이갑개강",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
       "clinical": "",
       "sources": [
         {
@@ -142,18 +104,19 @@
         }
       ],
       "xyz_mm": [
-        28.249,
-        24.737,
-        19.902
+        38.913,
+        50.353,
+        22.074
       ],
       "review": "미검증",
-      "tier": "surface"
+      "tier": "surface",
+      "method": "zanatomy"
     },
     {
       "id": "tragus",
       "en": "Tragus",
       "ko": "이주",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
       "clinical": "",
       "sources": [
         {
@@ -163,18 +126,19 @@
         }
       ],
       "xyz_mm": [
-        34.249,
-        24.737,
-        17.902
+        47.554,
+        47.098,
+        19.853
       ],
       "review": "미검증",
-      "tier": "surface"
+      "tier": "surface",
+      "method": "zanatomy"
     },
     {
       "id": "antitragus",
       "en": "Antitragus",
       "ko": "대이주",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
       "clinical": "",
       "sources": [
         {
@@ -184,18 +148,19 @@
         }
       ],
       "xyz_mm": [
-        24.249,
-        30.737,
-        15.902
+        40.24,
+        58.735,
+        14.926
       ],
       "review": "미검증",
-      "tier": "surface"
+      "tier": "surface",
+      "method": "zanatomy"
     },
     {
       "id": "intertragic-notch",
       "en": "Intertragic notch",
       "ko": "주간절흔",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Midpoint of the Z-Anatomy tragus and antitragus.",
       "clinical": "",
       "sources": [
         {
@@ -205,9 +170,9 @@
         }
       ],
       "xyz_mm": [
-        28.249,
-        29.737,
-        16.902
+        43.897,
+        52.916,
+        17.39
       ],
       "review": "미검증",
       "tier": "surface"
@@ -216,7 +181,7 @@
       "id": "lobule",
       "en": "Lobule",
       "ko": "이수(귓불)",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
+      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
       "clinical": "",
       "sources": [
         {
@@ -226,138 +191,14 @@
         }
       ],
       "xyz_mm": [
-        28.249,
-        40.737,
-        15.902
+        43.323,
+        68.75,
+        20.239
       ],
       "review": "미검증",
-      "tier": "surface"
-    },
-    {
-      "id": "mastoid-tip-skin",
-      "en": "Mastoid tip",
-      "ko": "유양돌기 첨부",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
-      "clinical": "",
-      "sources": [
-        {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
-          "verified": false
-        }
-      ],
-      "xyz_mm": [
-        18.534,
-        57.721,
-        14.477
-      ],
-      "review": "미검증",
-      "tier": "surface"
-    },
-    {
-      "id": "postauricular-sulcus",
-      "en": "Postauricular sulcus",
-      "ko": "이개후구",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
-      "clinical": "",
-      "sources": [
-        {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
-          "verified": false
-        }
-      ],
-      "xyz_mm": [
-        18.249,
-        24.737,
-        21.902
-      ],
-      "review": "미검증",
-      "tier": "surface"
-    },
-    {
-      "id": "zygomatic-arch",
-      "en": "Zygomatic arch",
-      "ko": "관골궁",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
-      "clinical": "",
-      "sources": [
-        {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
-          "verified": false
-        }
-      ],
-      "xyz_mm": [
-        46.291,
-        20.534,
-        20.999
-      ],
-      "review": "미검증",
-      "tier": "surface"
-    },
-    {
-      "id": "temporal-line-skin",
-      "en": "Temporal line",
-      "ko": "측두선",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
-      "clinical": "",
-      "sources": [
-        {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
-          "verified": false
-        }
-      ],
-      "xyz_mm": [
-        24.551,
-        9.858,
-        15.676
-      ],
-      "review": "미검증",
-      "tier": "surface"
-    },
-    {
-      "id": "tragal-pointer",
-      "en": "Tragal pointer",
-      "ko": "이주 포인터",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
-      "clinical": "",
-      "sources": [
-        {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
-          "verified": false
-        }
-      ],
-      "xyz_mm": [
-        35.249,
-        26.737,
-        18.902
-      ],
-      "review": "미검증",
-      "tier": "surface"
-    },
-    {
-      "id": "preauricular",
-      "en": "Preauricular area",
-      "ko": "이개전부",
-      "anatomy": "Surface point on the stylized skin, placed relative to the ZETA ear canal.",
-      "clinical": "",
-      "sources": [
-        {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
-          "verified": false
-        }
-      ],
-      "xyz_mm": [
-        40.249,
-        24.737,
-        21.902
-      ],
-      "review": "미검증",
-      "tier": "surface"
+      "tier": "surface",
+      "method": "zanatomy"
     }
-  ]
+  ],
+  "note": "Auricle points are centroids of Z-Anatomy cartilage parts. Periauricular skin points were removed because this template has no skin mesh."
 }

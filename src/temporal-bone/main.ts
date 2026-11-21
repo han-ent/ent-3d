@@ -1,6 +1,6 @@
 import '../styles/app.css';
 import { anatomicalPlaneName, ctEdgeLabels } from '../shared/frame';
-import { englishFirst, type LabelMode, type StudyLabel } from '../shared/labels';
+import { displayEnglish, englishFirst, type LabelMode, type StudyLabel } from '../shared/labels';
 import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
 import { sliceFile, slicePose, clampIndex } from '../shared/ct';
 import { firstLine, isPendingText, paragraphLines, sentenceNeedsSourceCheck } from '../shared/content-display';
@@ -352,7 +352,6 @@ function renderInfo(): void {
     })
     .join('');
   infoBody.innerHTML = `
-    <h2>${escapeHtml(structureLabel(structure.id))}</h2>
     <h3>${escapeHtml(t('info.summary'))}</h3>
     ${paragraphHtml(anatomy, content.review)}
     <h3>${escapeHtml(t('info.function'))}</h3>
@@ -814,7 +813,7 @@ function buildCt(): void {
 }
 
 function onPick(hit: PickHit | null): void {
-  if (hit && (hit.structureId === 'upper-body' || hit.structureId === 'ear-hotspot')) {
+  if (hit && (hit.structureId === 'upper-body' || hit.structureId === 'ear-hotspot' || hit.structureId === 'skull-layer')) {
     if (!eacMm) return;
     const distance = Math.hypot(hit.pointMm[0] - eacMm[0], hit.pointMm[1] - eacMm[1], hit.pointMm[2] - eacMm[2]);
     if (hit.structureId === 'ear-hotspot' || distance < 48) flyStage(stageName === 'body' ? 'ear' : 'bone');
@@ -1030,9 +1029,12 @@ function refreshStudyLabels(): void {
       list.push(center);
       buckets.set(region.id, list);
     }
+    const english = displayEnglish(structure.name.en);
     labels.push({
       id: structure.id,
-      text: structureLabel(structure.id),
+      text: english,
+      en: english,
+      ko: structure.name.ko,
       tier: structure.parent || parents.has(structure.id) ? (structure.parent ? 'subpart' : 'structure') : 'structure',
       modes: ['basic', 'all'],
       priority: structure.parent ? 25 : 45,
@@ -1055,7 +1057,9 @@ function refreshStudyLabels(): void {
     position[2] /= points.length;
     labels.push({
       id: region.id,
-      text: englishFirst(region.en, region.ko),
+      text: region.en,
+      en: region.en,
+      ko: region.ko,
       tier: 'region',
       modes: ['basic', 'all'],
       priority: 35,
@@ -1063,9 +1067,12 @@ function refreshStudyLabels(): void {
     });
   }
   for (const item of landmarks) {
+    const english = displayEnglish(item.en);
     labels.push({
       id: item.id,
-      text: englishFirst(item.en, item.ko),
+      text: english,
+      en: english,
+      ko: item.ko,
       tier: 'subpart',
       modes: item.surgical ? ['basic', 'surgical', 'all'] : ['all'],
       priority: item.surgical ? 60 : 18,
@@ -1074,12 +1081,15 @@ function refreshStudyLabels(): void {
     });
   }
   for (const item of surfaceLabels) {
+    const english = displayEnglish(item.en);
     labels.push({
       id: item.id,
-      text: englishFirst(item.en, item.ko),
+      text: english,
+      en: english,
+      ko: item.ko,
       tier: 'surface',
       modes: ['basic', 'all'],
-      priority: ['helix', 'tragus', 'lobule', 'mastoid-tip-skin'].includes(item.id) ? 70 : 28,
+      priority: ['helix', 'tragus', 'lobule'].includes(item.id) ? 70 : 28,
       position: item.xyz_mm,
     });
   }
@@ -1202,7 +1212,13 @@ async function boot(): Promise<void> {
   );
   if (eacMm) {
     try {
-      await viewer.loadUpperBody(assetUrl('models/upper-body/upper-body.glb'), eacMm);
+      await viewer.loadUpperBody(
+        {
+          skull: assetUrl('models/upper-body/skull.glb'),
+          auricle: assetUrl('models/upper-body/auricle.glb'),
+        },
+        eacMm,
+      );
     } catch {
       failures.push('upper-body');
     }

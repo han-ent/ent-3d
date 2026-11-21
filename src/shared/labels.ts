@@ -11,6 +11,29 @@ export function englishFirst(en: string, ko: string): string {
   return `${english} ${korean}`;
 }
 
+/** One-line English that fits a phone label. The full term stays in the list and the panel. */
+const SHORT_EN: Record<string, string> = {
+  'Lateral semicircular canal': 'Lateral SCC',
+  'Superior semicircular canal': 'Superior SCC',
+  'Posterior semicircular canal': 'Posterior SCC',
+  'Cochleovestibular nerve': 'Vestibulocochlear n.',
+  'Sigmoid sinus / dura': 'Sigmoid sinus',
+  'External auditory canal': 'Ear canal',
+  'Internal auditory canal': 'IAC',
+  'Basal turn (scala tympani)': 'Basal turn',
+  'Middle turn (scala tympani)': 'Middle turn',
+  'Apical turn (scala tympani)': 'Apical turn',
+  'Basal turn (scala vestibuli)': 'Basal turn',
+  'Middle turn (scala vestibuli)': 'Middle turn',
+  'Apical turn (scala vestibuli)': 'Apical turn',
+  'Tympanic membrane': 'Eardrum',
+};
+
+export function displayEnglish(en: string): string {
+  const trimmed = en.trim();
+  return SHORT_EN[trimmed] ?? trimmed;
+}
+
 /** Which label tiers belong at this camera distance. */
 export function tiersForDistance(distanceMm: number): LabelTier[] {
   if (distanceMm > 60) return ['region', 'surface'];
@@ -21,6 +44,8 @@ export function tiersForDistance(distanceMm: number): LabelTier[] {
 export type StudyLabel = {
   id: string;
   text: string;
+  en: string;
+  ko: string;
   tier: LabelTier;
   modes: LabelMode[];
   priority: number;
@@ -129,6 +154,6 @@ export function placeLabels(
   return result;
 }
 
-export function estimateLabelSize(text: string): { width: number; height: number } {
-  return { width: Math.min(148, Math.max(48, text.length * 10 + 14)), height: 22 };
+export function estimateLabelSize(text: string, twoLines = false): { width: number; height: number } {
+  return { width: Math.min(168, Math.max(48, text.length * 7.4 + 12)), height: twoLines ? 34 : 18 };
 }

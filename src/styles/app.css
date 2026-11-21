@@ -225,27 +225,40 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 .study-label {
   position: absolute;
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   border: 0;
-  background: rgba(247, 245, 240, 0.92);
+  background: rgba(247, 245, 240, 0.94);
   color: #222;
+  max-width: 168px;
+  padding: 1px 5px 2px;
+  text-align: left;
+  white-space: normal;
+}
+
+.study-en {
   font-size: 12px;
-  line-height: 16px;
-  max-width: 148px;
-  padding: 1px 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.study-ko {
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.25;
+  color: #5c584f;
 }
 
 .study-dot {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 8px;
+  height: 8px;
   margin: 0;
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: #8c2f1b;
+  background: rgba(140, 47, 27, 0.38);
   transform: translate(-50%, -50%);
   pointer-events: auto;
 }

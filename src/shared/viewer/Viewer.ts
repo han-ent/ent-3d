@@ -136,6 +136,7 @@ export class EntViewer {
   private flashId: string | null = null;
   private flashUntil = 0;
   private upperBody: THREE.Mesh | null = null;
+  private skullLayer: THREE.Mesh | null = null;
   private earHotspot: THREE.Mesh | null = null;
   private cutCenter = new THREE.Vector3();
   private cutRadius = { value: 0 };
@@ -182,11 +183,15 @@ export class EntViewer {
     this.world.add(this.structures, this.measures);
     this.scene.add(this.world);
 
-    const hemi = new THREE.HemisphereLight('#f7f5f0', '#e7e2d8', 1.15);
-    const key = new THREE.DirectionalLight('#ffffff', 1.05);
-    key.position.set(90, 10, 50);
+    const hemi = new THREE.HemisphereLight('#fffaf4', '#d5d8e2', 1.35);
+    const key = new THREE.DirectionalLight('#ffffff', 1.25);
+    key.position.set(70, -40, -30);
     this.keyLight = key;
-    this.scene.add(hemi, key);
+    const fill = new THREE.DirectionalLight('#f4f7ff', 0.55);
+    fill.position.set(-50, 30, 40);
+    const bounce = new THREE.DirectionalLight('#ffe4cc', 0.35);
+    bounce.position.set(20, 90, -10);
+    this.scene.add(hemi, key, fill, bounce);
 
     this.outlineMaterial = new THREE.MeshBasicMaterial({
       color: OUTLINE,
@@ -352,8 +357,8 @@ export class EntViewer {
       this.warnIfScaled(obj, id);
       const material = new THREE.MeshStandardMaterial({
         color,
-        roughness: 0.72,
-        metalness: 0,
+        roughness: 0.48,
+        metalness: 0.04,
         side: id === 'tympanic-membrane' ? THREE.DoubleSide : THREE.FrontSide,
         clippingPlanes: this.clipping,
       });
@@ -648,7 +653,7 @@ export class EntViewer {
     const distance = this.camera.position.distanceTo(this.controls.target);
     const worldHeight = 2 * Math.tan((this.camera.fov * Math.PI) / 360) * Math.max(distance, 0.001);
     const pxPerMm = this.canvas.clientHeight / worldHeight;
-    this.outlineUniform.value = Math.min(1.4, Math.max(0.2, 2.6 / Math.max(pxPerMm, 0.5)));
+    this.outlineUniform.value = Math.min(1.6, Math.max(distance < 40 ? 0.55 : 0.2, 2.6 / Math.max(pxPerMm, 0.5)));
     this.controls.update();
     this.updateScaleBar();
     this.projectCallouts();
@@ -752,16 +757,20 @@ export class EntViewer {
     record.object.visible = visible;
     const inSelection = this.selected !== null && (record.id === this.selected || this.ancestorIs(record.id, this.selected));
     const onTop = inSelection && visible;
-    const dimmed = this.dimOthers && this.selected !== null && !inSelection;
+    const close = this.cameraDistance() < 42 && this.selected !== null && this.selected !== 'bone';
+    const envelope = record.id === 'bone' || record.id === 'sinus-dura' || record.id === 'external-auditory-canal';
+    const dimmed = this.dimOthers && this.selected !== null && !inSelection && !close;
     const defaultGhost = !this.presetVis && record.id === 'sinus-dura';
-    const opacity = displayOpacity({
+    let opacity = displayOpacity({
       id: record.id,
       base: record.opacity,
       selectedId: inSelection ? record.id : this.selected,
-      dimOthers: this.dimOthers && !inSelection,
+      dimOthers: this.dimOthers && !inSelection && !close,
       ghost: this.presetVis?.ghosted.has(record.id) === true || defaultGhost,
-      boneTransparent: this.boneTransparent,
+      boneTransparent: this.boneTransparent || close,
     });
+    if (close && envelope) opacity = Math.min(opacity, 0.04);
+    else if (close && !inSelection) opacity = Math.max(opacity, 0.62);
     for (const material of record.materials) {
       material.color.set(dimmed ? DIM_GRAY : record.color);
       material.opacity = opacity;
@@ -991,53 +1000,59 @@ export class EntViewer {
     }
   }
 
-  loadUpperBody(url: string, eacMm: Vec3): Promise<void> {
+  loadUpperBody(urls: { skull: string; auricle: string }, eacMm: Vec3): Promise<void> {
     this.eacMm = eacMm;
     const center = new THREE.Vector3(eacMm[0] + this.offset[0], eacMm[1] + this.offset[1], eacMm[2] + this.offset[2]);
     this.cutCenter.copy(center);
-    return this.loader.loadAsync(url).then((gltf) => {
-      const meshes: THREE.Mesh[] = [];
+    const adopt = (gltf: { scene: THREE.Object3D }, kind: 'skull' | 'auricle') => {
+      const found: THREE.Mesh[] = [];
       gltf.scene.traverse((obj) => {
-        if (isMesh(obj)) meshes.push(obj);
+        if (isMesh(obj)) found.push(obj);
       });
-      const mesh = meshes[0];
+      const mesh = found[0];
       if (!mesh) return;
       const material = new THREE.MeshStandardMaterial({
-        color: '#e7d2c4',
-        roughness: 0.72,
-        metalness: 0,
+        color: kind === 'auricle' ? '#e7b89a' : '#eadcc8',
+        roughness: kind === 'auricle' ? 0.55 : 0.62,
+        metalness: 0.02,
         transparent: true,
-        opacity: 1,
+        side: THREE.DoubleSide,
       });
+      const radius = this.cutRadius;
       material.onBeforeCompile = (shader) => {
         shader.uniforms.uCutCenter = { value: this.cutCenter };
-        shader.uniforms.uCutRadius = this.cutRadius;
-        shader.vertexShader = shader.vertexShader.replace(
-          '#include <project_vertex>',
-          '#include <project_vertex>\nvEntWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;',
-        );
-        shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;');
+        shader.uniforms.uCutRadius = radius;
+        shader.uniforms.uCutScale = { value: kind === 'skull' ? 0.72 : 1 };
+        shader.vertexShader = shader.vertexShader
+          .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;')
+          .replace('#include <project_vertex>', '#include <project_vertex>\nvEntWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
         shader.fragmentShader = shader.fragmentShader
-          .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;')
+          .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;\nuniform float uCutScale;')
           .replace(
             '#include <dithering_fragment>',
             `if (uCutRadius > 0.0) {
               float dist = distance(vEntWorld, uCutCenter);
-              if (dist < uCutRadius) discard;
-              gl_FragColor.a *= smoothstep(uCutRadius, uCutRadius + 10.0, dist);
+              float limit = uCutRadius * uCutScale;
+              if (dist < limit) discard;
+              gl_FragColor.a *= smoothstep(limit, limit + 8.0, dist);
             }
             #include <dithering_fragment>`,
           );
       };
-      material.customProgramCacheKey = () => 'ent3d-skin-cut';
+      material.customProgramCacheKey = () => `ent3d-cut-${kind}`;
       mesh.material = material;
-      mesh.userData.structureId = 'upper-body';
+      mesh.userData.structureId = kind === 'auricle' ? 'upper-body' : 'skull-layer';
       mesh.userData.kind = 'structure';
       this.pickables.push(mesh);
       this.world.add(mesh);
-      this.upperBody = mesh;
+      if (kind === 'auricle') this.upperBody = mesh;
+      else this.skullLayer = mesh;
+    };
+    return Promise.all([this.loader.loadAsync(urls.skull), this.loader.loadAsync(urls.auricle)]).then(([skull, auricle]) => {
+      adopt(skull, 'skull');
+      adopt(auricle, 'auricle');
       const hotspot = new THREE.Mesh(
-        new THREE.SphereGeometry(12, 16, 12),
+        new THREE.SphereGeometry(14, 16, 12),
         new THREE.MeshBasicMaterial({ color: '#8C2F1B', transparent: true, opacity: 0.01, depthWrite: false }),
       );
       hotspot.position.set(eacMm[0], eacMm[1], eacMm[2]);
@@ -1056,6 +1071,13 @@ export class EntViewer {
       material.opacity = skinOpacity;
       material.transparent = skinOpacity < 0.98;
       this.upperBody.visible = skinOpacity > 0.02;
+    }
+    if (this.skullLayer) {
+      const material = this.skullLayer.material as THREE.MeshStandardMaterial;
+      const skullOpacity = skinOpacity < 0.55 ? Math.min(0.16, skinOpacity + 0.05) : 1;
+      material.opacity = skullOpacity;
+      material.transparent = skullOpacity < 0.98;
+      this.skullLayer.visible = skullOpacity > 0.02;
     }
     if (this.earHotspot) this.earHotspot.visible = radiusMm < 8;
   }
@@ -1096,7 +1118,19 @@ export class EntViewer {
       }
       const source = this.studyLabels.find((label) => label.id === item.id);
       button.className = item.mode === 'dot' ? 'study-dot' : 'study-label';
-      button.textContent = item.mode === 'dot' ? '' : source?.text ?? '';
+      button.replaceChildren();
+      if (item.mode === 'label' && source) {
+        const english = document.createElement('span');
+        english.className = 'study-en';
+        english.textContent = source.en || source.text;
+        button.append(english);
+        if (source.ko) {
+          const korean = document.createElement('span');
+          korean.className = 'study-ko';
+          korean.textContent = source.ko;
+          button.append(korean);
+        }
+      }
       button.style.left = `${item.x}px`;
       button.style.top = `${item.y}px`;
       button.style.opacity = item.dimmed ? '0.38' : '1';
@@ -1126,12 +1160,22 @@ export class EntViewer {
       if (this.labelMode !== 'all' && !label.modes.includes(this.labelMode)) continue;
       if (label.tier === 'subpart' && label.parentId !== this.selected && label.id !== this.selected) continue;
       if (distance > 220 && label.tier === 'region') continue;
+      const selectedLabel = this.selected ? this.studyLabels.find((item) => item.id === this.selected) : undefined;
+      if (this.selected && distance < 45 && label.tier === 'structure' && label.id !== this.selected && selectedLabel) {
+        const away = Math.hypot(
+          label.position[0] - selectedLabel.position[0],
+          label.position[1] - selectedLabel.position[1],
+          label.position[2] - selectedLabel.position[2],
+        );
+        if (away > 18) continue;
+      }
       const anchor = this.projectSpecimen(label.position, width, height);
       if (!anchor || anchor.behind) continue;
-      const size = estimateLabelSize(label.text);
+      const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
       const occluded = this.anchorOccluded(label.position);
       let priority = label.priority;
-      if (label.id === this.selected || label.parentId === this.selected) priority += 80;
+      if (label.id === this.selected) priority += 40;
+      if (label.parentId === this.selected) priority += 140;
       inputs.push({
         id: label.id,
         priority,

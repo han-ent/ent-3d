@@ -84,7 +84,7 @@
   "about.sampleTitle": "지금 들어 있는 파일",
   "about.sampleBody": "glb는 Draco로 압축된 OpenEar 메시입니다. 축은 RAS가 아니라 +X 앞, +Y 아래, +Z 안쪽입니다. 전정계로 묶여 있던 메시는 와우 전정계, 전정, 세 반고리관으로 나눴고 안면신경은 6분절입니다. CT는 0.25 mm webp입니다. 경정맥구 메시는 아직 없습니다. S상정맥동과 경막은 한 메시에 섞여 있을 수 있습니다.",
   "about.upperTitle": "상반신 입구",
-  "about.upperBody": "입구 모형은 ZETA 밀리미터 프레임에 직접 만든 머리·목·어깨입니다. 2026-11-21에 확인한 Z-Anatomy LICENSE는 CC BY-SA 4.0이며 출처 표시와 동일조건변경허락 아래 공개 재배포가 됩니다. 그 저장소의 모델은 약 293 MB Blender 템플릿이라 이 빌드에는 줄인 추출본을 넣지 않았습니다. 이 단순 모형은 Z-Anatomy 2차 저작물이 아닙니다. 표본 랜드마크 위에 그렸으므로 배율은 1.0이고 잔차는 구성상 0 mm이며, 해부 정합으로는 미검증입니다.",
+  "about.upperBody": "입구의 두개골, 하악, 경추, 쇄골, 오른쪽 이개는 Z-Anatomy Blender 템플릿에서 줄여 뽑은 것입니다(CC BY-SA 4.0, 원형은 BodyParts3D CC BY-SA 2.1 JP). 2026-11-21에 확인했습니다. 그 템플릿의 피부(Integument) 컬렉션은 비어 있어 피부 표면은 없습니다. ZETA 밀리미터 프레임에 두고 외이도에 맞췄으며 배율은 1.0입니다. 유양돌기 첨으로 맞추면 배율이 약 0.75라 5%를 벗어나 적용하지 않았습니다. 정합은 미검증입니다.",
   "about.vorTitle": "VOR",
   "about.vorBody": "VOR 경로에 올릴 예정인 Z-Anatomy 자산은 CC BY-SA입니다. 동일조건변경허락이므로 그 자산을 포함한 결과물도 같은 조건으로 공유해야 하고, 저작자 표시가 필요합니다. CC BY인 OpenEar와 출처는 자산마다 따로 적습니다.",
   "about.reviewTitle": "검수 표시",

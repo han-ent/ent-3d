@@ -422,7 +422,7 @@
       "parent": "malleus",
       "en": "Cochleariform process",
       "ko": "와우형돌기",
-      "anatomy": "Estimated anterior to the lateral process. Not segmented.",
+      "anatomy": "Just anterior and inferior to the front end of the tympanic facial nerve, off the malleus. Estimated, not a segmented process.",
       "clinical": "The tensor tympani tendon turns here; anterior facial-nerve landmark.",
       "sources": [
         {
@@ -432,9 +432,9 @@
         }
       ],
       "xyz_mm": [
-        29.018,
-        20.071,
-        31.618
+        23.482,
+        21.085,
+        29.811
       ],
       "method": "manual",
       "review": "미검증",
@@ -880,7 +880,7 @@
     {
       "id": "scc-lateral-arch",
       "parent": "scc-lateral",
-      "en": "Lateral semicircular canal",
+      "en": "Lateral canal arch",
       "ko": "외측반고리관",
       "anatomy": "Most lateral vertex of the vestibular mesh, used as the canal seed.",
       "clinical": "Mastoid landmark; the antrum floor is nearby.",
@@ -903,7 +903,7 @@
     {
       "id": "scc-superior-arch",
       "parent": "scc-superior",
-      "en": "Superior semicircular canal",
+      "en": "Superior canal arch",
       "ko": "상반고리관",
       "anatomy": "Most superior vertex of the vestibular mesh.",
       "clinical": "Related to the arcuate eminence on the middle-fossa floor.",
@@ -926,7 +926,7 @@
     {
       "id": "scc-posterior-arch",
       "parent": "scc-posterior",
-      "en": "Posterior semicircular canal",
+      "en": "Posterior canal arch",
       "ko": "후반고리관",
       "anatomy": "Most posterior vertex of the vestibular mesh.",
       "clinical": "Landmark in translabyrinthine surgery.",
