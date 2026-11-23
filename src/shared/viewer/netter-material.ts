@@ -121,8 +121,6 @@ uniform vec3 uCutCenter;
 uniform float uCutRadius;
 uniform float uCutScale;
 uniform float uReveal;
-uniform vec3 uTemporalCenter;
-uniform float uTemporalRadius;
 uniform float uViewClip;
 uniform float uViewRadius;
 uniform vec3 uEndA;
@@ -182,7 +180,6 @@ void main() {
       if (along > 0.5 && along < axisLen + uViewRadius * 0.45 && radial < uViewRadius) discard;
     }
   }
-  if (uTemporalRadius > 1.0 && distance(vWorld, uTemporalCenter) < uTemporalRadius) discard;
   float dist = distance(vWorld, uCutCenter);
   if (uReveal > 0.5) {
     if (uCutRadius < 1.0 || dist > uCutRadius * max(uCutScale, 0.01)) discard;
@@ -271,8 +268,6 @@ export function createAtlasMaterial(options: {
       uCutRadius: options.cut.radius,
       uCutScale: { value: options.cutScale },
       uReveal: { value: options.reveal ? 1 : 0 },
-      uTemporalCenter: { value: new THREE.Vector3() },
-      uTemporalRadius: { value: 0 },
       uViewClip: { value: 0 },
       uViewRadius: { value: 0 },
       uEndA: { value: new THREE.Vector3() },
