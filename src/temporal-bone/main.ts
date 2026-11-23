@@ -1015,9 +1015,8 @@ function applyStage(distance: number): void {
   for (const structure of manifest.structures) {
     const deep = structure.layer === 'inner-ear' || (structure.layer === 'nerve' && structure.id !== 'chorda-tympani');
     const middle = structure.layer === 'ossicles' || structure.layer === 'membrane' || structure.id === 'chorda-tympani';
-    if (distance > 160) hidden.push(structure.id);
-    else if (distance > 70 && (deep || middle)) hidden.push(structure.id);
-    else if (distance > 28 && deep) hidden.push(structure.id);
+    if (distance > 170) hidden.push(structure.id);
+    else if (distance > 125 && (deep || middle)) hidden.push(structure.id);
   }
   // A selected structure is framed with its neighbours, so the distance
   // stages must not hide the ossicles or the inner ear around it.
@@ -1280,8 +1279,8 @@ async function boot(): Promise<void> {
         viewer?.setRenderStyle(next);
         paintStatic();
       },
-      select(id: string) {
-        selectStructure(id, true);
+      select(id: string, frame = true) {
+        selectStructure(id, frame);
       },
       distance: () => viewer?.cameraDistance() ?? 0,
       eac: () => eacMm,

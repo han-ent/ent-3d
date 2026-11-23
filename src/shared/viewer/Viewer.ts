@@ -235,7 +235,7 @@ export class EntViewer {
         .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * uOutline;');
     };
     this.outlineMaterial.customProgramCacheKey = () => 'ent3d-outline';
-    this.hullMaterial = createHullMaterial(this.clipping);
+    this.hullMaterial = createHullMaterial(this.clipping, { center: { value: this.cutCenter }, radius: this.cutRadius });
 
     this.crosshair = this.makeCrosshair();
     this.world.add(this.crosshair);
@@ -379,7 +379,7 @@ export class EntViewer {
     const meshes: THREE.Mesh[] = [];
     const outlines: THREE.Mesh[] = [];
     const hulls: THREE.Mesh[] = [];
-    const side = id === 'tympanic-membrane' ? THREE.DoubleSide : THREE.FrontSide;
+    const side = id === 'tympanic-membrane' || id === 'bone' ? THREE.DoubleSide : THREE.FrontSide;
     const found: THREE.Mesh[] = [];
     root.traverse((obj) => {
       if (isMesh(obj)) found.push(obj);
@@ -404,7 +404,7 @@ export class EntViewer {
       outlines.push(outline);
       const triangles = obj.geometry.index ? obj.geometry.index.count / 3 : (obj.geometry.getAttribute('position')?.count ?? 0) / 3;
       if (this.hullsOn && triangles > 0 && triangles < 40000) {
-        const hull = new THREE.Mesh(obj.geometry, this.hullMaterial);
+        const hull = new THREE.Mesh(obj.geometry, this.hullFor(cutScaleFor(id)));
         hull.visible = this.style === 'atlas';
         hull.renderOrder = 2;
         hull.userData.kind = 'hull';
@@ -1096,8 +1096,8 @@ export class EntViewer {
       const mesh = found[0];
       if (!mesh) return;
       const id = kind === 'auricle' ? 'upper-body' : kind === 'skin' ? 'skin' : 'skull-layer';
-      const cutScale = kind === 'skull' ? 0.72 : kind === 'auricle' ? 0.88 : 1;
-      mesh.material = this.makeEntryMaterial(id, kind === 'auricle' ? '#C5D0D4' : kind === 'skin' ? '#E8B89A' : '#F4E4C8', cutScale);
+      const cutScale = kind === 'skull' ? 0.98 : kind === 'auricle' ? 0.22 : 1;
+      mesh.material = this.makeEntryMaterial(id, kind === 'auricle' ? '#E7A888' : kind === 'skin' ? '#E7A888' : '#F6D9A4', cutScale, kind === 'skull');
       mesh.userData.structureId = id;
       mesh.userData.kind = 'structure';
       mesh.userData.cutScale = cutScale;
@@ -1106,7 +1106,7 @@ export class EntViewer {
       this.world.add(mesh);
       const triangles = mesh.geometry.index ? mesh.geometry.index.count / 3 : (mesh.geometry.getAttribute('position')?.count ?? 0) / 3;
       if (this.hullsOn && triangles > 0 && triangles < 40000) {
-        const hull = new THREE.Mesh(mesh.geometry, this.hullMaterial);
+        const hull = new THREE.Mesh(mesh.geometry, this.hullFor(cutScale));
         hull.userData.kind = 'hull';
         hull.renderOrder = 4;
         hull.visible = this.style === 'atlas';
@@ -1145,6 +1145,7 @@ export class EntViewer {
       this.paintEntry(mesh, 1);
       mesh.visible = true;
     }
+    this.paintAuricle(radiusMm > 12);
     if (this.earHotspot) this.earHotspot.visible = radiusMm < 8;
   }
 
@@ -1169,8 +1170,8 @@ export class EntViewer {
       if (!Array.isArray(previous)) previous.dispose();
       const id = String(mesh.userData.structureId ?? 'bone');
       const cutScale = Number(mesh.userData.cutScale ?? 0);
-      const base = id === 'skin' ? '#E8B89A' : id === 'upper-body' ? '#C5D0D4' : '#F4E4C8';
-      mesh.material = this.makeEntryMaterial(id, base, cutScale);
+      const base = id === 'skull-layer' ? '#F6D9A4' : '#E7A888';
+      mesh.material = this.makeEntryMaterial(id, base, cutScale, id === 'skull-layer');
     }
     this.refreshLook();
     this.setCutaway(this.lastCutRadius, this.lastSkinOpacity);
@@ -1233,46 +1234,79 @@ export class EntViewer {
     });
   }
 
-  private makeEntryMaterial(id: string, color: string, cutScale: number): THREE.Material {
+  private hullFor(cutScale: number): THREE.ShaderMaterial {
+    const material = this.hullMaterial.clone();
+    material.uniforms.uCutCenter = { value: this.cutCenter };
+    material.uniforms.uCutRadius = this.cutRadius;
+    material.uniforms.uCutScale = { value: cutScale };
+    material.uniforms.uResolution = this.hullMaterial.uniforms.uResolution;
+    return material;
+  }
+
+  private paintAuricle(peeled: boolean): void {
+    if (!this.upperBody) return;
+    const material = this.upperBody.material;
+    if (Array.isArray(material)) return;
+    if (material instanceof THREE.ShaderMaterial && material.uniforms.uLit) {
+      paintAtlas(material, illustrationRamp(peeled ? 'auricle' : 'skin', peeled ? '#C5D0D4' : '#E7A888'), 1, false);
+    } else if (material instanceof THREE.MeshStandardMaterial) {
+      material.color.set(peeled ? '#C5D0D4' : '#E7A888');
+    }
+  }
+
+  private makeEntryMaterial(id: string, color: string, cutScale: number, reveal = false): THREE.Material {
+    const side = id === 'skull-layer' || id === 'bone' ? THREE.DoubleSide : THREE.FrontSide;
     if (this.style === 'atlas') {
-      return createAtlasMaterial({
+      const material = createAtlasMaterial({
         ramp: illustrationRamp(id, color),
         opacity: 1,
         cut: { center: { value: this.cutCenter }, radius: this.cutRadius },
         cutScale,
         clippingPlanes: this.clipping,
-        side: THREE.FrontSide,
+        side,
         detail: atlasDetail(id),
+        reveal,
       });
+      if (id === 'skin') {
+        material.polygonOffset = true;
+        material.polygonOffsetFactor = -2;
+        material.polygonOffsetUnits = -2;
+      }
+      return material;
     }
     const material = new THREE.MeshStandardMaterial({
       color,
       roughness: id === 'skin' ? 0.62 : 0.58,
       metalness: 0.02,
       transparent: false,
-      side: THREE.FrontSide,
+      side,
     });
+    if (id === 'skin') {
+      material.polygonOffset = true;
+      material.polygonOffsetFactor = -2;
+      material.polygonOffsetUnits = -2;
+    }
     const radius = this.cutRadius;
     material.onBeforeCompile = (shader) => {
       shader.uniforms.uCutCenter = { value: this.cutCenter };
       shader.uniforms.uCutRadius = radius;
       shader.uniforms.uCutScale = { value: cutScale };
+      shader.uniforms.uReveal = { value: reveal ? 1 : 0 };
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;')
         .replace('#include <project_vertex>', '#include <project_vertex>\nvEntWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;\nuniform float uCutScale;')
+        .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;\nuniform float uCutScale;\nuniform float uReveal;')
         .replace(
           '#include <dithering_fragment>',
-          `if (uCutScale > 0.0 && uCutRadius > 0.0) {
-            float dist = distance(vEntWorld, uCutCenter);
-            float limit = uCutRadius * uCutScale;
-            if (dist < limit) discard;
-          }
+          `float entDist = distance(vEntWorld, uCutCenter);
+          if (uReveal > 0.5) {
+            if (uCutRadius < 1.0 || entDist > uCutRadius * max(uCutScale, 0.01)) discard;
+          } else if (uCutScale > 0.0 && uCutRadius > 0.0 && entDist < uCutRadius * uCutScale) discard;
           #include <dithering_fragment>`,
         );
     };
-    material.customProgramCacheKey = () => `ent3d-cut-${id}-${cutScale}`;
+    material.customProgramCacheKey = () => `ent3d-cut-${id}-${cutScale}-${reveal ? 1 : 0}`;
     return material;
   }
 
@@ -1361,6 +1395,7 @@ export class EntViewer {
     const inputs = [];
     for (const label of this.studyLabels) {
       const tiers = distance > 140 ? ['region', 'surface'] : ['region', 'surface', 'structure', 'subpart'];
+      if (label.tier === 'surface' && this.cutRadius.value > 8) continue;
       if (!tiers.includes(label.tier)) continue;
       if (this.labelMode !== 'all' && !label.modes.includes(this.labelMode)) continue;
       if (label.tier === 'subpart' && label.parentId !== this.selected && label.id !== this.selected) continue;

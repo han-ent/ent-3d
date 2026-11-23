@@ -236,12 +236,12 @@ function place(point) {
 }
 
 const headCenter = [(skullVertex[0] + skullChin[0]) / 2, (skullVertex[1] + skullChin[1]) / 2, midZ];
-const shell = 1.09;
+const shell = 1.14;
 let positions = source.map((point) => {
   const placed = place(point);
   if (point[1] < 6.15) return placed;
   return [
-    headCenter[0] + (placed[0] - headCenter[0]) * shell + 11,
+    headCenter[0] + (placed[0] - headCenter[0]) * shell + 14,
     headCenter[1] + (placed[1] - headCenter[1]) * shell,
     headCenter[2] + (placed[2] - headCenter[2]) * shell,
   ];

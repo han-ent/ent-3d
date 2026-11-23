@@ -73,6 +73,25 @@
       "surgical": false
     },
     {
+      "id": "malleus-anterior-process",
+      "parent": "malleus",
+      "en": "Anterior process",
+      "ko": "추골 전돌기",
+      "anatomy": "Most anterior vertex of the malleus mesh, at the neck.",
+      "clinical": "The anterior ligament runs from here.",
+      "sources": [
+        {
+          "citation": "Computed from the malleus mesh. Not checked on a specimen.",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [28.13, 18.14, 31.37],
+      "method": "computed",
+      "review": "미검증",
+      "surgical": true
+    },
+    {
       "id": "malleus-lateral-process",
       "parent": "malleus",
       "en": "Lateral process",

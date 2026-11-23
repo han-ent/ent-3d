@@ -113,6 +113,7 @@ uniform float uDetail;
 uniform vec3 uCutCenter;
 uniform float uCutRadius;
 uniform float uCutScale;
+uniform float uReveal;
 uniform vec3 uKey;
 uniform vec3 uFill;
 
@@ -134,22 +135,26 @@ void main() {
     float dz = paper(p + vec3(0.0, 0.0, e)) - paper(p - vec3(0.0, 0.0, e));
     n = normalize(n + uDetail * vec3(dx, dy, dz));
   }
+  if (!gl_FrontFacing) n = -n;
+  vec3 lit = gl_FrontFacing ? uLit : mix(uLit, vec3(0.97, 0.91, 0.80), 0.55);
   vec3 key = normalize(uKey);
-  float wrap = clamp(dot(n, key) * 0.72 + 0.28, 0.0, 1.0);
-  float shade = smoothstep(0.08, 0.62, wrap);
-  vec3 cool = mix(uShadow, vec3(0.42, 0.5, 0.62), 0.38);
-  vec3 col = mix(cool, uLit, shade);
-  col = mix(col, uHighlight, smoothstep(0.62, 1.0, wrap) * 0.45);
-  float blot = paper(vWorld * 0.025);
-  col *= mix(0.99, 1.012, blot * 0.5 + 0.5);
   vec3 viewDir = normalize(cameraPosition - vWorld);
-  float rim = pow(1.0 - clamp(abs(dot(normalize(vNormal), viewDir)), 0.0, 1.0), 1.85);
-  col = mix(col, uInk, smoothstep(0.28, 0.92, rim));
-  if (uCutScale > 0.0 && uCutRadius > 0.0) {
-    float dist = distance(vWorld, uCutCenter);
+  float wrap = clamp(dot(n, key) * 0.55 + 0.45, 0.0, 1.0);
+  float shade = smoothstep(0.05, 0.75, wrap);
+  vec3 cool = mix(uShadow, vec3(0.55, 0.62, 0.72), 0.28);
+  vec3 col = mix(cool, lit, shade);
+  float facing = clamp(dot(n, viewDir) * 0.65 + 0.35, 0.0, 1.0);
+  col = mix(col, lit, facing * 0.55);
+  col = mix(col, uHighlight, smoothstep(0.7, 1.0, wrap) * 0.28);
+  float rim = pow(1.0 - clamp(abs(dot(n, viewDir)), 0.0, 1.0), 5.5);
+  col = mix(col, uInk, rim * 0.75);
+  float dist = distance(vWorld, uCutCenter);
+  if (uReveal > 0.5) {
+    if (uCutRadius < 1.0 || dist > uCutRadius * max(uCutScale, 0.01)) discard;
+  } else if (uCutScale > 0.0 && uCutRadius > 0.0) {
     float limit = uCutRadius * uCutScale;
     if (dist < limit) discard;
-    col = mix(col, uInk, smoothstep(limit + 2.2, limit, dist));
+    col = mix(col, uInk, smoothstep(limit + 0.65, limit, dist));
   }
   gl_FragColor = vec4(col, uOpacity);
 }
@@ -160,11 +165,13 @@ const HULL_VERTEX = /* glsl */ `
 #include <clipping_planes_pars_vertex>
 uniform float uPixels;
 uniform vec2 uResolution;
+varying vec3 vHullWorld;
 void main() {
   #include <begin_vertex>
   #include <project_vertex>
   #include <clipping_planes_vertex>
   vec4 world = modelMatrix * vec4(transformed, 1.0);
+  vHullWorld = world.xyz;
   vec3 n = normalize(mat3(modelMatrix) * normal);
   vec4 clip = projectionMatrix * viewMatrix * world;
   vec4 clipN = projectionMatrix * viewMatrix * vec4(world.xyz + n, 1.0);
@@ -181,8 +188,13 @@ const HULL_FRAGMENT = /* glsl */ `
 #include <common>
 #include <clipping_planes_pars_fragment>
 uniform vec3 uInk;
+uniform vec3 uCutCenter;
+uniform float uCutRadius;
+uniform float uCutScale;
+varying vec3 vHullWorld;
 void main() {
   #include <clipping_planes_fragment>
+  if (uCutScale > 0.0 && uCutRadius > 0.0 && distance(vHullWorld, uCutCenter) < uCutRadius * uCutScale) discard;
   gl_FragColor = vec4(uInk, 1.0);
 }
 `;
@@ -195,6 +207,7 @@ export function createAtlasMaterial(options: {
   clippingPlanes: THREE.Plane[];
   side?: THREE.Side;
   detail?: number;
+  reveal?: boolean;
 }): THREE.ShaderMaterial {
   const material = new THREE.ShaderMaterial({
     vertexShader: ATLAS_VERTEX,
@@ -209,6 +222,7 @@ export function createAtlasMaterial(options: {
       uCutCenter: options.cut.center,
       uCutRadius: options.cut.radius,
       uCutScale: { value: options.cutScale },
+      uReveal: { value: options.reveal ? 1 : 0 },
       uKey: { value: new THREE.Vector3(0.45, -0.78, -0.42) },
       uFill: { value: new THREE.Vector3(-0.55, 0.25, 0.55) },
     },
@@ -223,14 +237,17 @@ export function createAtlasMaterial(options: {
   return material;
 }
 
-export function createHullMaterial(clippingPlanes: THREE.Plane[]): THREE.ShaderMaterial {
+export function createHullMaterial(clippingPlanes: THREE.Plane[], cut: CutUniforms): THREE.ShaderMaterial {
   const material = new THREE.ShaderMaterial({
     vertexShader: HULL_VERTEX,
     fragmentShader: HULL_FRAGMENT,
     uniforms: {
-      uPixels: { value: 2.4 },
+      uPixels: { value: 2.1 },
       uResolution: { value: new THREE.Vector2(1, 1) },
       uInk: { value: new THREE.Color(ATLAS_INK) },
+      uCutCenter: cut.center,
+      uCutRadius: cut.radius,
+      uCutScale: { value: 1 },
     },
     side: THREE.BackSide,
     clipping: true,
@@ -264,8 +281,8 @@ export function atlasDetail(id: string): number {
 /** How wide the ear-centred window is, relative to the skin opening. 0 leaves the mesh whole. */
 export function cutScaleFor(id: string): number {
   if (id === 'skin') return 1;
-  if (id === 'skull-layer') return 0.72;
-  if (id === 'upper-body' || id === 'auricle') return 0.28;
-  if (id === 'bone') return 0.46;
+  if (id === 'skull-layer') return 0.98;
+  if (id === 'upper-body' || id === 'auricle') return 0.22;
+  if (id === 'bone') return 0.62;
   return 0;
 }
