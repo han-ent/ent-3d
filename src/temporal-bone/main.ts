@@ -18,7 +18,9 @@ import { EntViewer, type PickHit } from '../shared/viewer/Viewer';
 
 const DATA = 'temporal-bone';
 const QUIZ_LENGTH = 5;
-const DEV = new URLSearchParams(location.search).get('dev') === '1';
+const params = new URLSearchParams(location.search);
+const DEV = params.get('dev') === '1';
+const SHOT = params.get('shot') === '1';
 
 type QuizState = {
   kind: 'name' | 'locate';
@@ -62,6 +64,7 @@ workspace.innerHTML = `
       <button type="button" data-mode="quiz" data-dev-only data-i18n="mode.quiz"></button>
       <button type="button" id="frame-btn" data-i18n="mode.frame"></button>
       <button type="button" id="bone-btn" data-i18n="bone.transparent"></button>
+      <button type="button" id="style-btn"></button>
     </div>
   </div>
   <section class="sheet" id="sheet">
@@ -149,6 +152,7 @@ const quizBody = workspace.querySelector<HTMLElement>('#quiz-body')!;
 const devCard = workspace.querySelector<HTMLElement>('#dev-card')!;
 const devBody = workspace.querySelector<HTMLElement>('#dev-body')!;
 const boneBtn = workspace.querySelector<HTMLButtonElement>('#bone-btn')!;
+const styleBtn = workspace.querySelector<HTMLButtonElement>('#style-btn')!;
 
 let manifest: Manifest | null = null;
 let contents = new Map<string, StructureContent>();
@@ -169,10 +173,30 @@ type XyzItem = {
   tier?: string;
 };
 type CtAnnotation = XyzItem & { plane: SliceName; slice_index: number; xy: [number, number] };
+type RegistrationFile = {
+  review: string;
+  scaleDecision: string;
+  current: {
+    rmsMm: number;
+    pairs: {
+      id: string;
+      en: string;
+      ko: string;
+      residualMm: number;
+      zetaMm: [number, number, number];
+      skullMm: [number, number, number];
+    }[];
+  };
+  umeyama: { scale: number; rmsMm: number };
+  umeyamaWithoutMastoid?: { scale: number; rmsMm: number };
+};
+let registration: RegistrationFile | null = null;
+let registrationShown = false;
 let landmarks: XyzItem[] = [];
 let surfaceLabels: XyzItem[] = [];
 let ctLabels: CtAnnotation[] = [];
 let labelMode: LabelMode = 'basic';
+let renderStyle: 'atlas' | 'model' = params.get('style') === 'model' ? 'model' : 'atlas';
 let eacMm: [number, number, number] | null = null;
 let stageName = '';
 let devLandmark: string | null = null;
@@ -241,6 +265,8 @@ function paintStatic(): void {
   });
   renderCrumbs();
   boneBtn.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
+  styleBtn.textContent = renderStyle === 'atlas' ? t('style.atlas') : t('style.model');
+  styleBtn.setAttribute('aria-pressed', String(renderStyle === 'atlas'));
   for (const structure of manifest?.structures ?? []) viewer?.setLabel(structure.id, structureLabel(structure.id));
   renderMeasure(viewer?.measurementPoints() ?? []);
   renderPeek();
@@ -813,7 +839,7 @@ function buildCt(): void {
 }
 
 function onPick(hit: PickHit | null): void {
-  if (hit && (hit.structureId === 'upper-body' || hit.structureId === 'ear-hotspot' || hit.structureId === 'skull-layer')) {
+  if (hit && (hit.structureId === 'upper-body' || hit.structureId === 'skin' || hit.structureId === 'ear-hotspot' || hit.structureId === 'skull-layer')) {
     if (!eacMm) return;
     const distance = Math.hypot(hit.pointMm[0] - eacMm[0], hit.pointMm[1] - eacMm[1], hit.pointMm[2] - eacMm[2]);
     if (hit.structureId === 'ear-hotspot' || distance < 48) flyStage(stageName === 'body' ? 'ear' : 'bone');
@@ -875,6 +901,12 @@ workspace.querySelector('#frame-btn')?.addEventListener('click', () => {
   renderPresets();
   void drawCt();
 });
+styleBtn.addEventListener('click', () => {
+  renderStyle = renderStyle === 'atlas' ? 'model' : 'atlas';
+  viewer?.setRenderStyle(renderStyle);
+  paintStatic();
+});
+
 boneBtn.addEventListener('click', () => {
   viewer?.setBoneTransparent(!viewer.boneIsTransparent());
   boneBtn.textContent = viewer?.boneIsTransparent() ? t('bone.solid') : t('bone.transparent');
@@ -1086,6 +1118,25 @@ function refreshStudyLabels(): void {
   viewer.setStudyLabels(labels);
 }
 
+function registrationTable(): string {
+  if (!registration) return '';
+  const rows = registration.current.pairs
+    .map(
+      (pair) =>
+        `<tr><td>${escapeHtml(englishFirst(pair.en, pair.ko))}</td><td>${pair.residualMm.toFixed(1)}</td></tr>`,
+    )
+    .join('');
+  const without = registration.umeyamaWithoutMastoid
+    ? ` · without mastoid ${registration.umeyamaWithoutMastoid.scale.toFixed(2)} / ${registration.umeyamaWithoutMastoid.rmsMm.toFixed(1)} mm`
+    : '';
+  return `
+    <h3>${escapeHtml(t('dev.registration'))}</h3>
+    <p class="hint">${escapeHtml(registration.scaleDecision)}</p>
+    <p class="source-line">${escapeHtml(registration.review)} · RMS ${registration.current.rmsMm.toFixed(1)} mm · Umeyama ${registration.umeyama.scale.toFixed(2)} / ${registration.umeyama.rmsMm.toFixed(1)} mm${escapeHtml(without)}</p>
+    <table class="reg-table"><tbody>${rows}</tbody></table>
+  `;
+}
+
 function renderDev(): void {
   devCard.hidden = !DEV || !manifest;
   if (!DEV || !manifest) return;
@@ -1101,6 +1152,7 @@ function renderDev(): void {
     <select id="dev-landmark">${options}</select>
     <pre class="source-line" id="dev-log"></pre>
     <button type="button" class="text-btn" id="dev-export">${escapeHtml(t('dev.export'))}</button>
+    ${registrationTable()}
   `;
   devBody.querySelector<HTMLSelectElement>('#dev-landmark')?.addEventListener('change', (event) => {
     devLandmark = (event.target as HTMLSelectElement).value;
@@ -1143,17 +1195,20 @@ async function boot(): Promise<void> {
   const volumeIssues = validateVolume(volume);
   if (volumeIssues.length) throw new Error(formatIssues(volumeIssues));
 
-  const [landmarkFile, surfaceFile, ctFile] = await Promise.all([
+  const [landmarkFile, surfaceFile, ctFile, registrationFile] = await Promise.all([
     fetchJson<{ landmarks: XyzItem[] }>(publicUrl(`${DATA}/landmarks.json`)),
     fetchJson<{ labels: XyzItem[] }>(publicUrl(`${DATA}/surface-anatomy.json`)),
     fetchJson<{ labels: CtAnnotation[] }>(publicUrl(`${DATA}/ct-labels.json`)),
+    fetchJson<RegistrationFile>(publicUrl('models/upper-body/registration.json')).catch(() => null),
   ]);
+  registration = registrationFile;
   landmarks = landmarkFile.landmarks;
   surfaceLabels = surfaceFile.labels;
   ctLabels = ctFile.labels;
   eacMm = landmarks.find((item) => item.id === 'eac-porus')?.xyz_mm ?? null;
 
   viewer = new EntViewer(canvas, manifest.viewer_offset_mm);
+  if (renderStyle === 'model') viewer.setRenderStyle('model');
   viewer.setScaleElement(workspace.querySelector('#scale-hud'));
   viewer.onPick(onPick);
   viewer.onMeasure((points) => renderMeasure(points));
@@ -1206,6 +1261,7 @@ async function boot(): Promise<void> {
         {
           skull: assetUrl('models/upper-body/skull.glb'),
           auricle: assetUrl('models/upper-body/auricle.glb'),
+          skin: assetUrl('models/upper-body/skin.glb'),
         },
         eacMm,
       );
@@ -1215,6 +1271,28 @@ async function boot(): Promise<void> {
   }
   refreshStudyLabels();
   viewer.setLabelMode(labelMode);
+  if (DEV && registration && !registrationShown) {
+    registrationShown = true;
+    viewer.setRegistrationOverlay(registration.current.pairs);
+  }
+  if (DEV || SHOT) {
+    const hook = {
+      fly(position: [number, number, number], target: [number, number, number]) {
+        viewer?.flyTo(position, target);
+      },
+      style(next: 'atlas' | 'model') {
+        renderStyle = next;
+        viewer?.setRenderStyle(next);
+        paintStatic();
+      },
+      select(id: string) {
+        selectStructure(id, true);
+      },
+      distance: () => viewer?.cameraDistance() ?? 0,
+      eac: () => eacMm,
+    };
+    (window as unknown as { __ent?: typeof hook }).__ent = hook;
+  }
 
   buildPresets();
   buildCt();

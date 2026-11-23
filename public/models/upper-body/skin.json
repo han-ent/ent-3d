@@ -1,0 +1,20 @@
+{
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "assetLicense": "https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.ASSETS.md",
+  "sourceFile": "makehuman/data/3dobjs/base.obj",
+  "sourceUrl": "https://github.com/makehumancommunity/makehuman/blob/master/makehuman/data/3dobjs/base.obj",
+  "meshName": "hm08",
+  "copyrightHolders": [
+    "Data Collection AB",
+    "Joel Palmius",
+    "Jonas Hauquier"
+  ],
+  "released": "2020-09",
+  "note": "The base.obj header says the asset was explicitly released as CC0 in September 2020. Cropped to the head, neck, and shoulders, fitted by scale and translation in the ZETA millimetre frame, with a local ear warp onto the right auricle and a small push off the skull. Unverified.",
+  "triangles": 11738,
+  "vertices": 6301,
+  "fitScale": 0.9030132436987439,
+  "earToHelixMm": 16.84,
+  "review": "미검증"
+}

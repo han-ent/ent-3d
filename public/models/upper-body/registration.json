@@ -1,13 +1,214 @@
 {
-  "source": "Z-Anatomy Startup.blend, CC BY-SA 4.0, derived from BodyParts3D CC BY-SA 2.1 JP",
-  "skin": "The template's Integument and External ear collections have no mesh. skull.glb and auricle.glb are the skull, mandible, cervical vertebrae, clavicles, and right auricle cartilage.",
-  "method": "Axis remap from the Blender Z-up metres frame into ZETA millimetres, then translation onto the ZETA external auditory canal. Umeyama scale from canal to mastoid tip was 0.75, outside 1.0±5%, so scale stayed 1.0.",
-  "scale": 1.0,
-  "rawScaleFromMastoid": 0.75,
-  "rmsMm": null,
-  "mastoidResidualMm": 32.1,
+  "review": "미검증",
+  "scale": 1,
+  "appliedScale": 1,
   "within5Percent": false,
-  "scaleWarning": "Matching the estimated ZETA mastoid tip would scale the skull to 0.75. That is outside 5%, so the skull stays at 1.0 and only the canal is aligned.",
-  "pairs": ["EAC porus (aligned)", "mastoid tip (reported, not used for scale)"],
-  "review": "미검증"
+  "rawUmeyamaScale": 0.8602734574817456,
+  "twoPointMastoidScale": 0.7635295499420219,
+  "previousRawScaleFromMastoid": 0.75,
+  "scaleDecision": "Neither mesh was rescaled. The two-point mastoid ratio is 0.76, the old 0.75 figure: both Z-Anatomy mastoid tips sit about 44 mm below the porion, against a male porion–mastoidale mean near 32 mm, while the ZETA drop is 33 mm. Applying 0.76 would shrink a 191 mm skull to about 145 mm and an 8.7 mm malleus to about 6.6 mm. Cranial length, bizygomatic breadth, and auricle height are not flagged. Umeyama on five pairs is scale 0.86 (RMS 4.9 mm), pulled by that mastoid. Without the mastoid the scale is 1.11 (RMS 1.3 mm), a local difference between two adults, not a unit error. Neither scale is applied. The entry scene stays at scale 1, anchored on the ear canal.",
+  "umeyamaWithoutMastoid": {
+    "scale": 1.1134025689143707,
+    "rmsMm": 1.262
+  },
+  "petrousApex": "Not paired. The medial edge of the ZETA bone is a crop near z = 59 mm, not a tapering petrous apex, and the decimated skull has no internal petrous surface.",
+  "current": {
+    "method": "Scale 1. Translation only, so the Z-Anatomy right meatus sits on the ZETA canal centroid. No rotation.",
+    "rmsMm": 12.822,
+    "pairs": [
+      {
+        "id": "eac-porus",
+        "en": "EAC porus",
+        "ko": "외이도 입구",
+        "method": "ZETA canal centroid. Skull: centroid of the lateral rim vertices of the right meatus, snapped to the nearest surface vertex.",
+        "zetaMm": [
+          28.249,
+          24.737,
+          23.902
+        ],
+        "skullMm": [
+          23.671,
+          18.598,
+          21.074
+        ],
+        "residualMm": 8.164
+      },
+      {
+        "id": "mastoid-tip",
+        "en": "Mastoid tip",
+        "ko": "유양돌기 첨부",
+        "method": "ZETA posterolateral inferior landmark. Skull: most inferior vertex of the right mastoid region.",
+        "zetaMm": [
+          18.534,
+          57.721,
+          15.977
+        ],
+        "skullMm": [
+          27.535,
+          62.408,
+          35.272
+        ],
+        "residualMm": 21.801
+      },
+      {
+        "id": "zygomatic-root",
+        "en": "Zygomatic root",
+        "ko": "관골돌기 기시부",
+        "method": "ZETA manual landmark. Skull: lateral surface just anterior to the meatus, at meatus height.",
+        "zetaMm": [
+          46.291,
+          20.534,
+          21.999
+        ],
+        "skullMm": [
+          38.333,
+          15.353,
+          21.537
+        ],
+        "residualMm": 9.507
+      },
+      {
+        "id": "stylomastoid-foramen",
+        "en": "Stylomastoid foramen",
+        "ko": "경유돌공",
+        "method": "ZETA distal facial-nerve landmark. Skull: same offset from the skull porion, snapped to the surface. The foramen itself is not resolved on the decimated skull.",
+        "zetaMm": [
+          17.843,
+          34.323,
+          27.179
+        ],
+        "skullMm": [
+          14.09,
+          26.518,
+          24.493
+        ],
+        "residualMm": 9.067
+      },
+      {
+        "id": "styloid-base",
+        "en": "Styloid base",
+        "ko": "경상돌기 기저",
+        "method": "ZETA: bone vertex about 10 mm from the styloid tip back toward the stylomastoid foramen. Skull: same offset from the porion, snapped to the surface. The thin styloid is mostly lost on the decimated skull.",
+        "zetaMm": [
+          22.674,
+          42.831,
+          30.892
+        ],
+        "skullMm": [
+          15.829,
+          35.152,
+          29.612
+        ],
+        "residualMm": 10.366
+      }
+    ]
+  },
+  "umeyama": {
+    "scale": 0.8602734574817456,
+    "rotation": [
+      [
+        0.8260238305486404,
+        -0.42996802435544157,
+        0.36443398496523716
+      ],
+      [
+        0.11166252147968503,
+        0.7585983213755518,
+        0.6419190510516155
+      ],
+      [
+        -0.5524636754235986,
+        -0.48954681577769,
+        0.6746316050255892
+      ]
+    ],
+    "translationMm": [
+      13.155360833679833,
+      -1.469281645857464,
+      33.33504058852786
+    ],
+    "rmsMm": 4.879,
+    "residualsMm": [
+      2.967,
+      4.522,
+      6.073,
+      5.432,
+      4.837
+    ],
+    "note": "Least-squares similarity from the skull points onto the ZETA points. Reported only. Not applied, because the ear-canal anchor is what the entry scene uses and the scale is not a unit correction."
+  },
+  "dimensions": [
+    {
+      "id": "zeta-malleus-chord",
+      "model": "ZETA malleus",
+      "valueMm": 8.71,
+      "meanMm": 7.92,
+      "sdMm": 0.55,
+      "z": 1.44,
+      "flagged": false,
+      "source": "Singh et al., J Anat Soc India morphometry, mean total length 7.915 mm (n=120). Compared with the longest vertex chord. Acceptance is |z| < 2.5. A CBCT series (Natl J Maxillofac Surg 2024) reported range 4.5–9.0 mm."
+    },
+    {
+      "id": "zeta-mastoid-drop",
+      "model": "ZETA mastoid",
+      "valueMm": 32.98,
+      "meanMm": 32.3,
+      "sdMm": 3.1,
+      "z": 0.22,
+      "flagged": false,
+      "source": "Lopes et al., Research Society and Development 2021, male porion–mastoidale mean about 32 mm (right 31.63 SD 3.09, left 32.96 SD 2.93). This value is the vertical drop from the canal centroid, not caliper porion, so it is only a scale check."
+    },
+    {
+      "id": "zanatomy-gol",
+      "model": "Z-Anatomy skull",
+      "valueMm": 190.56,
+      "meanMm": 186,
+      "sdMm": 8,
+      "z": 0.57,
+      "flagged": false,
+      "source": "Howells cranial length. Egyptian male mean GOL 185.6 mm and Norse male mean 188.5 mm (Howells craniometric set). SD 8 mm stands in for cross-population spread. Glabella and opisthocranion here are the anterior and posterior midline vault vertices."
+    },
+    {
+      "id": "zanatomy-zyb",
+      "model": "Z-Anatomy skull",
+      "valueMm": 137.13,
+      "meanMm": 132,
+      "sdMm": 6,
+      "z": 0.85,
+      "flagged": false,
+      "source": "Bizygomatic breadth. Howells male examples are about 133–134 mm; a Brazilian male mean is 128.2 mm SD 5.5 (Lopes 2021). SD 6 mm is the acceptance window. Measured across the zygomatic arches, not the clavicles."
+    },
+    {
+      "id": "zanatomy-auricle-height",
+      "model": "Z-Anatomy auricle",
+      "valueMm": 55.78,
+      "meanMm": 62,
+      "sdMm": 5,
+      "z": -1.24,
+      "flagged": false,
+      "source": "Adult auricular length is commonly near 60 mm. SD 5 mm flags only a large miss. This is cartilage height, top of helix to lobule."
+    },
+    {
+      "id": "skull-mastoid-drop",
+      "model": "Z-Anatomy mastoid",
+      "valueMm": 43.81,
+      "meanMm": 32.3,
+      "sdMm": 3.1,
+      "z": 3.71,
+      "flagged": true,
+      "source": "Same porion–mastoidale reference as the ZETA drop. Skull porion is the lateral meatus rim, so this is closer to the caliper definition than the canal centroid."
+    }
+  ],
+  "vertexMm": [
+    31.784,
+    -81.5,
+    91.367
+  ],
+  "noseMm": [
+    143.956,
+    42.106,
+    92.642
+  ],
+  "midZ": 92.004,
+  "source": "Z-Anatomy Startup.blend extract, CC BY-SA 4.0, derived from BodyParts3D CC BY-SA 2.1 JP. Skull, mandible, cervical vertebrae, clavicles, right auricle cartilage. No skin in that template."
 }

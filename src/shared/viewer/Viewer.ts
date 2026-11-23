@@ -11,6 +11,16 @@ import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
 import { estimateLabelSize, placeLabels, type Placement, type StudyLabel } from '../labels';
 import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM, verticalSpanMm } from '../view-pose';
+import {
+  ATLAS_BACKGROUND,
+  MODEL_BACKGROUND,
+  atlasDetail,
+  createAtlasMaterial,
+  createHullMaterial,
+  illustrationRamp,
+  outlinesAllowed,
+  paintAtlas,
+} from './netter-material';
 
 export type PickHit = {
   structureId: string;
@@ -22,9 +32,10 @@ type StructureRecord = {
   id: string;
   layer: string;
   object: THREE.Object3D;
-  materials: THREE.MeshStandardMaterial[];
+  materials: THREE.Material[];
   meshes: THREE.Mesh[];
   outlines: THREE.Mesh[];
+  hulls: THREE.Mesh[];
   opacity: number;
   envelope: boolean;
   size: number;
@@ -32,6 +43,15 @@ type StructureRecord = {
   label: string;
   parentId: string | null;
   aggregate: boolean;
+  side: THREE.Side;
+};
+
+export type RenderStyle = 'atlas' | 'model';
+
+export type RegistrationPair = {
+  id: string;
+  zetaMm: Vec3;
+  skullMm: Vec3;
 };
 
 type PlaneRecord = {
@@ -62,7 +82,6 @@ type Tween = {
 
 const SVG_NS = ['http', '://www.w3.org/2000/svg'].join('');
 const TWEEN_MS = 500;
-const STAGE = '#C4C2BC';
 const OUTLINE = '#8C2F1B';
 const DIM_GRAY = '#D5D3CE';
 const INTRO_LABELS = ['malleus', 'incus', 'stapes', 'facial-nerve', 'scala-vestibuli'];
@@ -137,6 +156,13 @@ export class EntViewer {
   private flashUntil = 0;
   private upperBody: THREE.Mesh | null = null;
   private skullLayer: THREE.Mesh | null = null;
+  private skinMesh: THREE.Mesh | null = null;
+  private style: RenderStyle = 'atlas';
+  private hullsOn = true;
+  private hullMaterial: THREE.ShaderMaterial;
+  private registrationGroup: THREE.Group | null = null;
+  private lastCutRadius = 0;
+  private lastSkinOpacity = 1;
   private earHotspot: THREE.Mesh | null = null;
   private cutCenter = new THREE.Vector3();
   private cutRadius = { value: 0 };
@@ -163,7 +189,8 @@ export class EntViewer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.localClippingEnabled = true;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.scene.background = new THREE.Color(STAGE);
+    this.hullsOn = outlinesAllowed();
+    this.scene.background = new THREE.Color(ATLAS_BACKGROUND);
     this.draco.setDecoderPath(publicUrl('draco/'));
     this.loader.setDRACOLoader(this.draco);
 
@@ -207,6 +234,7 @@ export class EntViewer {
         .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * uOutline;');
     };
     this.outlineMaterial.customProgramCacheKey = () => 'ent3d-outline';
+    this.hullMaterial = createHullMaterial(this.clipping);
 
     this.crosshair = this.makeCrosshair();
     this.world.add(this.crosshair);
@@ -346,22 +374,18 @@ export class EntViewer {
   ): Promise<void> {
     const gltf = await this.loader.loadAsync(url);
     const root = gltf.scene;
-    const materials: THREE.MeshStandardMaterial[] = [];
+    const materials: THREE.Material[] = [];
     const meshes: THREE.Mesh[] = [];
     const outlines: THREE.Mesh[] = [];
+    const hulls: THREE.Mesh[] = [];
+    const side = id === 'tympanic-membrane' ? THREE.DoubleSide : THREE.FrontSide;
     const found: THREE.Mesh[] = [];
     root.traverse((obj) => {
       if (isMesh(obj)) found.push(obj);
     });
     for (const obj of found) {
       this.warnIfScaled(obj, id);
-      const material = new THREE.MeshStandardMaterial({
-        color,
-        roughness: 0.48,
-        metalness: 0.04,
-        side: id === 'tympanic-membrane' ? THREE.DoubleSide : THREE.FrontSide,
-        clippingPlanes: this.clipping,
-      });
+      const material = this.makeStructureMaterial(id, color, opacity, side);
       const previous = obj.material;
       obj.material = material;
       const old = Array.isArray(previous) ? previous : [previous];
@@ -377,6 +401,15 @@ export class EntViewer {
       outline.userData.kind = 'outline';
       obj.add(outline);
       outlines.push(outline);
+      const triangles = obj.geometry.index ? obj.geometry.index.count / 3 : (obj.geometry.getAttribute('position')?.count ?? 0) / 3;
+      if (this.hullsOn && triangles > 0 && triangles < 40000) {
+        const hull = new THREE.Mesh(obj.geometry, this.hullMaterial);
+        hull.visible = this.style === 'atlas';
+        hull.renderOrder = 2;
+        hull.userData.kind = 'hull';
+        obj.add(hull);
+        hulls.push(hull);
+      }
     }
     root.userData.structureId = id;
     this.structures.add(root);
@@ -389,6 +422,7 @@ export class EntViewer {
       materials,
       meshes,
       outlines,
+      hulls,
       opacity,
       envelope: isEnvelope(id),
       size,
@@ -396,6 +430,7 @@ export class EntViewer {
       label,
       parentId: meta?.parentId ?? null,
       aggregate: meta?.aggregate === true,
+      side,
     };
     if (meta?.parentId) this.parentOf.set(id, meta.parentId);
     this.records.set(id, record);
@@ -700,6 +735,8 @@ export class EntViewer {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+    const resolution = this.hullMaterial?.uniforms.uResolution.value as THREE.Vector2 | undefined;
+    if (resolution) resolution.set(this.renderer.domElement.width, this.renderer.domElement.height);
   }
 
   private updateScaleBar(): void {
@@ -802,19 +839,28 @@ export class EntViewer {
     });
     if (close && envelope) opacity = Math.min(opacity, 0.04);
     else if (close && !inSelection) opacity = Math.max(opacity, 0.62);
+    const atlas = this.style === 'atlas';
+    const ramp = dimmed
+      ? { lit: DIM_GRAY, shadow: '#bdbbb6', highlight: '#f7f5f2' }
+      : illustrationRamp(record.id, record.color);
     for (const material of record.materials) {
-      material.color.set(dimmed ? DIM_GRAY : record.color);
-      material.opacity = opacity;
-      material.transparent = opacity < 0.98;
-      material.depthWrite = !onTop && opacity >= 0.9;
-      material.depthTest = !onTop;
-      material.polygonOffset = opacity < 0.98;
-      material.polygonOffsetFactor = 1;
-      material.polygonOffsetUnits = 1;
+      if (atlas && material instanceof THREE.ShaderMaterial && material.uniforms.uLit) {
+        paintAtlas(material, ramp, opacity, onTop);
+      } else if (material instanceof THREE.MeshStandardMaterial) {
+        material.color.set(dimmed ? DIM_GRAY : record.color);
+        material.opacity = opacity;
+        material.transparent = opacity < 0.98;
+        material.depthWrite = !onTop && opacity >= 0.9;
+        material.depthTest = !onTop;
+        material.polygonOffset = opacity < 0.98;
+        material.polygonOffsetFactor = 1;
+        material.polygonOffsetUnits = 1;
+      }
     }
     for (const mesh of record.meshes) mesh.renderOrder = onTop ? 30 : 0;
     const flashing = this.flashId === record.id && performance.now() < this.flashUntil;
-    for (const outline of record.outlines) outline.visible = onTop || flashing;
+    for (const outline of record.outlines) outline.visible = !atlas && (onTop || flashing);
+    for (const hull of record.hulls) hull.visible = atlas && visible && opacity > 0.2;
   }
 
   private setClipping(clip: { normal: Vec3; constant: number } | null): void {
@@ -829,6 +875,11 @@ export class EntViewer {
     for (const record of this.records.values()) {
       for (const material of record.materials) material.needsUpdate = true;
     }
+    for (const mesh of [this.skinMesh, this.skullLayer, this.upperBody]) {
+      const material = mesh?.material;
+      if (material && !Array.isArray(material)) material.needsUpdate = true;
+    }
+    if (this.hullMaterial) this.hullMaterial.needsUpdate = true;
   }
 
   private placePlane(record: PlaneRecord, pose: SlicePose, flipY: boolean): void {
@@ -1031,57 +1082,44 @@ export class EntViewer {
     }
   }
 
-  loadUpperBody(urls: { skull: string; auricle: string }, eacMm: Vec3): Promise<void> {
+  loadUpperBody(urls: { skull: string; auricle: string; skin?: string }, eacMm: Vec3): Promise<void> {
     this.eacMm = eacMm;
     const center = new THREE.Vector3(eacMm[0] + this.offset[0], eacMm[1] + this.offset[1], eacMm[2] + this.offset[2]);
     this.cutCenter.copy(center);
-    const adopt = (gltf: { scene: THREE.Object3D }, kind: 'skull' | 'auricle') => {
+    const adopt = (gltf: { scene: THREE.Object3D }, kind: 'skull' | 'auricle' | 'skin') => {
       const found: THREE.Mesh[] = [];
       gltf.scene.traverse((obj) => {
         if (isMesh(obj)) found.push(obj);
       });
       const mesh = found[0];
       if (!mesh) return;
-      const material = new THREE.MeshStandardMaterial({
-        color: kind === 'auricle' ? '#e7b89a' : '#eadcc8',
-        roughness: kind === 'auricle' ? 0.55 : 0.62,
-        metalness: 0.02,
-        transparent: true,
-        side: THREE.DoubleSide,
-      });
-      const radius = this.cutRadius;
-      material.onBeforeCompile = (shader) => {
-        shader.uniforms.uCutCenter = { value: this.cutCenter };
-        shader.uniforms.uCutRadius = radius;
-        shader.uniforms.uCutScale = { value: kind === 'skull' ? 0.72 : 1 };
-        shader.vertexShader = shader.vertexShader
-          .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;')
-          .replace('#include <project_vertex>', '#include <project_vertex>\nvEntWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-        shader.fragmentShader = shader.fragmentShader
-          .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;\nuniform float uCutScale;')
-          .replace(
-            '#include <dithering_fragment>',
-            `if (uCutRadius > 0.0) {
-              float dist = distance(vEntWorld, uCutCenter);
-              float limit = uCutRadius * uCutScale;
-              if (dist < limit) discard;
-              gl_FragColor.a *= smoothstep(limit, limit + 8.0, dist);
-            }
-            #include <dithering_fragment>`,
-          );
-      };
-      material.customProgramCacheKey = () => `ent3d-cut-${kind}`;
-      mesh.material = material;
-      mesh.userData.structureId = kind === 'auricle' ? 'upper-body' : 'skull-layer';
+      const id = kind === 'auricle' ? 'upper-body' : kind === 'skin' ? 'skin' : 'skull-layer';
+      const cutScale = kind === 'skull' ? 0.72 : kind === 'auricle' ? 0.88 : 1;
+      mesh.material = this.makeEntryMaterial(id, kind === 'auricle' ? '#C5D0D4' : kind === 'skin' ? '#E8B89A' : '#F4E4C8', cutScale);
+      mesh.userData.structureId = id;
       mesh.userData.kind = 'structure';
+      mesh.userData.cutScale = cutScale;
+      mesh.renderOrder = kind === 'skin' ? 3 : kind === 'auricle' ? 2 : 1;
       this.pickables.push(mesh);
       this.world.add(mesh);
+      const triangles = mesh.geometry.index ? mesh.geometry.index.count / 3 : (mesh.geometry.getAttribute('position')?.count ?? 0) / 3;
+      if (kind !== 'skin' && this.hullsOn && triangles > 0 && triangles < 40000) {
+        const hull = new THREE.Mesh(mesh.geometry, this.hullMaterial);
+        hull.userData.kind = 'hull';
+        hull.renderOrder = 4;
+        hull.visible = this.style === 'atlas';
+        mesh.add(hull);
+      }
       if (kind === 'auricle') this.upperBody = mesh;
+      else if (kind === 'skin') this.skinMesh = mesh;
       else this.skullLayer = mesh;
     };
-    return Promise.all([this.loader.loadAsync(urls.skull), this.loader.loadAsync(urls.auricle)]).then(([skull, auricle]) => {
+    const loads: Promise<{ scene: THREE.Object3D }>[] = [this.loader.loadAsync(urls.skull), this.loader.loadAsync(urls.auricle)];
+    if (urls.skin) loads.push(this.loader.loadAsync(urls.skin));
+    return Promise.all(loads).then(([skull, auricle, skin]) => {
       adopt(skull, 'skull');
       adopt(auricle, 'auricle');
+      if (skin) adopt(skin, 'skin');
       const hotspot = new THREE.Mesh(
         new THREE.SphereGeometry(14, 16, 12),
         new THREE.MeshBasicMaterial({ color: '#8C2F1B', transparent: true, opacity: 0.01, depthWrite: false }),
@@ -1092,25 +1130,173 @@ export class EntViewer {
       this.pickables.push(hotspot);
       this.world.add(hotspot);
       this.earHotspot = hotspot;
+      this.setCutaway(this.lastCutRadius, this.lastSkinOpacity);
     });
   }
 
   setCutaway(radiusMm: number, skinOpacity: number): void {
+    this.lastCutRadius = radiusMm;
+    this.lastSkinOpacity = skinOpacity;
     this.cutRadius.value = radiusMm;
-    if (this.upperBody) {
-      const material = this.upperBody.material as THREE.MeshStandardMaterial;
-      material.opacity = skinOpacity;
-      material.transparent = skinOpacity < 0.98;
+    if (this.skinMesh) {
+      const shown = Math.min(skinOpacity, 0.97);
+      this.paintEntry(this.skinMesh, shown);
+      this.skinMesh.visible = shown > 0.02;
+      if (this.upperBody) {
+        const auricleOpacity = skinOpacity > 0.78 ? (1 - skinOpacity) * 3.4 : skinOpacity < 0.16 ? 0 : 0.92;
+        this.paintEntry(this.upperBody, auricleOpacity);
+        this.upperBody.visible = auricleOpacity > 0.02;
+      }
+    } else if (this.upperBody) {
+      this.paintEntry(this.upperBody, skinOpacity);
       this.upperBody.visible = skinOpacity > 0.02;
     }
     if (this.skullLayer) {
-      const material = this.skullLayer.material as THREE.MeshStandardMaterial;
       const skullOpacity = skinOpacity < 0.55 ? Math.min(0.16, skinOpacity + 0.05) : 1;
-      material.opacity = skullOpacity;
-      material.transparent = skullOpacity < 0.98;
+      this.paintEntry(this.skullLayer, skullOpacity);
       this.skullLayer.visible = skullOpacity > 0.02;
     }
     if (this.earHotspot) this.earHotspot.visible = radiusMm < 8;
+  }
+
+  renderStyle(): RenderStyle {
+    return this.style;
+  }
+
+  setRenderStyle(style: RenderStyle): void {
+    this.style = style;
+    this.scene.background = new THREE.Color(style === 'atlas' ? ATLAS_BACKGROUND : MODEL_BACKGROUND);
+    for (const record of this.records.values()) {
+      record.materials.forEach((material) => material.dispose());
+      record.materials = record.meshes.map((mesh) => {
+        const material = this.makeStructureMaterial(record.id, record.color, record.opacity, record.side);
+        mesh.material = material;
+        return material;
+      });
+    }
+    for (const mesh of [this.skinMesh, this.skullLayer, this.upperBody]) {
+      if (!mesh) continue;
+      const previous = mesh.material;
+      if (!Array.isArray(previous)) previous.dispose();
+      const id = String(mesh.userData.structureId ?? 'bone');
+      const cutScale = Number(mesh.userData.cutScale ?? 0);
+      const base = id === 'skin' ? '#E8B89A' : id === 'upper-body' ? '#C5D0D4' : '#F4E4C8';
+      mesh.material = this.makeEntryMaterial(id, base, cutScale);
+    }
+    this.refreshLook();
+    this.setCutaway(this.lastCutRadius, this.lastSkinOpacity);
+  }
+
+  setRegistrationOverlay(pairs: RegistrationPair[]): void {
+    if (this.registrationGroup) {
+      this.world.remove(this.registrationGroup);
+      this.registrationGroup.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        mesh.geometry?.dispose();
+      });
+      this.registrationGroup = null;
+    }
+    if (!pairs.length) return;
+    const group = new THREE.Group();
+    group.name = 'registration';
+    const zetaMaterial = new THREE.MeshBasicMaterial({ color: '#8C2F1B', depthTest: false });
+    const skullMaterial = new THREE.MeshBasicMaterial({ color: '#1D4E89', depthTest: false });
+    const positions: number[] = [];
+    for (const pair of pairs) {
+      const zeta = new THREE.Mesh(new THREE.SphereGeometry(1.15, 12, 8), zetaMaterial);
+      zeta.position.set(pair.zetaMm[0], pair.zetaMm[1], pair.zetaMm[2]);
+      zeta.renderOrder = 60;
+      const skull = new THREE.Mesh(new THREE.SphereGeometry(1.15, 12, 8), skullMaterial);
+      skull.position.set(pair.skullMm[0], pair.skullMm[1], pair.skullMm[2]);
+      skull.renderOrder = 60;
+      group.add(zeta, skull);
+      positions.push(pair.zetaMm[0], pair.zetaMm[1], pair.zetaMm[2], pair.skullMm[0], pair.skullMm[1], pair.skullMm[2]);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const lines = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: '#241810', depthTest: false }));
+    lines.renderOrder = 59;
+    group.add(lines);
+    this.world.add(group);
+    this.registrationGroup = group;
+  }
+
+  private makeStructureMaterial(id: string, color: string, opacity: number, side: THREE.Side): THREE.Material {
+    if (this.style === 'atlas') {
+      return createAtlasMaterial({
+        ramp: illustrationRamp(id, color),
+        opacity,
+        cut: { center: { value: this.cutCenter }, radius: this.cutRadius },
+        cutScale: 0,
+        clippingPlanes: this.clipping,
+        side,
+        detail: atlasDetail(id),
+      });
+    }
+    return new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.48,
+      metalness: 0.04,
+      side,
+      clippingPlanes: this.clipping,
+      opacity,
+      transparent: opacity < 0.98,
+    });
+  }
+
+  private makeEntryMaterial(id: string, color: string, cutScale: number): THREE.Material {
+    if (this.style === 'atlas') {
+      return createAtlasMaterial({
+        ramp: illustrationRamp(id, color),
+        opacity: id === 'skin' ? 0.97 : 1,
+        cut: { center: { value: this.cutCenter }, radius: this.cutRadius },
+        cutScale,
+        clippingPlanes: this.clipping,
+        side: THREE.FrontSide,
+        detail: atlasDetail(id),
+      });
+    }
+    const material = new THREE.MeshStandardMaterial({
+      color,
+      roughness: id === 'skin' ? 0.62 : 0.58,
+      metalness: 0.02,
+      transparent: true,
+      side: THREE.FrontSide,
+    });
+    const radius = this.cutRadius;
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uCutCenter = { value: this.cutCenter };
+      shader.uniforms.uCutRadius = radius;
+      shader.uniforms.uCutScale = { value: cutScale };
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;')
+        .replace('#include <project_vertex>', '#include <project_vertex>\nvEntWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;\nuniform float uCutScale;')
+        .replace(
+          '#include <dithering_fragment>',
+          `if (uCutScale > 0.0 && uCutRadius > 0.0) {
+            float dist = distance(vEntWorld, uCutCenter);
+            float limit = uCutRadius * uCutScale;
+            if (dist < limit) discard;
+            gl_FragColor.a *= smoothstep(limit, limit + 8.0, dist);
+          }
+          #include <dithering_fragment>`,
+        );
+    };
+    material.customProgramCacheKey = () => `ent3d-cut-${id}-${cutScale}`;
+    return material;
+  }
+
+  private paintEntry(mesh: THREE.Mesh, opacity: number): void {
+    const material = mesh.material;
+    if (Array.isArray(material)) return;
+    material.opacity = opacity;
+    material.transparent = opacity < 0.98;
+    material.depthWrite = opacity >= 0.55;
+    if (material instanceof THREE.ShaderMaterial && material.uniforms.uOpacity) material.uniforms.uOpacity.value = opacity;
+    const hull = mesh.children.find((child) => child.userData.kind === 'hull');
+    if (hull) hull.visible = this.style === 'atlas' && this.hullsOn && opacity > 0.25 && mesh.visible;
   }
 
   private projectStudyLabels(): void {
@@ -1241,7 +1427,7 @@ export class EntViewer {
       const record = this.records.get(id);
       const opacity = record?.materials[0]?.opacity ?? 1;
       if (id === 'bone' && opacity < 0.4) continue;
-      if (id === 'upper-body' && this.cutRadius.value > 5) continue;
+      if ((id === 'upper-body' || id === 'skin' || id === 'skull-layer') && this.cutRadius.value > 5) continue;
       if (opacity >= 0.45) return true;
     }
     return false;
