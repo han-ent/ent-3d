@@ -1,16 +1,22 @@
 {
   "id": "cochleovestibular-nerve",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "[샘플] 설명 자리. 검토자가 채웁니다.",
-    "en": "[Sample] placeholder."
+    "en": "The nerve bundle in the internal auditory canal, carrying cochlear and vestibular fibres together.",
+    "ko": "내이도의 신경 다발이다. 와우신경과 전정신경이 함께 있다."
   },
   "function": {
-    "ko": "[샘플] 설명 자리. 검토자가 채웁니다.",
-    "en": "[Sample] placeholder."
+    "en": "It runs with the facial nerve at the fundus. Bill's bar stands between the facial nerve and the superior vestibular nerve.",
+    "ko": "기저부에서 안면신경과 함께 있다. Bill 능선이 안면신경과 상전정신경 사이에 있다."
   },
   "surgical_points": [],
-  "sources": [],
+  "sources": [
+    {
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "p. 9",
+      "verified": false
+    }
+  ],
   "review": "미검증",
   "related": [
     "scala-vestibuli",

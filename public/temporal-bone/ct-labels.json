@@ -1,545 +1,645 @@
 {
-  "model_version": "openear-zeta-frame-2",
-  "note": "Folder names stay axial/coronal/sagittal as published. Anatomical names follow +X anterior, +Y inferior, +Z medial.",
+  "model_version": "openear-zeta-frame-3",
+  "note": "Slice names follow Möller. Folder names stay axial/coronal/sagittal as published. Anatomical names follow +X anterior, +Y inferior, +Z medial.",
   "labels": [
     {
       "id": "iac",
       "en": "Internal auditory canal",
       "ko": "내이도",
-      "anatomy": "Medial end of the cochleovestibular nerve mesh.",
-      "clinical": "The facial nerve is anterosuperior at the fundus.",
+      "anatomy": "Medial end of the canal, where the cochlear and vestibular nerves enter the posterior fossa.",
+      "clinical": "The facial nerve lies anterosuperior at the fundus.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 114,
+      "slice_index": 53,
       "xy": [
-        0.4169,
-        0.2964
+        0.7359,
+        0.5763
       ],
       "xyz_mm": [
-        14.942,
-        20.72,
-        53.257
+        32.462,
+        29.746,
+        76.717
       ]
     },
     {
       "id": "round-window",
       "en": "Round window",
       "ko": "정원창",
-      "anatomy": "Most lateral scala tympani vertex.",
-      "clinical": "Opens into the scala tympani; cochlear-implant entry.",
+      "anatomy": "Basal opening of the scala tympani on the middle-ear side.",
+      "clinical": "Cochlear-implant entry.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 123,
+      "slice_index": 65,
       "xy": [
-        0.4843,
-        0.5368
+        0.702,
+        0.8233
       ],
       "xyz_mm": [
-        20.567,
-        23.038,
-        34.449
+        29.633,
+        32.754,
+        57.385
       ]
     },
     {
       "id": "oval-window",
       "en": "Oval window",
       "ko": "난원창",
-      "anatomy": "Same computed point as the footplate centroid.",
-      "clinical": "The facial nerve runs directly above it.",
+      "anatomy": "Opening from the middle ear into the vestibule, just medial to the footplate.",
+      "clinical": "The tympanic facial nerve runs above it.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 115,
+      "slice_index": 56,
       "xy": [
-        0.496,
-        0.5285
+        0.7135,
+        0.8123
       ],
       "xyz_mm": [
-        21.546,
-        21.04,
-        35.094
+        30.594,
+        30.435,
+        58.244
       ]
     },
     {
       "id": "promontory",
       "en": "Promontory",
       "ko": "갑각",
-      "anatomy": "Lateral surface point of the scala tympani.",
-      "clinical": "Basal-turn bulge on the medial wall.",
+      "anatomy": "Lateral bulge of the basal turn on the medial wall of the tympanum.",
+      "clinical": "Jacobson nerve crosses it.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 123,
+      "slice_index": 68,
       "xy": [
-        0.4843,
-        0.5368
+        0.7137,
+        0.826
       ],
       "xyz_mm": [
-        20.567,
-        23.038,
-        34.449
+        30.61,
+        33.403,
+        57.171
       ]
     },
     {
       "id": "cochlea-basal",
       "en": "Basal turn",
       "ko": "와우 기저회전",
-      "anatomy": "Centroid of the first 360° about the modiolus.",
-      "clinical": "The promontory overlies the basal turn.",
+      "anatomy": "First turn of the cochlea, beginning at the round window.",
+      "clinical": "The promontory covers its lateral face.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 121,
+      "slice_index": 60,
       "xy": [
-        0.496,
-        0.4791
+        0.7343,
+        0.7776
       ],
       "xyz_mm": [
-        21.549,
-        22.508,
-        38.96
+        32.324,
+        31.513,
+        60.966
       ]
     },
     {
       "id": "vestibule-center",
       "en": "Vestibule",
       "ko": "전정",
-      "anatomy": "Representative point at the oval window, which opens into the vestibule.",
-      "clinical": "Central chamber of the labyrinth.",
+      "anatomy": "Central chamber of the labyrinth, between the canals and the cochlea.",
+      "clinical": "The oval window opens into its lateral wall.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 108,
+      "slice_index": 58,
       "xy": [
-        0.4667,
-        0.5442
+        0.6991,
+        0.81
       ],
       "xyz_mm": [
-        19.101999282836914,
-        19.288999557495117,
-        33.86800003051758
+        29.387,
+        30.889,
+        58.426
       ]
     },
     {
       "id": "scc-lateral-arch",
       "en": "Lateral semicircular canal",
       "ko": "외측반고리관",
-      "anatomy": "Most lateral vertex of the vestibular mesh, used as the canal seed.",
-      "clinical": "Mastoid landmark; the antrum floor is nearby.",
+      "anatomy": "Lateralmost point of the lateral canal loop.",
+      "clinical": "Mastoid landmark; the second genu is inferior to this arch.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 110,
+      "slice_index": 51,
       "xy": [
-        0.4048,
-        0.6212
+        0.6417,
+        0.885
       ],
       "xyz_mm": [
-        13.933,
-        19.917,
-        27.843
+        24.594,
+        29.264,
+        52.557
       ]
     },
     {
       "id": "umbo",
       "en": "Umbo",
-      "ko": "제(umbo)",
-      "anatomy": "Malleus principal-axis end closer to the membrane centre.",
-      "clinical": "Tip of the manubrium at the membrane.",
+      "ko": "고막배꼽(제)",
+      "anatomy": "Inferior tip of the manubrium at the centre of the pars tensa.",
+      "clinical": "The membrane is drawn medially here.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 131,
+      "slice_index": 70,
       "xy": [
-        0.5352,
-        0.5528
+        0.7457,
+        0.8624
       ],
       "xyz_mm": [
-        24.816,
-        25.134,
-        33.198
+        33.28,
+        33.924,
+        54.329
       ]
     },
     {
       "id": "incus-long-process",
       "en": "Long process of incus",
       "ko": "침골 장각",
-      "anatomy": "Incus principal-axis end closer to the stapes.",
+      "anatomy": "Descending process of the incus, proximal to the lenticular process.",
       "clinical": "Common site of ossicular erosion.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 121,
+      "slice_index": 52,
       "xy": [
-        0.5148,
-        0.5694
+        0.7096,
+        0.8815
       ],
       "xyz_mm": [
-        23.117,
-        22.612,
-        31.9
+        30.266,
+        29.574,
+        52.834
       ]
     },
     {
       "id": "stapes-footplate",
       "en": "Footplate",
       "ko": "등골 족판",
-      "anatomy": "Centroid of the medial stapes vertex cluster.",
-      "clinical": "Sits in the oval window.",
+      "anatomy": "Medial plate of the stapes seated in the oval window.",
+      "clinical": "Held by the annular ligament.",
       "sources": [
         {
-          "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch2 Anatomy of the Temporal Bone",
-          "page": "p7",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 115,
+      "slice_index": 56,
       "xy": [
-        0.496,
-        0.5285
+        0.7093,
+        0.8214
       ],
       "xyz_mm": [
-        21.546,
-        21.04,
-        35.094
+        30.242,
+        30.524,
+        57.531
       ]
     },
     {
       "id": "eac-porus",
       "en": "EAC porus",
       "ko": "외이도 입구",
-      "anatomy": "Centroid of the external auditory canal mesh.",
-      "clinical": "Lateral opening of the canal.",
+      "anatomy": "Lateral rim of the bony external canal, just deep to the concha.",
+      "clinical": "The bony opening sits behind the cavum conchae.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 130,
+      "slice_index": 69,
       "xy": [
-        0.5763,
-        0.6716
+        0.6806,
+        1.0971
       ],
       "xyz_mm": [
-        28.249,
-        24.737,
-        23.902
+        27.842,
+        33.689,
+        35.964
       ]
     },
     {
       "id": "carotid-canal",
       "en": "Carotid canal",
       "ko": "경동맥관",
-      "anatomy": "Centroid of the carotid mesh.",
-      "clinical": "Petrous carotid. Anterior to the cochlea.",
+      "anatomy": "Petrous internal carotid, anterior to the cochlea.",
+      "clinical": "It turns from a vertical segment into a horizontal one in front of the cochlea.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 160,
+      "slice_index": 91,
       "xy": [
-        0.539,
-        0.3808
+        0.8422,
+        0.7116
       ],
       "xyz_mm": [
-        25.133,
-        32.355,
-        46.653
+        41.334,
+        39.335,
+        66.125
       ]
     },
     {
       "id": "sigmoid-sinus",
       "en": "Sigmoid sinus",
       "ko": "S상정맥동",
-      "anatomy": "Point on the sinus-dura mesh. The jugular bulb is not segmented.",
-      "clinical": "Posterior limit of mastoidectomy. The mesh still mixes sinus and dura.",
+      "anatomy": "Posterior venous channel along the back of the mastoid.",
+      "clinical": "It is the posterior limit of mastoidectomy.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "axial",
       "anatomicalPlane": "sagittal",
-      "slice_index": 111,
+      "slice_index": 54,
       "xy": [
-        0.2895,
-        0.4071
+        0.5299,
+        0.5455
       ],
       "xyz_mm": [
-        4.301,
-        35.771,
-        26.089
+        15.259,
+        49.782,
+        57.209
       ]
     },
     {
       "id": "tegmen",
       "en": "Tegmen",
       "ko": "천개",
-      "anatomy": "Most superior bone vertex near the middle ear.",
-      "clinical": "Floor of the middle cranial fossa.",
+      "anatomy": "Bony roof of the middle ear and mastoid, the floor of the middle fossa.",
+      "clinical": "Defects here meet dura.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 156,
+      "slice_index": 237,
       "xy": [
-        0.2219,
-        0.5614
+        0.0702,
+        0.892
       ],
       "xyz_mm": [
-        19.184,
-        8.504,
-        32.519
+        30.353,
+        21.533,
+        52.014
       ]
     },
     {
       "id": "mastoid-antrum",
       "en": "Mastoid antrum",
       "ko": "유양동",
-      "anatomy": "Estimated medial to the spine of Henle.",
-      "clinical": "Largest mastoid air cell. No air-cell mesh yet.",
+      "anatomy": "The largest mastoid air space, medial to the spine of Henle.",
+      "clinical": "It opens into the epitympanum through the aditus.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "axial",
       "anatomicalPlane": "sagittal",
-      "slice_index": 105,
+      "slice_index": 5,
       "xy": [
-        0.5272,
-        0.6427
+        0.6504,
+        0.7935
       ],
       "xyz_mm": [
-        24.149,
-        18.456,
-        24.563
+        25.318,
+        31.554,
+        44.937
       ]
     },
     {
       "id": "facial-recess",
       "en": "Facial recess",
       "ko": "안면신경와",
-      "anatomy": "Midpoint between the mastoid segment and the chorda tympani.",
-      "clinical": "Posterior tympanotomy passes between the facial nerve and the chorda.",
+      "anatomy": "Space between the mastoid facial nerve and the chorda tympani.",
+      "clinical": "Posterior tympanotomy corridor.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "axial",
       "anatomicalPlane": "sagittal",
-      "slice_index": 118,
+      "slice_index": 26,
       "xy": [
-        0.4813,
-        0.5302
+        0.6839,
+        0.6706
       ],
       "xyz_mm": [
-        20.315,
-        26.719,
-        27.818
+        28.117,
+        40.587,
+        50.102
       ]
     },
     {
       "id": "scc-superior-arch",
       "en": "Superior semicircular canal",
       "ko": "상반고리관",
-      "anatomy": "Most superior vertex of the vestibular mesh.",
-      "clinical": "Related to the arcuate eminence on the middle-fossa floor.",
+      "anatomy": "Top of the superior canal.",
+      "clinical": "Related to the arcuate eminence.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 154,
+      "slice_index": 216,
       "xy": [
-        0.265,
-        0.5393
+        0.0791,
+        0.8147
       ],
       "xyz_mm": [
-        18.877,
-        11.672,
-        34.254
+        25.155,
+        22.191,
+        58.062
       ]
     },
     {
       "id": "mastoid-tip",
       "en": "Mastoid tip",
       "ko": "유양돌기 첨부",
-      "anatomy": "Most inferior vertex on the posterolateral bone.",
-      "clinical": "Inferior end of the mastoid.",
+      "anatomy": "Inferior end of the mastoid process.",
+      "clinical": "The mastoid segment of the facial nerve ends above this tip.",
       "sources": [
         {
-          "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch3 Mastoidectomy",
-          "page": "p2",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 153,
+      "slice_index": 215,
       "xy": [
-        0.8915,
-        0.7728
+        0.7202,
+        1.0269
       ],
       "xyz_mm": [
-        18.534,
-        57.721,
-        15.977
+        24.893,
+        69.313,
+        41.452
       ]
     },
     {
       "id": "jugular-bulb",
       "en": "Jugular bulb",
       "ko": "경정맥구",
-      "anatomy": "Estimated inferior to the sigmoid point.",
-      "clinical": "A high bulb can sit under the middle ear. Not segmented.",
+      "anatomy": "Venous bulb under the hypotympanum, just behind the petrous carotid.",
+      "clinical": "A high bulb narrows the floor of the middle ear.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 104,
+      "slice_index": 268,
       "xy": [
-        0.6745,
-        0.6436
+        0.3777,
+        0.6845
       ],
       "xyz_mm": [
-        6.301,
-        41.771,
-        26.089
+        38.254,
+        44.137,
+        68.244
       ]
     },
     {
       "id": "geniculate-ganglion",
       "en": "Geniculate ganglion",
       "ko": "슬신경절",
-      "anatomy": "Centerline point at the first bend.",
-      "clinical": "First genu. The greater superficial petrosal nerve leaves here.",
+      "anatomy": "First genu at the anterior turn, where the labyrinthine segment turns into the tympanic segment.",
+      "clinical": "The greater petrosal nerve leaves the ganglion here.",
       "sources": [
         {
-          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-          "page": "audit page ref",
+          "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
+          "page": "Head and neck plates",
+          "verified": false
+        },
+        {
+          "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+          "page": "Ch. 15",
           "verified": false
         }
       ],
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 167,
+      "slice_index": 255,
       "xy": [
-        0.3806,
-        0.559
+        0.1417,
+        0.784
       ],
       "xyz_mm": [
-        22.02,
-        20.164,
-        32.707
+        34.766,
+        26.79,
+        60.46
       ]
     }
   ]

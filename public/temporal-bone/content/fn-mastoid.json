@@ -1,23 +1,19 @@
 {
   "id": "fn-mastoid",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "제2슬에서 메시 끝까지의 하행 분절입니다.",
-    "en": "The descending segment from the second genu to the distal end of the mesh."
+    "en": "The descending segment, 12.57 mm from the second genu to the end of the nerve.",
+    "ko": "하행 분절이다. 제2슬에서 신경 끝까지 12.57 mm."
   },
   "function": {
-    "ko": "이복근릉이 경유돌공을 향합니다.",
-    "en": "The digastric ridge points toward the stylomastoid foramen."
-  },
-  "clinical": {
-    "ko": "이복근릉이 경유돌공을 향합니다.",
-    "en": "The digastric ridge points toward the stylomastoid foramen."
+    "en": "The bony canal continues about 3.5 mm beyond the nerve, to about 16 mm in all. A full mastoid segment to the stylomastoid foramen is often 15–20 mm.",
+    "ko": "골관은 신경보다 약 3.5 mm 더 이어져 전체는 약 16 mm다. 경유돌공까지의 유양부는 흔히 15–20 mm다."
   },
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "p1, p10",
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
       "verified": false
     }
   ],

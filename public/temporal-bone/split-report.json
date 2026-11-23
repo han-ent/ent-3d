@@ -1,5 +1,5 @@
 {
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "frame": {
     "x": "anterior",
     "y": "inferior",
@@ -9,24 +9,33 @@
     "parentVertices": 10000,
     "children": {
       "scc-lateral": {
-        "exclusiveVertices": 1274,
-        "exportedVertices": 1329
+        "exclusiveVertices": 1489,
+        "exportedVertices": 1554,
+        "faces": 2978
       },
       "scc-superior": {
-        "exclusiveVertices": 1733,
-        "exportedVertices": 1802
+        "exclusiveVertices": 1548,
+        "exportedVertices": 1603,
+        "faces": 3096
       },
       "scc-posterior": {
-        "exclusiveVertices": 1019,
-        "exportedVertices": 1081
+        "exclusiveVertices": 1959,
+        "exportedVertices": 2016,
+        "faces": 3922
+      },
+      "common-crus": {
+        "exclusiveVertices": 437,
+        "exportedVertices": 495,
+        "faces": 876
       },
       "vestibule": {
-        "exclusiveVertices": 2440,
-        "exportedVertices": 2586
+        "exclusiveVertices": 2013,
+        "exportedVertices": 2147,
+        "faces": 4030
       },
       "scala-vestibuli": {
-        "exclusiveVertices": 3534,
-        "exportedVertices": 3534
+        "exclusiveVertices": 2554,
+        "exportedVertices": 2554
       }
     },
     "exclusiveSum": 10000
@@ -53,87 +62,85 @@
     "exclusiveSum": 8000
   },
   "scala-vestibuli": {
-    "parentVertices": 3534,
+    "parentVertices": 2554,
     "children": {
       "scala-vestibuli-basal": {
-        "exclusiveVertices": 1281,
-        "exportedVertices": 1390,
-        "faces": 2490
+        "exclusiveVertices": 1250,
+        "exportedVertices": 1347,
+        "faces": 2465
       },
       "scala-vestibuli-middle": {
-        "exclusiveVertices": 1599,
-        "exportedVertices": 1807,
-        "faces": 3195
+        "exclusiveVertices": 907,
+        "exportedVertices": 1080,
+        "faces": 1800
       },
       "scala-vestibuli-apical": {
-        "exclusiveVertices": 654,
-        "exportedVertices": 751,
-        "faces": 1306
+        "exclusiveVertices": 397,
+        "exportedVertices": 469,
+        "faces": 786
       }
     },
-    "exclusiveSum": 3534
+    "exclusiveSum": 2554
   },
   "facial-nerve": {
     "parentVertices": 10000,
     "children": {
-      "fn-meatal": {
-        "exclusiveVertices": 1778,
-        "exportedVertices": 1803,
-        "faces": 3554
+      "fn-geniculate": {
+        "exclusiveVertices": 503,
+        "exportedVertices": 539,
+        "faces": 1004
       },
       "fn-labyrinthine": {
-        "exclusiveVertices": 989,
-        "exportedVertices": 1036,
-        "faces": 1978
-      },
-      "fn-geniculate": {
-        "exclusiveVertices": 473,
-        "exportedVertices": 520,
-        "faces": 946
+        "exclusiveVertices": 858,
+        "exportedVertices": 922,
+        "faces": 1714
       },
       "fn-tympanic": {
-        "exclusiveVertices": 801,
-        "exportedVertices": 855,
-        "faces": 1602
+        "exclusiveVertices": 2787,
+        "exportedVertices": 2861,
+        "faces": 5574
       },
       "fn-second-genu": {
-        "exclusiveVertices": 983,
-        "exportedVertices": 1044,
-        "faces": 1966
+        "exclusiveVertices": 561,
+        "exportedVertices": 629,
+        "faces": 1122
       },
       "fn-mastoid": {
-        "exclusiveVertices": 4976,
-        "exportedVertices": 5008,
-        "faces": 9950
+        "exclusiveVertices": 5291,
+        "exportedVertices": 5326,
+        "faces": 10580
       }
     },
     "segments": {
-      "fn-meatal": [
+      "fn-geniculate": [
         0.0,
-        3.75
+        1.2
       ],
       "fn-labyrinthine": [
-        3.75,
-        7.550000000000001
-      ],
-      "fn-geniculate": [
-        7.550000000000001,
-        9.55
+        1.2,
+        2.6
       ],
       "fn-tympanic": [
-        9.55,
-        12.75
+        2.6,
+        13.3
       ],
       "fn-second-genu": [
-        12.75,
-        15.75
+        13.3,
+        15.25
       ],
       "fn-mastoid": [
-        15.75,
-        28.239339921599722
+        15.25,
+        27.82
       ]
     },
-    "arcMm": 27.239339921599722,
+    "lengthsMm": {
+      "fn-geniculate": 1.2,
+      "fn-labyrinthine": 3.7,
+      "fn-tympanic": 10.7,
+      "fn-second-genu": 1.95,
+      "fn-mastoid": 12.57
+    },
+    "arcMm": 27.82,
     "exclusiveSum": 10000
   },
   "tympanic-membrane": {
@@ -153,22 +160,5 @@
     "method": "superior-12-percent-fallback",
     "exclusiveSum": 4000
   },
-  "landmarkCount": 43,
-  "ctLabelCount": 20,
-  "registration": {
-    "method": "Umeyama similarity on 5 pairs. The stylized surface was authored in the ZETA millimetre frame, so the pairs coincide.",
-    "scale": 0.9999999999999999,
-    "rmsMm": 1.4648213755271157e-14,
-    "maxMm": 2.161031364628563e-14,
-    "within5Percent": true,
-    "pairs": [
-      "EAC porus",
-      "mastoid tip",
-      "zygomatic root",
-      "stylomastoid foramen",
-      "IAC medial"
-    ],
-    "review": "\ubbf8\uac80\uc99d",
-    "license": "Original stylized mesh. Z-Anatomy LICENSE checked 2026-11-21 is CC BY-SA 4.0, but the redistributable file is a 293 MB Blender template and was not decimated into this GLB."
-  }
+  "landmarkCount": 56
 }

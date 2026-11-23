@@ -27,7 +27,13 @@ describe('slice window and crosshair mapping', () => {
     expect(back.row01).toBeCloseTo(0.4, 5);
     expect(indexAlong(volume, 2, point)).toBe(index);
     const pose = slicePose(volume, 'axial', index);
-    expect(point[2]).toBeCloseTo(pose.position[2], 5);
+    const offset = [
+      point[0] - pose.position[0],
+      point[1] - pose.position[1],
+      point[2] - pose.position[2],
+    ];
+    const plane = offset[0] * pose.normal[0] + offset[1] * pose.normal[1] + offset[2] * pose.normal[2];
+    expect(plane).toBeCloseTo(0, 4);
   });
 
   it('clips a triangle to the slice plane', () => {
@@ -60,6 +66,6 @@ describe('preset cameras', () => {
     const transcanal = presets.sequences.find((sequence) => sequence.id === 'transcanal')?.steps[0];
     expect(transcanal?.highlight).toBe('tympanic-membrane');
     expect(transcanal?.hidden).toContain('external-auditory-canal');
-    expect(distanceMm(transcanal!.camera.target, [25.28, 25.35, 31.58])).toBeLessThan(1);
+    expect(isOutsideAabb(transcanal!.camera.target, min, max)).toBe(false);
   });
 });

@@ -39,7 +39,6 @@ describe('temporal-bone manifest and content', () => {
   });
 
   it('validates every content file in the draft shape', () => {
-    const pending = new Set(['bone', 'tympanic-membrane', 'external-auditory-canal', 'cochleovestibular-nerve']);
     for (const structure of manifest.structures) {
       const content = readJson(resolve(data, structure.content)) as StructureContent;
       expect(validateContent(content, structure.id, knownIds), structure.id).toEqual([]);
@@ -47,8 +46,10 @@ describe('temporal-bone manifest and content', () => {
       expect(content.review).toBe('미검증');
       expect(content.anatomy.ko.length).toBeGreaterThan(0);
       expect(content.function.ko.length).toBeGreaterThan(0);
-      if (pending.has(structure.id)) expect(content.anatomy.ko).toContain('[샘플]');
-      else expect(content.anatomy.ko).not.toContain('[샘플]');
+      expect(content.anatomy.ko).not.toContain('[샘플]');
+      expect(content.anatomy.en).not.toContain('[Sample]');
+      expect(content.sources.length).toBeGreaterThan(0);
+      expect(content.sources.every((source) => source.citation.length > 0 && source.page.length > 0)).toBe(true);
       for (const point of content.surgical_points) {
         expect(point.position_mm).toBeUndefined();
         expect(point.text.ko.length).toBeGreaterThan(0);

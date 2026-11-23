@@ -1,13 +1,13 @@
 {
   "id": "carotid-artery",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
     "ko": "경동맥관 하방 개구는 경정맥구(jugular bulb) 함요의 바로 전방에 있으며, 둘 사이는 keel(쐐기골)로 분리됨\n상행부(ascending portion)는 추체부와 고실골 접합부에서 고실 전벽을 따라 머리 쪽으로 주행하고 관 안에 교감신경총을 동반함\n이관의 고실 개구 바로 내측, 와우 바로 전방에서 수평으로 꺾여 carotid genu를 이룬 뒤 중두개와에서 추체첨을 향해 수평 주행하고, foramen lacerum의 등쪽을 지나 해면정맥동으로 들어감\n수평부는 GSPN의 하내측, 삼차신경절의 하방을 지나며, 이관 고실구 내측벽의 피복골은 매우 얇거나 결손될 수 있음",
-    "en": ""
+    "en": "The petrous carotid enters just in front of the jugular bulb, climbs the anterior wall of the tympanum, and turns horizontally in front of the cochlea, medial to the eustachian tube opening."
   },
   "function": {
-    "ko": "추체부 경동맥관을 가로질러 해면정맥동으로 이어지는 주된 두개내 동맥 경로임\n관 내 교감신경총을 동반하며, 고실 전벽·이관·와우와 밀접하여 중이·추체첨 병변이나 외상에 노출될 수 있음\n전대뇌순환에 대한 영역별 공급 세부는 이번에 연 장에서 직접 확인하지 못해 미검증으로 둠",
-    "en": ""
+    "ko": "추체부 경동맥관을 가로질러 해면정맥동으로 이어지는 주된 두개내 동맥 경로임\n관 내 교감신경총을 동반하며, 고실 전벽·이관·와우와 밀접하여 중이·추체첨 병변이나 외상에 노출될 수 있음",
+    "en": "It is the main arterial path through the petrous bone into the cavernous sinus, and it carries a sympathetic plexus in the canal."
   },
   "surgical_points": [
     {
@@ -57,11 +57,6 @@
       "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch7 The Middle Cranial Fossa Approach to the Internal Auditory Canal",
       "page": "57–58",
       "verified": true
-    },
-    {
-      "citation": "내경동맥의 전대뇌순환 영역별 공급 세부",
-      "page": "이번 회차 미개봉",
-      "verified": false
     }
   ],
   "review": "미검증",

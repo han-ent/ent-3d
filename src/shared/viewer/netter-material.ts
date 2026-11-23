@@ -26,6 +26,7 @@ const FLUID_RAMPS: Record<string, Ramp> = {
   'scc-lateral': { lit: '#7FA8C8', shadow: '#3E6D90', highlight: '#D5E6F2' },
   'scc-superior': { lit: '#A9C7DE', shadow: '#5E8AAD', highlight: '#E7F3FA' },
   'scc-posterior': { lit: '#5E86A8', shadow: '#2C516E', highlight: '#C5D9E8' },
+  'common-crus': { lit: '#8FB6D0', shadow: '#4E7896', highlight: '#E4F2FA' },
 };
 
 function parse(hex: string): [number, number, number] {

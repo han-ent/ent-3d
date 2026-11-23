@@ -4,27 +4,27 @@
     "ko": "OpenEar ZETA CBCT. 0.25 mm. 파일 축은 +X 앞, +Y 아래, +Z 안쪽이라 axial 폴더는 해부학적 시상면입니다.",
     "en": "OpenEar ZETA CBCT. 0.25 mm. File axes are +X anterior, +Y inferior, +Z medial, so the axial folder is an anatomical sagittal stack."
   },
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "spacing_mm": [
     0.25,
     0.25,
     0.25
   ],
   "origin_mm": [
-    -19.744400024414062,
-    -7.682730197906494,
-    -1.6732300519943237
+    -28.862353,
+    16.500873,
+    43.684296
   ],
   "direction": [
-    1,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    1
+    0.86022428,
+    0.25853325,
+    0.4395165,
+    -0.2337293,
+    0.96597357,
+    -0.1107505,
+    -0.45319401,
+    -0.00745762,
+    0.89138071
   ],
   "dims": [
     334,

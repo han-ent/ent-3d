@@ -557,6 +557,10 @@ def landmark(item_id: str, parent: str, en: str, ko: str, xyz, clinical: str, an
 
 
 def main() -> None:
+    raise SystemExit(
+        "scripts/split_meshes.py would relabel canals by extreme vertices and overwrite the head registration. "
+        "Use scripts/anatomy_accuracy.py."
+    )
     WORK.mkdir(parents=True, exist_ok=True)
     scala_v, scala_vf = decode("scala-vestibuli")
     # The parent file is the original mesh. Do not copy scala-vestibuli.glb:

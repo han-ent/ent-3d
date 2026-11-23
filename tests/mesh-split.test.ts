@@ -33,9 +33,8 @@ describe('mesh split integrity', () => {
       expect(entry.exclusiveSum).toBe(entry.parentVertices);
     }
     expect(Object.keys(report['facial-nerve'].children)).toEqual([
-      'fn-meatal',
-      'fn-labyrinthine',
       'fn-geniculate',
+      'fn-labyrinthine',
       'fn-tympanic',
       'fn-second-genu',
       'fn-mastoid',

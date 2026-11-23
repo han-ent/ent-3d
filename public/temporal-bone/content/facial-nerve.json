@@ -1,13 +1,13 @@
 {
   "id": "facial-nerve",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
     "ko": "측두골 내에서는 fallopian canal을 따라 내이도(IAC) 기저(fundus)에서 stylomastoid foramen까지 주행하며, IAC 안에서는 섬유초·내신경막이 없고 얇은 거미막으로 둘러싸임\n미로 분절(labyrinthine segment)은 첫 분절로 가장 짧고 좁으며 와우 상방을 지나 슬상신경절와(geniculate fossa)로 열리고, 슬상신경절은 상고실 전방의 supratubal recess(STR) 바로 심부에 있으며 중두개와와는 매우 얇은 골로 분리됨(Cummings는 약 25%에서 골 결손)\n제1슬에서 greater superficial petrosal nerve(GSPN)가 전방으로 나가고 본간은 급히 후하방으로 고실(수평) 분절에 들어가 cochleariform process 상방을 스친 뒤 oval window niche의 상벽을 이룸\npyramidal eminence에서 제2슬을 이루어 유양(수직) 분절로 이행하며, 제2슬은 외측반고리관의 전하방·침골 단돌기를 지나는 선의 전방에 위치하고, 수직 분절을 상방 연장하면 외측반고리관 융기를 대략 이등분함",
-    "en": ""
+    "en": "Inside the temporal bone it runs in the fallopian canal from the fundus of the internal auditory canal to the stylomastoid foramen. The labyrinthine segment is the shortest and narrowest, and ends at the geniculate ganglion."
   },
   "function": {
     "ko": "제2새궁 유래 구조에 원심·구심 지배를 하며, 대부분의 특수내장원심섬유는 표정근, stapedius, stylohyoid, 이복근 후복을 지배함\nnervus intermedius의 일반내장원심섬유는 GSPN·익구개신경절을 통해 누선과 비점막 분비선에, 고삭신경·악하신경절을 통해 악하선·설하선에 부교감 지배를 전달함\n특수감각섬유는 고삭신경을 통해 혀 전 2/3의 미각을, GSPN을 통해 구개·편도와의 미각을 전달하며, 이들 감각 신경세포체는 슬상신경절에 있음",
-    "en": ""
+    "en": "It supplies the muscles of facial expression, stapedius, stylohyoid, and the posterior belly of digastric. Taste and lacrimal fibres travel with it and leave through the chorda and the greater petrosal nerve."
   },
   "surgical_points": [
     {

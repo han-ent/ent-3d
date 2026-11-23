@@ -1,13 +1,13 @@
 {
   "id": "chorda-tympani",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
     "ko": "유양(하행) 분절 중간에서 안면신경으로부터 분지한 뒤, 중이강의 후상사분면으로 전상방 주행하여 고실을 지나 petrotympanic fissure의 chorda tympani canaliculus로 나감\n이어서 전방으로 진행하다 외익돌근의 내측을 수직 하행하여 설신경(lingual nerve)과 합류함\n유양 분절 안면신경과 고삭 사이의 공간이 후고실개방(posterior tympanotomy, facial recess)의 해부 공간임\n고막이 투명한 경우 이경으로 보일 수 있음",
-    "en": ""
+    "en": "It leaves the mastoid segment of the facial nerve, crosses the upper middle ear, and exits through the petrotympanic fissure to join the lingual nerve."
   },
   "function": {
     "ko": "혀 전 2/3의 미각을 전달하며, 고실을 나온 뒤 설신경과 합류하여 혀로 이어짐\n부교감신경 섬유는 악하신경절을 거쳐 악하선·설하선의 분비를 지배함",
-    "en": ""
+    "en": "It carries taste from the anterior two-thirds of the tongue and secretomotor fibres to the submandibular and sublingual glands."
   },
   "surgical_points": [
     {
@@ -27,7 +27,7 @@
     {
       "id": "chorda-tympani-p3",
       "text": {
-        "ko": "경외이도: 고막 또는 고실 내에서 확인될 수 있으므로 고실 조작 시 견인·절단 가능성에 주의함 고삭이 추골 자루와 침골 장돌기 사이를 가로지른다는 전형적 기술은 이번에 연 Cummings·Francis 본문에서는 확인하지 못해 미검증으로 둠",
+        "ko": "경외이도: 고막이 투명하면 고실 안에서 보일 수 있으므로, 고실 조작 때 견인하거나 자르지 않도록 한다.",
         "en": ""
       }
     }
@@ -52,11 +52,6 @@
       "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch3 Mastoidectomy",
       "page": "34–35, 40",
       "verified": true
-    },
-    {
-      "citation": "고삭이 추골 자루와 침골 장돌기 사이를 가로지르는 전형적 중이사행 경로",
-      "page": "이번 회차에서 연 본문에서는 미확인",
-      "verified": false
     }
   ],
   "review": "미검증",

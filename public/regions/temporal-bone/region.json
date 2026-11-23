@@ -1,0 +1,22 @@
+{
+  "id": "temporal-bone",
+  "schema": "ent-region-v1",
+  "title": { "en": "Temporal bone", "ko": "측두골" },
+  "dataDir": "public/temporal-bone",
+  "manifest": "public/temporal-bone/manifest.json",
+  "structures": "public/temporal-bone/manifest.json#structures",
+  "landmarks": "public/temporal-bone/landmarks.json",
+  "terms": "public/shared/terms.json",
+  "sources": ["Som & Curtin, Head and Neck Imaging, 5th ed., Ch. 15", "Cummings Otolaryngology, 7th ed., Ch. 126, 129, 173", "Sanna, Middle Ear and Mastoid Microsurgery, 2nd ed., Ch. 1", "Möller, Pocket Atlas of Sectional Anatomy, Vol. 1, 4th ed."],
+  "perf": {
+    "maxDrawCalls": 32,
+    "maxTriangles": 280000,
+    "notes": "Leaf meshes plus the skull and auricle. Same budget as the viewer performance test."
+  },
+  "frame": { "x": "anterior", "y": "inferior", "z": "medial", "side": "right" },
+  "licence": {
+    "specimen": "OpenEar ZETA, CC BY 4.0",
+    "skull": "Z-Anatomy, CC BY-SA 4.0, from BodyParts3D CC BY-SA 2.1 JP",
+    "skin": "MakeHuman hm08, CC0 1.0"
+  }
+}

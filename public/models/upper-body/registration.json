@@ -2,140 +2,198 @@
   "review": "미검증",
   "scale": 1,
   "appliedScale": 1,
-  "within5Percent": false,
-  "rawUmeyamaScale": 0.8602734574817456,
-  "twoPointMastoidScale": 0.7635295499420219,
-  "previousRawScaleFromMastoid": 0.75,
-  "scaleDecision": "Neither mesh was rescaled. The two-point mastoid ratio is 0.76, the old 0.75 figure: both Z-Anatomy mastoid tips sit about 44 mm below the porion, against a male porion–mastoidale mean near 32 mm, while the ZETA drop is 33 mm. Applying 0.76 would shrink a 191 mm skull to about 145 mm and an 8.7 mm malleus to about 6.6 mm. Cranial length, bizygomatic breadth, and auricle height are not flagged. Umeyama on five pairs is scale 0.86 (RMS 4.9 mm), pulled by that mastoid. Without the mastoid the scale is 1.11 (RMS 1.3 mm), a local difference between two adults, not a unit error. Neither scale is applied. The entry scene stays at scale 1, anchored on the ear canal.",
-  "umeyamaWithoutMastoid": {
-    "scale": 1.1134025689143707,
-    "rmsMm": 1.262
-  },
-  "petrousApex": "Not paired. The medial edge of the ZETA bone is a crop near z = 59 mm, not a tapering petrous apex, and the decimated skull has no internal petrous surface.",
+  "within5Percent": true,
+  "scaleDecision": "The head stays upright, as on main. The temporal bone is rotated into that head: 30.8° in all (27° yaw about head-superior and 15° pitch about head-lateral). Scale stays 1. A uniform scale cannot match the mastoid, because the porion-to-mastoid lateral offset differs by about 20 mm between these two specimens, and shrinking the bone would shrink the ossicles. The translation seats the bony porus on the skull porus: 14 mm superior, 3.4 mm lateral, and 2 mm posterior from the concha-axis seat. The mastoid tip is left long on purpose. Scale stays 1 and the canal rotation is not refit.",
   "current": {
-    "method": "Scale 1. Translation only, so the Z-Anatomy right meatus sits on the ZETA canal centroid. No rotation.",
-    "rmsMm": 12.822,
+    "method": "Rigid rotation of the specimen into the upright head. rmsMm is the distance between independently defined landmark pairs.",
+    "rmsMm": 11.348,
     "pairs": [
       {
         "id": "eac-porus",
         "en": "EAC porus",
         "ko": "외이도 입구",
-        "method": "ZETA canal centroid. Skull: centroid of the lateral rim vertices of the right meatus, snapped to the nearest surface vertex.",
-        "zetaMm": [
-          28.249,
-          24.737,
-          23.902
-        ],
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          23.671,
-          18.598,
-          21.074
+          25.255,
+          36.659,
+          34.286
         ],
-        "residualMm": 8.164
+        "zetaMm": [
+          27.842,
+          33.689,
+          35.965
+        ],
+        "residualMm": 4.281,
+        "offsetMm": {
+          "forward": 3.24,
+          "up": 2.28,
+          "lateral": -1.62
+        }
       },
       {
         "id": "mastoid-tip",
         "en": "Mastoid tip",
         "ko": "유양돌기 첨부",
-        "method": "ZETA posterolateral inferior landmark. Skull: most inferior vertex of the right mastoid region.",
-        "zetaMm": [
-          18.534,
-          57.721,
-          15.977
-        ],
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          27.535,
-          62.408,
-          35.272
+          28.172,
+          66.967,
+          60.731
         ],
-        "residualMm": 21.801
+        "zetaMm": [
+          24.893,
+          69.313,
+          41.452
+        ],
+        "residualMm": 19.696,
+        "offsetMm": {
+          "forward": -4.08,
+          "up": -1.53,
+          "lateral": 19.21
+        }
       },
       {
         "id": "zygomatic-root",
         "en": "Zygomatic root",
         "ko": "관골돌기 기시부",
-        "method": "ZETA manual landmark. Skull: lateral surface just anterior to the meatus, at meatus height.",
-        "zetaMm": [
-          46.291,
-          20.534,
-          21.999
-        ],
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          38.333,
-          15.353,
-          21.537
+          32.364,
+          39.595,
+          37.029
         ],
-        "residualMm": 9.507
+        "zetaMm": [
+          33.617,
+          30.094,
+          35.327
+        ],
+        "residualMm": 9.733,
+        "offsetMm": {
+          "forward": 3.41,
+          "up": 8.94,
+          "lateral": 1.77
+        }
       },
       {
         "id": "stylomastoid-foramen",
         "en": "Stylomastoid foramen",
         "ko": "경유돌공",
-        "method": "ZETA distal facial-nerve landmark. Skull: same offset from the skull porion, snapped to the surface. The foramen itself is not resolved on the decimated skull.",
-        "zetaMm": [
-          17.843,
-          34.323,
-          27.179
-        ],
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          14.09,
-          26.518,
-          24.493
+          28.616,
+          48.539,
+          55.361
         ],
-        "residualMm": 9.067
-      },
-      {
-        "id": "styloid-base",
-        "en": "Styloid base",
-        "ko": "경상돌기 기저",
-        "method": "ZETA: bone vertex about 10 mm from the styloid tip back toward the stylomastoid foramen. Skull: same offset from the porion, snapped to the surface. The thin styloid is mostly lost on the decimated skull.",
         "zetaMm": [
-          22.674,
-          42.831,
-          30.892
+          30.826,
+          49.994,
+          52.689
         ],
-        "skullMm": [
-          15.829,
-          35.152,
-          29.612
-        ],
-        "residualMm": 10.366
+        "residualMm": 3.76,
+        "offsetMm": {
+          "forward": 1.76,
+          "up": -1.94,
+          "lateral": 2.7
+        }
       }
     ]
   },
-  "umeyama": {
-    "scale": 0.8602734574817456,
+  "applied": {
+    "scale": 1,
+    "maps": "specimen-to-upright-head",
     "rotation": [
       [
-        0.8260238305486404,
-        -0.42996802435544157,
-        0.36443398496523716
+        0.860224,
+        0.258533,
+        0.439516
       ],
       [
-        0.11166252147968503,
-        0.7585983213755518,
-        0.6419190510516155
+        -0.233729,
+        0.965974,
+        -0.11075
       ],
       [
-        -0.5524636754235986,
-        -0.48954681577769,
-        0.6746316050255892
+        -0.453194,
+        -0.007458,
+        0.891381
       ]
     ],
     "translationMm": [
-      13.155360833679833,
-      -1.469281645857464,
-      33.33504058852786
+      -9.1561,
+      19.122,
+      36.1704
     ],
-    "rmsMm": 4.879,
-    "residualsMm": [
-      2.967,
-      4.522,
-      6.073,
-      5.432,
-      4.837
+    "angleDeg": 30.82,
+    "yawDeg": -27.0,
+    "pitchDeg": 15.0,
+    "canalSlideMm": 19.0,
+    "rmsMm": 11.348
+  },
+  "headAxes": {
+    "anterior": [
+      0.971989,
+      -0.234364,
+      0.017637
     ],
-    "note": "Least-squares similarity from the skull points onto the ZETA points. Reported only. Not applied, because the ear-canal anchor is what the entry scene uses and the scale is not a unit correction."
+    "inferior": [
+      0.234416,
+      0.972136,
+      -0.000939
+    ],
+    "lateral": [
+      0.016925,
+      -0.005047,
+      -0.999844
+    ],
+    "superior": [
+      -0.234416,
+      -0.972136,
+      0.000939
+    ]
+  },
+  "canalPlanes": {
+    "lateralToFrankfortDeg": 30.0,
+    "superiorToSagittalDeg": 41.5,
+    "posteriorToSagittalDeg": 42.0
+  },
+  "containment": {
+    "outsideVertices": 0,
+    "outsideFraction": 0.0,
+    "vertices": 45476
+  },
+  "skullFit": {
+    "outsideOver3mm": 1031,
+    "outsideOver3mmFraction": 0.0227,
+    "insideFraction": 0.9748,
+    "insideDepthMedianMm": 11.34,
+    "vertices": 45476
+  },
+  "mastoidTipGapMm": 19.7,
+  "concha": {
+    "xyzMm": [
+      24.763,
+      45.342,
+      22.336
+    ],
+    "axisOffsetMm": 13.083,
+    "porusMm": [
+      27.842,
+      33.689,
+      35.965
+    ],
+    "porusBehindConchaMm": -13.52,
+    "conchaToPorusMm": 18.19,
+    "conchaToUmboMm": 35.02,
+    "definition": "Cavum conchae: medial floor of the inferior bowl of the auricle, on the unmoved pinna."
+  },
+  "umeyama": {
+    "scale": 1,
+    "rmsMm": 11.348,
+    "note": "Scale is fixed at 1. rmsMm is the matched-pair residual of the specimen rotation."
+  },
+  "umeyamaWithoutMastoid": {
+    "scale": 1.1134025689143707,
+    "rmsMm": 1.262
   },
   "dimensions": [
     {
@@ -199,16 +257,5 @@
       "source": "Same porion–mastoidale reference as the ZETA drop. Skull porion is the lateral meatus rim, so this is closer to the caliper definition than the canal centroid."
     }
   ],
-  "vertexMm": [
-    31.784,
-    -81.5,
-    91.367
-  ],
-  "noseMm": [
-    143.956,
-    42.106,
-    92.642
-  ],
-  "midZ": 92.004,
-  "source": "Z-Anatomy Startup.blend extract, CC BY-SA 4.0, derived from BodyParts3D CC BY-SA 2.1 JP. Skull, mandible, cervical vertebrae, clavicles, right auricle cartilage. No skin in that template."
+  "frameNote": "Head meshes are the upright main models. Specimen meshes are rotated into that frame."
 }

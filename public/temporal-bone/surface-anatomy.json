@@ -1,178 +1,213 @@
 {
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "review": "미검증",
   "labels": [
     {
       "id": "helix",
       "en": "Helix",
       "ko": "이륜",
-      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        32.755,
-        33.332,
-        4.962
+        34.157,
+        17.269,
+        3.251
       ],
       "review": "미검증",
-      "tier": "surface",
-      "method": "zanatomy"
+      "tier": "surface"
     },
     {
       "id": "crus-helix",
       "en": "Crus of helix",
       "ko": "이륜각",
-      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        37.077,
-        30.028,
-        11.125
+        43.316,
+        32.761,
+        14.865
       ],
       "review": "미검증",
-      "tier": "surface",
-      "method": "zanatomy"
+      "tier": "surface"
     },
     {
       "id": "antihelix",
       "en": "Antihelix",
       "ko": "대이륜",
-      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        33.492,
-        46.389,
-        9.021
+        38.927,
+        24.504,
+        10.687
       ],
       "review": "미검증",
-      "tier": "surface",
-      "method": "zanatomy"
+      "tier": "surface"
+    },
+    {
+      "id": "scapha",
+      "en": "Scapha",
+      "ko": "주상와",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        25.689,
+        32.36,
+        0.204
+      ],
+      "review": "미검증",
+      "tier": "surface"
+    },
+    {
+      "id": "triangular-fossa",
+      "en": "Triangular fossa",
+      "ko": "삼각와",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        37.681,
+        20.295,
+        9.846
+      ],
+      "review": "미검증",
+      "tier": "surface"
     },
     {
       "id": "cymba",
       "en": "Cymba conchae",
       "ko": "이갑개정",
-      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        33.475,
-        40.506,
-        16.187
+        45.182,
+        23.779,
+        13.857
       ],
       "review": "미검증",
-      "tier": "surface",
-      "method": "zanatomy"
+      "tier": "surface"
     },
     {
       "id": "cavum",
       "en": "Cavum conchae",
       "ko": "이갑개강",
-      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        38.913,
-        50.353,
-        22.074
+        42.033,
+        44.406,
+        20.044
       ],
       "review": "미검증",
-      "tier": "surface",
-      "method": "zanatomy"
+      "tier": "surface"
     },
     {
       "id": "tragus",
       "en": "Tragus",
       "ko": "이주",
-      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        47.554,
-        47.098,
-        19.853
+        52.969,
+        40.647,
+        20.477
       ],
       "review": "미검증",
-      "tier": "surface",
-      "method": "zanatomy"
+      "tier": "surface"
     },
     {
       "id": "antitragus",
       "en": "Antitragus",
       "ko": "대이주",
-      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        40.24,
-        58.735,
-        14.926
+        49.704,
+        46.388,
+        19.21
       ],
       "review": "미검증",
-      "tier": "surface",
-      "method": "zanatomy"
+      "tier": "surface"
     },
     {
       "id": "intertragic-notch",
       "en": "Intertragic notch",
       "ko": "주간절흔",
-      "anatomy": "Midpoint of the Z-Anatomy tragus and antitragus.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        43.897,
-        52.916,
-        17.39
+        50.126,
+        41.688,
+        19.87
       ],
       "review": "미검증",
       "tier": "surface"
@@ -181,38 +216,62 @@
       "id": "lobule",
       "en": "Lobule",
       "ko": "이수(귓불)",
-      "anatomy": "Centroid of the matching Z-Anatomy right-auricle part, aligned to the ZETA ear canal.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Jackler external-ear chapter identified in the phase-1 audit; the page was not opened for this draft",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
       "xyz_mm": [
-        43.323,
-        68.75,
-        20.239
+        50.078,
+        72.677,
+        29.261
       ],
       "review": "미검증",
-      "tier": "surface",
-      "method": "zanatomy"
+      "tier": "surface"
     },
     {
-      "id": "mastoid-tip-area",
+      "id": "mastoid-tip-skin",
       "en": "Mastoid tip",
       "ko": "유양돌기 첨부",
-      "anatomy": "Skin-surface anchor at the unverified mastoid-tip landmark.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Same unverified mastoid-tip landmark. Not checked against the skin surface.",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
-      "xyz_mm": [18.534, 57.721, 15.977],
+      "xyz_mm": [
+        22.937,
+        67.689,
+        34.199
+      ],
+      "review": "미검증",
+      "tier": "surface"
+    },
+    {
+      "id": "postauricular-sulcus",
+      "en": "Postauricular sulcus",
+      "ko": "이개후구",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        28.623,
+        28.123,
+        7.438
+      ],
       "review": "미검증",
       "tier": "surface"
     },
@@ -220,19 +279,85 @@
       "id": "zygomatic-arch",
       "en": "Zygomatic arch",
       "ko": "관골궁",
-      "anatomy": "Skin-surface anchor at the unverified zygomatic-root landmark.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
-          "citation": "Same unverified zygomatic-root landmark. Not checked against the skin surface.",
-          "page": "미검증",
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
           "verified": false
         }
       ],
-      "xyz_mm": [46.291, 20.534, 21.999],
+      "xyz_mm": [
+        37.105,
+        37.028,
+        18.269
+      ],
+      "review": "미검증",
+      "tier": "surface"
+    },
+    {
+      "id": "temporal-line-skin",
+      "en": "Temporal line",
+      "ko": "측두선",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        16.687,
+        26.572,
+        21.817
+      ],
+      "review": "미검증",
+      "tier": "surface"
+    },
+    {
+      "id": "tragal-pointer",
+      "en": "Tragal pointer",
+      "ko": "이주 포인터",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        52.71,
+        45.472,
+        20.803
+      ],
+      "review": "미검증",
+      "tier": "surface"
+    },
+    {
+      "id": "preauricular",
+      "en": "Preauricular area",
+      "ko": "이개전부",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 129",
+          "page": "Ch. 129",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        59.167,
+        35.406,
+        20.595
+      ],
       "review": "미검증",
       "tier": "surface"
     }
-  ],
-  "note": "Auricle points are centroids of Z-Anatomy cartilage parts. Mastoid tip and zygomatic arch are copied from the unverified temporal-bone landmarks so they can show on the skin. All of these anchors are unverified."
+  ]
 }

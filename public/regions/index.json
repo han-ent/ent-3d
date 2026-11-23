@@ -1,0 +1,10 @@
+{
+  "schema": "ent-region-v1",
+  "regions": [
+    {
+      "id": "temporal-bone",
+      "status": "active",
+      "region": "regions/temporal-bone/region.json"
+    }
+  ]
+}

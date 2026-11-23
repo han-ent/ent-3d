@@ -1,0 +1,10 @@
+{
+  "id": "ent-region-v1",
+  "description": "One folder per region under public/regions/<id>/. Meshes for the temporal bone stay at public/temporal-bone/ so the published URL does not move. A later region copies this shape and points dataDir at its own folder.",
+  "region": {
+    "required": ["id", "dataDir", "manifest", "structures", "landmarks", "terms", "sources", "perf"],
+    "perf": ["maxDrawCalls", "maxTriangles", "notes"]
+  },
+  "terms": "public/shared/terms.json",
+  "headLandmarks": "src/shared/head-landmarks.ts"
+}

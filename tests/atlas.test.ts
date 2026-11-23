@@ -11,7 +11,7 @@ function channel(hex: string, index: number): number {
 
 describe('atlas palette', () => {
   it('keeps facial-nerve segments on distinct yellows', () => {
-    const ids = ['fn-meatal', 'fn-labyrinthine', 'fn-geniculate', 'fn-tympanic', 'fn-second-genu', 'fn-mastoid'];
+    const ids = ['fn-labyrinthine', 'fn-geniculate', 'fn-tympanic', 'fn-second-genu', 'fn-mastoid'];
     const lits = ids.map((id) => illustrationRamp(id, STRUCTURE_COLOR[id]).lit);
     expect(new Set(lits).size).toBe(lits.length);
     for (const lit of lits) {
@@ -25,7 +25,7 @@ describe('atlas palette', () => {
     const bone = illustrationRamp('bone', '#F3F0E6');
     expect(channel(bone.lit, 0)).toBeGreaterThan(channel(bone.lit, 2));
     expect(channel(bone.shadow, 0)).toBeGreaterThan(channel(bone.shadow, 2));
-    const fluid = ['labyrinth', 'vestibule', 'scala-tympani', 'scala-vestibuli', 'scc-lateral', 'scc-superior', 'scc-posterior'];
+    const fluid = ['labyrinth', 'vestibule', 'scala-tympani', 'scala-vestibuli', 'scc-lateral', 'scc-superior', 'scc-posterior', 'common-crus'];
     const blues = fluid.map((id) => illustrationRamp(id, '#888888').lit);
     expect(new Set(blues).size).toBe(blues.length);
     for (const lit of blues) {

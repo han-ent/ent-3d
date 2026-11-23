@@ -1,23 +1,19 @@
 {
   "id": "scala-vestibuli-basal",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "전정과 반고리관을 뺀 전정계의 기저회전입니다.",
-    "en": "Basal turn of the cochlear scala vestibuli, after the vestibule and canals were removed."
+    "en": "The basal turn of the cochlear scala vestibuli.",
+    "ko": "와우 전정계의 기저회전이다."
   },
   "function": {
-    "ko": "기저 고실계와 나란합니다.",
-    "en": "Runs beside the basal scala tympani."
-  },
-  "clinical": {
-    "ko": "기저 고실계와 나란합니다.",
-    "en": "Runs beside the basal scala tympani."
+    "en": "It runs beside the basal scala tympani.",
+    "ko": "기저 고실계와 나란히 간다."
   },
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "audit",
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
       "verified": false
     }
   ],

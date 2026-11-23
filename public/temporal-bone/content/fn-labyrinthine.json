@@ -1,23 +1,19 @@
 {
   "id": "fn-labyrinthine",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "기저부 추정점에서 첫 굽이까지의 짧은 분절입니다.",
-    "en": "Short segment from the fundus estimate to the first bend."
+    "en": "From the fundus, where the nerve meets the cochleovestibular bundle, to the first genu. The span on this surface is 3.7 mm.",
+    "ko": "기저부에서 제1슬까지다. 신경이 와우전정신경다발과 만나는 곳에서 시작한다. 이 표면에서 3.7 mm."
   },
   "function": {
-    "ko": "가장 좁아 부종에 취약한 분절입니다. 보통 3–5 mm로 가르치나 이 절단은 미검증입니다.",
-    "en": "Narrowest segment and the one most sensitive to swelling. About 3–5 mm is the usual teaching range; this cut is unverified."
-  },
-  "clinical": {
-    "ko": "가장 좁아 부종에 취약한 분절입니다. 보통 3–5 mm로 가르치나 이 절단은 미검증입니다.",
-    "en": "Narrowest segment and the one most sensitive to swelling. About 3–5 mm is the usual teaching range; this cut is unverified."
+    "en": "It is the narrow course just lateral to the fundus. The internal auditory part is in the nerve bundle, not on this surface.",
+    "ko": "기저부 바로 가쪽의 좁은 주행이다. 내이도 부분은 이 표면이 아니라 신경다발 안에 있다."
   },
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "p1",
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 173 Intratemporal Facial Nerve Surgery",
+      "page": "Ch. 173",
       "verified": false
     }
   ],

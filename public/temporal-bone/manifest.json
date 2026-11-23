@@ -2,7 +2,7 @@
   "specimen": {
     "id": "openear-zeta",
     "name": "OpenEar ZETA",
-    "model_version": "openear-zeta-frame-2",
+    "model_version": "openear-zeta-frame-3",
     "licence": "CC-BY-4.0",
     "licence_url": "https://creativecommons.org/licenses/by/4.0/",
     "citation": "Sieber D, Erfurt P, John S, et al. The OpenEar library of 3D models of the human temporal bone based on computed tomography and micro-slicing. Sci Data. 2018;6:180297.",
@@ -10,11 +10,11 @@
     "data_url": "https://zenodo.org/records/1473724",
     "geometry": "openear",
     "geometry_note": {
-      "ko": "오른쪽 측두골 ZETA. 축은 +X 앞, +Y 아래, +Z 안쪽입니다. 전정계로 표시돼 있던 메시를 와우 전정계, 전정, 세 반고리관으로 나눴고, 안면신경은 6분절, 와우는 회전, 고막은 긴장부·이완부로 나눴습니다. 좌표와 분할 경계는 미검증입니다. S상정맥동·경막은 한 메시에 섞여 있을 수 있습니다. 경정맥구 메시는 없습니다.",
-      "en": "Right temporal bone, specimen ZETA. Axes are +X anterior, +Y inferior, +Z medial. The mesh labeled scala vestibuli was split into cochlear scala vestibuli, vestibule, and three semicircular canals. The facial nerve has six segments, the cochlea is split by turn, and the tympanic membrane into pars tensa and pars flaccida. Boundaries are unverified. Sinus and dura may still share one mesh. There is no jugular bulb mesh."
+      "en": "Right temporal bone, specimen ZETA, turned into the upright head. +X anterior, +Y inferior, +Z medial before that turn. Scale is 1.",
+      "ko": "오른쪽 측두골 ZETA를 똑바로 선 머리에 맞추었다. 맞추기 전 축은 +X 앞, +Y 아래, +Z 안쪽이다. 배율은 1이다."
     }
   },
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "viewer_offset_mm": [
     -22.710914611816406,
     -28.73894953727722,
@@ -23,20 +23,20 @@
   "coordinate_system": {
     "units": "mm",
     "x": {
-      "ko": "앞(+X) / 뒤(−X)",
-      "en": "anterior +X / posterior −X"
+      "en": "nearly anterior",
+      "ko": "거의 앞"
     },
     "y": {
-      "ko": "아래(+Y) / 위(−Y)",
-      "en": "inferior +Y / superior −Y"
+      "en": "nearly inferior",
+      "ko": "거의 아래"
     },
     "z": {
-      "ko": "안쪽(+Z) / 가쪽(−Z). 오른쪽 귀",
-      "en": "medial +Z / lateral −Z. Right ear"
+      "en": "nearly medial. Right ear",
+      "ko": "거의 안쪽. 오른쪽 귀"
     },
     "note": {
-      "ko": "메시 축은 RAS가 아닙니다. +X 앞, +Y 아래, +Z 안쪽입니다. 꼭짓점은 그대로이고 viewer_offset_mm만 화면 평행이동입니다. 배율은 1입니다.",
-      "en": "Mesh axes are not RAS. +X is anterior, +Y is inferior, +Z is medial. Vertices are unscaled; viewer_offset_mm is only a view translation."
+      "en": "Coordinates are millimetres in the upright head. Scale is 1. The exact anterior, inferior, and lateral directions are anatomicalFrame.",
+      "ko": "좌표는 똑바로 선 머리의 밀리미터다. 배율은 1이다. 정확한 앞·아래·가쪽은 anatomicalFrame에 있다."
     }
   },
   "layers": [
@@ -116,7 +116,12 @@
       "color": "#9A84B5",
       "layer": "inner-ear",
       "status": "미검증",
-      "content": "content/scala-tympani.json"
+      "content": "content/scala-tympani.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scala-tympani-basal",
@@ -129,7 +134,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-tympani-basal.json",
-      "parent": "scala-tympani"
+      "parent": "scala-tympani",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scala-tympani-middle",
@@ -142,7 +152,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-tympani-middle.json",
-      "parent": "scala-tympani"
+      "parent": "scala-tympani",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scala-tympani-apical",
@@ -155,7 +170,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-tympani-apical.json",
-      "parent": "scala-tympani"
+      "parent": "scala-tympani",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "labyrinth",
@@ -167,7 +187,12 @@
       "color": "#EFE6F8",
       "layer": "inner-ear",
       "status": "미검증",
-      "content": "content/labyrinth.json"
+      "content": "content/labyrinth.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scala-vestibuli",
@@ -180,7 +205,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-vestibuli.json",
-      "parent": "labyrinth"
+      "parent": "labyrinth",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scala-vestibuli-basal",
@@ -193,7 +223,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-vestibuli-basal.json",
-      "parent": "scala-vestibuli"
+      "parent": "scala-vestibuli",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scala-vestibuli-middle",
@@ -206,7 +241,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-vestibuli-middle.json",
-      "parent": "scala-vestibuli"
+      "parent": "scala-vestibuli",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scala-vestibuli-apical",
@@ -219,7 +259,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scala-vestibuli-apical.json",
-      "parent": "scala-vestibuli"
+      "parent": "scala-vestibuli",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "vestibule",
@@ -232,7 +277,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/vestibule.json",
-      "parent": "labyrinth"
+      "parent": "labyrinth",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scc-lateral",
@@ -245,7 +295,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scc-lateral.json",
-      "parent": "labyrinth"
+      "parent": "labyrinth",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scc-superior",
@@ -258,7 +313,12 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scc-superior.json",
-      "parent": "labyrinth"
+      "parent": "labyrinth",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "scc-posterior",
@@ -271,7 +331,30 @@
       "layer": "inner-ear",
       "status": "미검증",
       "content": "content/scc-posterior.json",
-      "parent": "labyrinth"
+      "parent": "labyrinth",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
+    },
+    {
+      "id": "common-crus",
+      "file": "models/common-crus.glb",
+      "name": {
+        "en": "Common crus",
+        "ko": "총각"
+      },
+      "color": "#6E94B4",
+      "layer": "inner-ear",
+      "status": "미검증",
+      "content": "content/common-crus.json",
+      "parent": "labyrinth",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "malleus",
@@ -283,7 +366,12 @@
       "color": "#C9842A",
       "layer": "ossicles",
       "status": "미검증",
-      "content": "content/malleus.json"
+      "content": "content/malleus.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "incus",
@@ -295,7 +383,12 @@
       "color": "#C9842A",
       "layer": "ossicles",
       "status": "미검증",
-      "content": "content/incus.json"
+      "content": "content/incus.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "stapes",
@@ -307,7 +400,12 @@
       "color": "#C9842A",
       "layer": "ossicles",
       "status": "미검증",
-      "content": "content/stapes.json"
+      "content": "content/stapes.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "facial-nerve",
@@ -319,20 +417,12 @@
       "color": "#E3B629",
       "layer": "nerve",
       "status": "미검증",
-      "content": "content/facial-nerve.json"
-    },
-    {
-      "id": "fn-meatal",
-      "file": "models/fn-meatal.glb",
-      "name": {
-        "ko": "안면신경 내이도부",
-        "en": "Meatal segment"
-      },
-      "color": "#F6D56B",
-      "layer": "nerve",
-      "status": "미검증",
-      "content": "content/fn-meatal.json",
-      "parent": "facial-nerve"
+      "content": "content/facial-nerve.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "fn-labyrinthine",
@@ -345,7 +435,12 @@
       "layer": "nerve",
       "status": "미검증",
       "content": "content/fn-labyrinthine.json",
-      "parent": "facial-nerve"
+      "parent": "facial-nerve",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "fn-geniculate",
@@ -358,7 +453,12 @@
       "layer": "nerve",
       "status": "미검증",
       "content": "content/fn-geniculate.json",
-      "parent": "facial-nerve"
+      "parent": "facial-nerve",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "fn-tympanic",
@@ -371,7 +471,12 @@
       "layer": "nerve",
       "status": "미검증",
       "content": "content/fn-tympanic.json",
-      "parent": "facial-nerve"
+      "parent": "facial-nerve",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "fn-second-genu",
@@ -384,7 +489,12 @@
       "layer": "nerve",
       "status": "미검증",
       "content": "content/fn-second-genu.json",
-      "parent": "facial-nerve"
+      "parent": "facial-nerve",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "fn-mastoid",
@@ -397,7 +507,12 @@
       "layer": "nerve",
       "status": "미검증",
       "content": "content/fn-mastoid.json",
-      "parent": "facial-nerve"
+      "parent": "facial-nerve",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "chorda-tympani",
@@ -409,7 +524,12 @@
       "color": "#F3E2A1",
       "layer": "nerve",
       "status": "미검증",
-      "content": "content/chorda-tympani.json"
+      "content": "content/chorda-tympani.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "cochleovestibular-nerve",
@@ -421,7 +541,12 @@
       "color": "#C48A2A",
       "layer": "nerve",
       "status": "미검증",
-      "content": "content/cochleovestibular-nerve.json"
+      "content": "content/cochleovestibular-nerve.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "tympanic-membrane",
@@ -433,7 +558,12 @@
       "color": "#D9B8B0",
       "layer": "membrane",
       "status": "미검증",
-      "content": "content/tympanic-membrane.json"
+      "content": "content/tympanic-membrane.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "tm-pars-tensa",
@@ -446,7 +576,12 @@
       "layer": "membrane",
       "status": "미검증",
       "content": "content/tm-pars-tensa.json",
-      "parent": "tympanic-membrane"
+      "parent": "tympanic-membrane",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "tm-pars-flaccida",
@@ -459,7 +594,12 @@
       "layer": "membrane",
       "status": "미검증",
       "content": "content/tm-pars-flaccida.json",
-      "parent": "tympanic-membrane"
+      "parent": "tympanic-membrane",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "external-auditory-canal",
@@ -471,7 +611,12 @@
       "color": "#CDB0A6",
       "layer": "canal",
       "status": "미검증",
-      "content": "content/external-auditory-canal.json"
+      "content": "content/external-auditory-canal.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "sinus-dura",
@@ -483,7 +628,12 @@
       "color": "#2F5FA8",
       "layer": "sinus",
       "status": "미검증",
-      "content": "content/sinus-dura.json"
+      "content": "content/sinus-dura.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "carotid-artery",
@@ -495,7 +645,12 @@
       "color": "#C8322F",
       "layer": "vessel",
       "status": "미검증",
-      "content": "content/carotid-artery.json"
+      "content": "content/carotid-artery.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     },
     {
       "id": "bone",
@@ -507,49 +662,54 @@
       "color": "#F3F0E6",
       "layer": "bone",
       "status": "미검증",
-      "content": "content/bone.json"
+      "content": "content/bone.json",
+      "provenance": {
+        "specimen": "OpenEar ZETA",
+        "licence": "CC-BY-4.0",
+        "source": "https://zenodo.org/records/1473724"
+      }
     }
   ],
   "missing_structures": [
     {
       "name": "Jugular bulb",
-      "note": "Not segmented. A review point is in landmarks.json. This is the jugular bulb (경정맥구), not the jugular foramen (목정맥공)."
+      "note": "A review point is in landmarks.json. This is the jugular bulb (경정맥구), not the jugular foramen (목정맥공)."
     },
     {
-      "name": "Mastoid antrum mesh",
-      "note": "Phase 1 has a landmark only. Air-cell segmentation is later."
+      "name": "Mastoid antrum",
+      "note": "Only a landmark is shown."
     }
   ],
   "anatomicalFrame": {
     "anterior": [
-      1,
-      0,
-      0
+      0.971989,
+      -0.234364,
+      0.017637
     ],
     "posterior": [
-      -1,
-      0,
-      0
+      -0.971989,
+      0.234364,
+      -0.017637
     ],
     "inferior": [
-      0,
-      1,
-      0
+      0.234416,
+      0.972136,
+      -0.000939
     ],
     "superior": [
-      0,
-      -1,
-      0
+      -0.234416,
+      -0.972136,
+      0.000939
     ],
     "medial": [
-      0,
-      0,
-      1
+      -0.016925,
+      0.005047,
+      0.999844
     ],
     "lateral": [
-      0,
-      0,
-      -1
+      0.016925,
+      -0.005047,
+      -0.999844
     ],
     "review": "미검증"
   }

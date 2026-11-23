@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkDimension, det3, pairDistances, rms, umeyama, type Mat3 } from '../src/shared/registration';
+import { checkDimension, det3, rms, umeyama, type Mat3 } from '../src/shared/registration';
 import type { Vec3 } from '../src/shared/types';
 
 function apply(rotation: Mat3, scale: number, translation: Vec3, point: Vec3): Vec3 {
@@ -53,30 +53,55 @@ describe('Umeyama registration', () => {
     expect(fit.scale).toBeGreaterThan(0);
   });
 
-  it('matches the stored skull-to-ZETA pairs and keeps scale 1', () => {
+  it('applies a scale-1 rigid map and keeps the outer-landmark gaps', () => {
     const file = JSON.parse(
       readFileSync(resolve(import.meta.dirname, '../public/models/upper-body/registration.json'), 'utf8'),
     ) as {
       scale: number;
       appliedScale: number;
       review: string;
-      current: { rmsMm: number; pairs: { zetaMm: Vec3; skullMm: Vec3; residualMm: number }[] };
-      umeyama: { scale: number; rmsMm: number; residualsMm: number[] };
+      containment: { outsideFraction: number; outsideVertices: number };
+      concha: { axisOffsetMm: number; porusBehindConchaMm: number };
+      skullFit: { outsideOver3mmFraction: number };
+      mastoidTipGapMm: number;
+      applied: { scale: number; rotation: Mat3; translationMm: Vec3; angleDeg: number; rmsMm: number; maps: string };
+      current: { rmsMm: number; pairs: { id: string; zetaMm: Vec3; skullMm: Vec3; residualMm: number }[] };
+      canalPlanes: { lateralToFrankfortDeg: number; superiorToSagittalDeg: number; posteriorToSagittalDeg: number };
       dimensions: { id: string; valueMm: number; meanMm: number; sdMm: number; flagged: boolean }[];
     };
     expect(file.review).toBe('미검증');
     expect(file.appliedScale).toBe(1);
     expect(file.scale).toBe(1);
-    const skull = file.current.pairs.map((pair) => pair.skullMm);
-    const zeta = file.current.pairs.map((pair) => pair.zetaMm);
-    const current = pairDistances(skull, zeta);
-    current.forEach((value, index) => expect(value).toBeCloseTo(file.current.pairs[index].residualMm, 2));
-    expect(rms(current)).toBeCloseTo(file.current.rmsMm, 2);
-    const fit = umeyama(skull, zeta);
-    expect(fit.scale).toBeCloseTo(file.umeyama.scale, 3);
-    expect(fit.rmsMm).toBeCloseTo(file.umeyama.rmsMm, 2);
-    fit.residualsMm.forEach((value, index) => expect(value).toBeCloseTo(file.umeyama.residualsMm[index], 2));
-    expect(det3(fit.rotation)).toBeCloseTo(1, 4);
+    expect(file.applied.scale).toBe(1);
+    expect(det3(file.applied.rotation)).toBeCloseTo(1, 4);
+    expect(file.applied.angleDeg).toBeGreaterThan(10);
+    expect(file.applied.angleDeg).toBeLessThan(40);
+    expect(file.containment.outsideVertices).toBe(0);
+    expect(file.containment.outsideFraction).toBe(0);
+    expect(file.concha.porusBehindConchaMm).toBeLessThan(-8);
+    expect(file.concha.porusBehindConchaMm).toBeGreaterThan(-16);
+    expect(file.skullFit.outsideOver3mmFraction).toBeLessThan(0.05);
+    expect(file.containment.outsideVertices).toBe(0);
+    const porus = file.current.pairs.find((pair) => pair.id === 'eac-porus');
+    expect(porus?.residualMm).toBeLessThan(6);
+    expect(file.current.pairs.some((pair) => pair.id === 'arcuate-eminence')).toBe(false);
+    expect(file.applied.maps).toBe('specimen-to-upright-head');
+    expect(file.current.pairs.length).toBeGreaterThanOrEqual(4);
+    expect(file.current.pairs.some((pair) => pair.id === 'styloid-base' || pair.id === 'henle-spine')).toBe(false);
+    const skullKeys = file.current.pairs.map((pair) => pair.skullMm.join(','));
+    expect(new Set(skullKeys).size).toBe(skullKeys.length);
+    const gaps = file.current.pairs.map((pair) =>
+      Math.hypot(pair.skullMm[0] - pair.zetaMm[0], pair.skullMm[1] - pair.zetaMm[1], pair.skullMm[2] - pair.zetaMm[2]),
+    );
+    gaps.forEach((value, index) => expect(value).toBeCloseTo(file.current.pairs[index].residualMm, 2));
+    expect(rms(gaps)).toBeCloseTo(file.current.rmsMm, 2);
+    expect(file.current.rmsMm).toBeLessThan(18);
+    expect(file.canalPlanes.lateralToFrankfortDeg).toBeGreaterThanOrEqual(25);
+    expect(file.canalPlanes.lateralToFrankfortDeg).toBeLessThanOrEqual(30);
+    expect(file.canalPlanes.superiorToSagittalDeg).toBeGreaterThanOrEqual(40);
+    expect(file.canalPlanes.superiorToSagittalDeg).toBeLessThanOrEqual(55);
+    expect(file.canalPlanes.posteriorToSagittalDeg).toBeGreaterThanOrEqual(40);
+    expect(file.canalPlanes.posteriorToSagittalDeg).toBeLessThanOrEqual(55);
     for (const dimension of file.dimensions) {
       expect(checkDimension(dimension.id, dimension.valueMm, dimension.meanMm, dimension.sdMm).flagged).toBe(
         dimension.flagged,

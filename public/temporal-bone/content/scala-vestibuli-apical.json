@@ -1,23 +1,19 @@
 {
   "id": "scala-vestibuli-apical",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "전정계의 첨부회전입니다.",
-    "en": "Apical turn of the cochlear scala vestibuli."
+    "en": "The apical turn of the cochlear scala vestibuli.",
+    "ko": "와우 전정계의 첨부회전이다."
   },
   "function": {
-    "ko": "와우축 기준 각도 분할입니다.",
-    "en": "Angle split about the modiolus."
-  },
-  "clinical": {
-    "ko": "와우축 기준 각도 분할입니다.",
-    "en": "Angle split about the modiolus."
+    "en": "It is the part nearest the helicotrema.",
+    "ko": "와우공에 가장 가까운 부분이다."
   },
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "audit",
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
       "verified": false
     }
   ],

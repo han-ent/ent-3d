@@ -15,7 +15,6 @@ export const STRUCTURE_SYSTEMS: StructureSystem[] = [
     name: { ko: '신경', en: 'Nerve' },
     ids: [
       'facial-nerve',
-      'fn-meatal',
       'fn-labyrinthine',
       'fn-geniculate',
       'fn-tympanic',
@@ -47,6 +46,7 @@ export const STRUCTURE_SYSTEMS: StructureSystem[] = [
       'scc-lateral',
       'scc-superior',
       'scc-posterior',
+      'common-crus',
     ],
   },
   {

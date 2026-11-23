@@ -1,8 +1,8 @@
 {
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "note": {
-    "ko": "카메라의 위쪽은 머리의 위(−Y)입니다. 축은 +X 앞, +Y 아래, +Z 안쪽입니다. 뼈를 갈아내는 기능은 없습니다. 유양동 점은 추정이며 미검증입니다.",
-    "en": "Camera up is head-superior (−Y). Axes are +X anterior, +Y inferior, +Z medial. Bone is not drilled. The antrum point is an estimate and is unverified."
+    "en": "Camera up is the top of the head. The temporal bone has been turned into that upright head. Bone is not drilled. The antrum point is an estimate and is unverified.",
+    "ko": "카메라의 위쪽은 머리의 위다. 측두골은 그 똑바로 선 머리에 맞춰 돌려 두었다. 뼈를 갈아내는 기능은 없다. 유양동 점은 추정이며 미검증이다."
   },
   "sequences": [
     {
@@ -52,23 +52,24 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
             "position": [
-              -55,
-              78,
-              -48
+              -57.3996,
+              112.6391,
+              17.7281
             ],
             "target": [
-              8,
-              48,
-              14
+              16.2885,
+              62.0684,
+              44.6663
             ],
             "up": [
-              0,
-              -1,
-              0
+              -0.258533,
+              -0.965974,
+              0.007458
             ],
             "fov": 28
           }
@@ -80,8 +81,8 @@
             "en": "Antrum"
           },
           "instructions": {
-            "ko": "유양동 메시는 없습니다. 점은 추정 위치이며 미검증입니다.",
-            "en": "There is no antrum mesh. The point is an estimate and is unverified."
+            "ko": "유양동은 점으로만 표시되어 있고 함기셀은 그려져 있지 않다. 점은 미검증이다.",
+            "en": "The antrum is marked by a point. The air cells themselves are not shown. The point is unverified."
           },
           "identify": [],
           "danger": [
@@ -110,6 +111,7 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "marker": {
@@ -119,28 +121,28 @@
               "en": "Antrum"
             },
             "position_mm": [
-              24.15,
-              18.46,
-              24.56
+              27.1854,
+              28.5893,
+              46.9804
             ],
-            "source": "유양동 메시는 없습니다. Henle 극 추정점에서 안쪽·뒤·위로 둔 점이며 미검증입니다.",
+            "source": "Henle 극에서 안쪽·뒤·위로 둔 점이다. 미검증이다.",
             "review": "미검증"
           },
           "camera": {
             "position": [
-              -28,
-              62,
-              -36
+              -33.0359,
+              89.5438,
+              16.3078
             ],
             "target": [
-              24.15,
-              18.46,
-              24.56
+              27.1854,
+              28.5893,
+              46.9804
             ],
             "up": [
-              0,
-              -1,
-              0
+              -0.258533,
+              -0.965974,
+              0.007458
             ],
             "fov": 28
           }
@@ -186,23 +188,24 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
             "position": [
-              -18,
-              58,
-              -42
+              -28.1049,
+              84.0071,
+              6.4574
             ],
             "target": [
-              20,
-              28,
-              31
+              28.9123,
+              38.0614,
+              54.5306
             ],
             "up": [
-              0,
-              -1,
-              0
+              -0.258533,
+              -0.965974,
+              0.007458
             ],
             "fov": 28
           }
@@ -249,23 +252,24 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
             "position": [
-              -25,
-              59,
-              -54
+              -39.1421,
+              87.9382,
+              -1.0743
             ],
             "target": [
-              23,
-              22,
-              30
+              29.5023,
+              31.6752,
+              52.3243
             ],
             "up": [
-              0,
-              -1,
-              0
+              -0.258533,
+              -0.965974,
+              0.007458
             ],
             "fov": 28
           }
@@ -286,8 +290,8 @@
             "en": "Tympanic membrane and ossicles"
           },
           "instructions": {
-            "ko": "외이도 축에서 고막과 추골을 봅니다. 외이도 메시는 숨겨 고막이 보이게 합니다.",
-            "en": "Along the canal axis, toward the tympanic membrane and malleus. The canal mesh is hidden so the membrane shows."
+            "ko": "외이도 축에서 고막과 추골을 본다. 외이도는 숨겨 고막이 보이게 한다.",
+            "en": "Along the canal axis, toward the tympanic membrane and malleus. The canal is hidden so the membrane shows."
           },
           "identify": [
             "tympanic-membrane",
@@ -320,23 +324,24 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
             "position": [
-              33.3,
-              13.4,
-              -68.4
+              -7.1092,
+              31.8582,
+              -39.9913
             ],
             "target": [
-              25.28,
-              25.35,
-              31.58
+              33.0241,
+              34.2033,
+              52.6745
             ],
             "up": [
-              0,
-              -1,
-              0
+              -0.258533,
+              -0.965974,
+              0.007458
             ],
             "fov": 28
           }
@@ -382,7 +387,8 @@
             "vestibule",
             "scc-lateral",
             "scc-superior",
-            "scc-posterior"
+            "scc-posterior",
+            "common-crus"
           ],
           "ghosted": [
             "bone"
@@ -395,23 +401,24 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
             "position": [
-              22,
-              -83,
-              38
+              5.0122,
+              -70.4043,
+              60.6916
             ],
             "target": [
-              22,
-              22,
-              38
+              32.1582,
+              31.0229,
+              59.9086
             ],
             "up": [
-              1,
-              0,
-              0
+              0.860224,
+              -0.233729,
+              -0.453194
             ],
             "fov": 28
           }
