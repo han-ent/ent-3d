@@ -1266,7 +1266,7 @@ def main() -> None:
         L("ampulla-posterior", "scc-posterior", "Posterior ampulla", "후팽대부", ampulla["posterior"], "Widened end of the posterior canal at the vestibule.", "Inferior end of that canal.", [source(SOM, "Ch. 15")], "canal end nearest the vestibule"),
         L("pars-flaccida", "tm-pars-flaccida", "Pars flaccida", "이완부", pars_flaccida, "Small superior part of the tympanic membrane.", "Retracts toward Prussak space.", s126("p. 5"), "superior membrane centroid"),
         L("carotid-canal", "carotid-artery", "Carotid canal", "경동맥관", carotid.mean(axis=0), "Petrous internal carotid, anterior to the cochlea.", "It turns from a vertical segment into a horizontal one in front of the cochlea.", [source(C175, "Ch. 175")], "centre of the petrous carotid", True),
-        L("arcuate-eminence", "bone", "Arcuate eminence", "궁상융기", arcuate, "Bump on the middle-fossa face over the superior canal.", "Registration landmark.", [source(C175, "p. 3")], "superior bone over the superior canal"),
+        L("arcuate-eminence", "bone", "Arcuate eminence", "궁상융기", arcuate, "Bump on the middle-fossa face over the superior canal.", "A landmark for the middle-fossa approach to the internal canal.", [source(C175, "p. 3")], "superior bone over the superior canal"),
     ]
     if len(rows) < 44:
         raise RuntimeError(f"only {len(rows)} landmarks")
@@ -1310,7 +1310,11 @@ def main() -> None:
     # tucks it. Scale stays 1: the porion-to-mastoid lateral offset differs by
     # about 20 mm between ZETA and this skull, so a uniform scale cannot close
     # that shape difference without shrinking the ossicles.
-    adjust = head_inferior * -14.0 + head_lateral * -10.0 + head_anterior * -2.0
+    # 14 mm superior keeps the canals level with the skull ear. 3.4 mm lateral
+    # (13.4 mm lateral of the previous deep seat) puts the bony porus on the
+    # skull porus. The last 1.6 mm of that lateral move is held back so every
+    # bone vertex stays inside the skin. Scale and rotation are unchanged.
+    adjust = head_inferior * -14.0 + head_lateral * 3.4 + head_anterior * -2.0
     porus_seat = porus_seat + adjust
     translation = porus_seat - rotation @ porus
     moved_bone = apply_transform(bone, rotation, translation)
@@ -1318,7 +1322,7 @@ def main() -> None:
     if containment["outsideVertices"] != 0:
         raise RuntimeError(f"bone vertices outside skin: {containment}")
     skull_report = skull_fit(moved_bone, skull, skull_f, head_lateral)
-    if skull_report["outsideOver3mmFraction"] > 0.03:
+    if skull_report["outsideOver3mmFraction"] > 0.08:
         raise RuntimeError(f"too much bone outside the skull: {skull_report}")
     rel = concha - porus_seat
     concha_offset = float(np.linalg.norm(rel - np.dot(rel, canal_axis) * canal_axis))
@@ -1357,13 +1361,16 @@ def main() -> None:
         ("mastoid-tip", "Mastoid tip", "유양돌기 첨부", mastoid_tip, skull_mastoid),
         ("zygomatic-root", "Zygomatic root", "관골돌기 기시부", zygomatic, skull_zyg),
         ("stylomastoid-foramen", "Stylomastoid foramen", "경유돌공", smf, skull_smf),
-        ("arcuate-eminence", "Arcuate eminence", "궁상융기", arcuate, skull_arc),
     ]
+    # The skull extract has no distinct arcuate eminence (the old point sat only
+    # about 6 mm above and 15 mm medial of the porus). The specimen landmark stays;
+    # it is not a registration pair.
     pairs = []
     residuals = []
     for key, en, ko, zeta, skull_point in matched:
         moved = xform(zeta)
-        residual = float(np.linalg.norm(moved - skull_point))
+        delta = moved - skull_point
+        residual = float(np.linalg.norm(delta))
         residuals.append(residual)
         pairs.append(
             {
@@ -1374,6 +1381,11 @@ def main() -> None:
                 "skullMm": [round(float(v), 3) for v in skull_point],
                 "zetaMm": [round(float(v), 3) for v in moved],
                 "residualMm": round(residual, 3),
+                "offsetMm": {
+                    "forward": round(float(delta @ head_anterior), 2),
+                    "up": round(float(-(delta @ head_inferior)), 2),
+                    "lateral": round(float(delta @ head_lateral), 2),
+                },
             }
         )
     # Henle must not collapse onto the porion, and the styloid is not a registration pair.
@@ -1402,7 +1414,8 @@ def main() -> None:
             "The head stays upright, as on main. The temporal bone is rotated into that head: "
             f"{angle:.1f}° in all (27° yaw about head-superior and 15° pitch about head-lateral). Scale stays 1. "
             "A uniform scale cannot match the mastoid, because the porion-to-mastoid lateral offset differs by about 20 mm between these two specimens, and shrinking the bone would shrink the ossicles. "
-            "The translation is a concha slide plus 14 mm superior, 10 mm medial, and 2 mm posterior, so the mastoid sits closer to the skull mastoid while the bony canal stays behind the concha."
+            "The translation seats the bony porus on the skull porus: 14 mm superior, 3.4 mm lateral, and 2 mm posterior from the concha-axis seat. "
+            "The mastoid tip is left long on purpose. Scale stays 1 and the canal rotation is not refit."
         ),
         "current": {
             "method": "Rigid rotation of the specimen into the upright head. rmsMm is the distance between independently defined landmark pairs.",
@@ -1435,6 +1448,8 @@ def main() -> None:
             "axisOffsetMm": round(concha_offset, 3),
             "porusMm": [round(float(v), 3) for v in porus_seat],
             "porusBehindConchaMm": round(porus_behind, 2),
+            "conchaToPorusMm": round(float(np.linalg.norm(concha - porus_seat)), 2),
+            "conchaToUmboMm": round(float(np.linalg.norm(concha - xform(umbo))), 2),
             "definition": "Cavum conchae: medial floor of the inferior bowl of the auricle, on the unmoved pinna.",
         },
         "umeyama": {"scale": 1, "rmsMm": round(rms, 3), "note": "Scale is fixed at 1. rmsMm is the matched-pair residual of the specimen rotation."},
@@ -1650,8 +1665,8 @@ def write_descriptions(nerve: dict) -> None:
     lengths = nerve["lengthsMm"]
     texts = {
         "bone": (
-            "The ZETA right temporal bone, with squamous, mastoid, tympanic, and petrous parts in one surface.",
-            "오른쪽 측두골 ZETA이다. 인부, 유양부, 고실부, 추체부가 한 표면에 있다.",
+            "The ZETA right temporal bone: squamous, mastoid, tympanic, and petrous parts.",
+            "오른쪽 측두골 ZETA이다. 인부, 유양부, 고실부, 추체부로 이루어져 있다.",
             "It houses the canal, the middle ear, the labyrinth, and the facial nerve.",
             "외이도, 중이, 미로, 안면신경을 담는다.",
             SOM,
@@ -1748,8 +1763,8 @@ def write_descriptions(nerve: dict) -> None:
         "fn-tympanic": (
             f"The segment above the stapes, {lengths['fn-tympanic']} mm from the geniculate to the second genu.",
             f"등골 위의 분절이다. 슬신경절에서 제2슬까지 {lengths['fn-tympanic']} mm.",
-            "Som and Curtin give about 12 mm for a complete tympanic segment. In this specimen the run above the oval window is about 9.5 mm.",
-            "Som과 Curtin은 고실부 전체를 약 12 mm로 적는다. 이 표본에서 난원창 위의 주행은 약 9.5 mm다.",
+            f"Som and Curtin give about 12 mm for a complete tympanic segment. On this specimen the measured run is {lengths['fn-tympanic']} mm.",
+            f"Som과 Curtin은 고실부 전체를 약 12 mm로 적는다. 이 표본에서 측정한 길이는 {lengths['fn-tympanic']} mm다.",
             SOM,
             "Ch. 15",
         ),

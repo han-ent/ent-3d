@@ -159,6 +159,8 @@ export class EntViewer {
   private flashUntil = 0;
   private upperBody: THREE.Mesh | null = null;
   private skullLayer: THREE.Mesh | null = null;
+  private temporalCenter = new THREE.Vector3();
+  private temporalRadius = { value: 0 };
   private skinMesh: THREE.Mesh | null = null;
   private style: RenderStyle = 'atlas';
   private hullsOn = true;
@@ -910,6 +912,7 @@ export class EntViewer {
 
   private refreshLook(): void {
     for (const record of this.records.values()) this.applyLook(record);
+    this.syncSkullTemporalClip();
     this.syncCallouts();
     this.invalidate();
   }
@@ -1329,8 +1332,8 @@ export class EntViewer {
       const mesh = found[0];
       if (!mesh) return;
       const id = kind === 'auricle' ? 'upper-body' : kind === 'skin' ? 'skin' : 'skull-layer';
-      const cutScale = kind === 'skull' ? 0.98 : kind === 'auricle' ? 0.22 : 1;
-      mesh.material = this.makeEntryMaterial(id, kind === 'auricle' ? '#E7A888' : kind === 'skin' ? '#E7A888' : '#F6D9A4', cutScale, kind === 'skull');
+      const cutScale = kind === 'skull' ? 0 : kind === 'auricle' ? 0.22 : 1;
+      mesh.material = this.makeEntryMaterial(id, kind === 'auricle' ? '#E7A888' : kind === 'skin' ? '#E7A888' : '#F6D9A4', cutScale, false);
       mesh.matrixAutoUpdate = false;
       mesh.updateMatrix();
       if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
@@ -1417,9 +1420,30 @@ export class EntViewer {
     const open = this.cutRadius.value > 8;
     if (this.skinMesh) this.skinMesh.visible = !open;
     if (this.upperBody) this.upperBody.visible = !open;
-    // The skull sits inside the skin. Its outline shows through the occiput crease, so it stays hidden.
-    if (this.skullLayer) this.skullLayer.visible = false;
+    this.syncSkullTemporalClip();
     this.paintAuricle(open);
+  }
+
+  /** Hide the skull's own temporal bone wherever the specimen bone is on screen. */
+  private syncSkullTemporalClip(): void {
+    const bone = this.records.get('bone');
+    const showSpecimen = Boolean(bone?.object.visible);
+    if (this.skullLayer) this.skullLayer.visible = showSpecimen;
+    if (!showSpecimen || !bone) {
+      this.temporalRadius.value = 0;
+      return;
+    }
+    if (!this.eacMm) {
+      this.temporalRadius.value = 0;
+      return;
+    }
+    this.temporalCenter.set(this.eacMm[0] + this.offset[0], this.eacMm[1] + this.offset[1], this.eacMm[2] + this.offset[2]);
+    this.temporalRadius.value = 46;
+    const material = this.skullLayer?.material;
+    if (material instanceof THREE.ShaderMaterial) {
+      if (material.uniforms.uTemporalCenter) material.uniforms.uTemporalCenter.value = this.temporalCenter;
+      if (material.uniforms.uTemporalRadius) material.uniforms.uTemporalRadius.value = this.temporalRadius.value;
+    }
   }
 
   renderStyle(): RenderStyle {
@@ -1540,6 +1564,8 @@ export class EntViewer {
         detail: atlasDetail(id),
         reveal,
       });
+      material.uniforms.uTemporalCenter = { value: this.temporalCenter };
+      material.uniforms.uTemporalRadius = this.temporalRadius;
       if (id === 'skin') {
         material.polygonOffset = true;
         material.polygonOffsetFactor = -2;
@@ -1566,14 +1592,17 @@ export class EntViewer {
       shader.uniforms.uCutRadius = radius;
       shader.uniforms.uCutScale = { value: cutScale };
       shader.uniforms.uReveal = { value: reveal ? 1 : 0 };
+      shader.uniforms.uTemporalCenter = { value: this.temporalCenter };
+      shader.uniforms.uTemporalRadius = this.temporalRadius;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;')
         .replace('#include <project_vertex>', '#include <project_vertex>\nvEntWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;\nuniform float uCutScale;\nuniform float uReveal;')
+        .replace('#include <common>', '#include <common>\nvarying vec3 vEntWorld;\nuniform vec3 uCutCenter;\nuniform float uCutRadius;\nuniform float uCutScale;\nuniform float uReveal;\nuniform vec3 uTemporalCenter;\nuniform float uTemporalRadius;')
         .replace(
           '#include <dithering_fragment>',
           `float entDist = distance(vEntWorld, uCutCenter);
+          if (uTemporalRadius > 1.0 && distance(vEntWorld, uTemporalCenter) < uTemporalRadius) discard;
           if (uReveal > 0.5) {
             if (uCutRadius < 1.0 || entDist > uCutRadius * max(uCutScale, 0.01)) discard;
           } else if (uCutScale > 0.0 && uCutRadius > 0.0 && entDist < uCutRadius * uCutScale) discard;

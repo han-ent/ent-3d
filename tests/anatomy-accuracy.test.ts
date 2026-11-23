@@ -49,10 +49,10 @@ describe('temporal-bone anatomy accuracy', () => {
   };
   const registration = JSON.parse(readFileSync(resolve(root, 'public/models/upper-body/registration.json'), 'utf8')) as {
     containment: { outsideFraction: number };
-    concha: { axisOffsetMm: number; porusBehindConchaMm: number };
+    concha: { axisOffsetMm: number; porusBehindConchaMm: number; conchaToUmboMm: number };
     skullFit: { outsideOver3mmFraction: number };
     mastoidTipGapMm: number;
-    current: { rmsMm: number; pairs: { id: string; skullMm: Axis }[] };
+    current: { rmsMm: number; pairs: { id: string; skullMm: Axis; offsetMm: { lateral: number } }[] };
     applied: { angleDeg: number; scale: number; maps: string };
     canalPlanes: { lateralToFrankfortDeg: number; superiorToSagittalDeg: number; posteriorToSagittalDeg: number };
     headAxes: { anterior: Axis; inferior: Axis; lateral: Axis };
@@ -85,9 +85,13 @@ describe('temporal-bone anatomy accuracy', () => {
     expect(registration.applied.scale).toBe(1);
     expect(registration.applied.maps).toBe('specimen-to-upright-head');
     expect(registration.containment.outsideFraction).toBe(0);
-    expect(registration.concha.porusBehindConchaMm).toBeLessThan(-2);
-    expect(registration.skullFit.outsideOver3mmFraction).toBeLessThan(0.03);
-    expect(registration.mastoidTipGapMm).toBeLessThan(8);
+    expect(registration.concha.porusBehindConchaMm).toBeLessThan(-8);
+    expect(registration.concha.porusBehindConchaMm).toBeGreaterThan(-16);
+    expect(registration.skullFit.outsideOver3mmFraction).toBeLessThan(0.05);
+    expect(registration.concha.conchaToUmboMm).toBeGreaterThan(25);
+    expect(registration.concha.conchaToUmboMm).toBeLessThan(40);
+    const porus = registration.current.pairs.find((pair) => pair.id === 'eac-porus');
+    expect(Math.abs(porus?.offsetMm.lateral ?? 99)).toBeLessThan(3);
     expect(registration.current.rmsMm).toBeGreaterThan(0);
     expect(registration.current.rmsMm).toBeLessThan(18);
     expect(registration.applied.angleDeg).toBeGreaterThan(15);

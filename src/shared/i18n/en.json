@@ -88,7 +88,7 @@
   "about.vorTitle": "VOR",
   "about.vorBody": "Z-Anatomy assets planned for the VOR route are CC BY-SA. Derivatives that include them must stay under the same terms, with attribution kept separate from OpenEar (CC BY).",
   "about.reviewTitle": "Review mark",
-  "about.reviewBody": "A dot in front of a sentence means it has not been checked. YS 검수 완료 means the review is done. When geometry changes, bump model_version and set the copy back to 미검증.",
+  "about.reviewBody": "A dot in front of a sentence means it has not been checked. YS 검수 완료 means the review is done. After a geometry change the copy goes back to 미검증.",
   "about.coordsTitle": "Coordinates and version",
   "about.jugular": "경정맥구 is the jugular bulb. 목정맥공 is the jugular foramen. This model is missing the bulb.",
   "vor.title": "Vestibulo-ocular reflex (VOR)",

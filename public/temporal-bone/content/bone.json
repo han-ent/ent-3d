@@ -2,8 +2,8 @@
   "id": "bone",
   "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "en": "The ZETA right temporal bone, with squamous, mastoid, tympanic, and petrous parts in one surface.",
-    "ko": "오른쪽 측두골 ZETA이다. 인부, 유양부, 고실부, 추체부가 한 표면에 있다."
+    "en": "The ZETA right temporal bone: squamous, mastoid, tympanic, and petrous parts.",
+    "ko": "오른쪽 측두골 ZETA이다. 인부, 유양부, 고실부, 추체부로 이루어져 있다."
   },
   "function": {
     "en": "It houses the canal, the middle ear, the labyrinth, and the facial nerve.",

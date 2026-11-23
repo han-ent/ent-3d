@@ -88,7 +88,7 @@
   "about.vorTitle": "VOR",
   "about.vorBody": "VOR 경로에 올릴 예정인 Z-Anatomy 자산은 CC BY-SA입니다. 동일조건변경허락이므로 그 자산을 포함한 결과물도 같은 조건으로 공유해야 하고, 저작자 표시가 필요합니다. CC BY인 OpenEar와 출처는 자산마다 따로 적습니다.",
   "about.reviewTitle": "검수 표시",
-  "about.reviewBody": "문장 앞의 점은 아직 확인하지 않은 내용입니다. YS 검수 완료는 검토를 마친 항목입니다. 기하를 바꾸면 model_version을 올리고 관련 문안을 다시 미검증으로 되돌립니다.",
+  "about.reviewBody": "문장 앞의 점은 아직 확인하지 않은 내용입니다. YS 검수 완료는 검토를 마친 항목입니다. 형태를 바꾸면 관련 문안은 다시 미검증으로 돌아갑니다.",
   "about.coordsTitle": "좌표와 버전",
   "about.jugular": "경정맥구는 jugular bulb, 목정맥공은 jugular foramen입니다. 이 모델에 없는 것은 경정맥구입니다.",
   "vor.title": "전정안반사 (VOR)",
