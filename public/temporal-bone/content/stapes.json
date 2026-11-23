@@ -1,13 +1,13 @@
 {
   "id": "stapes",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
     "ko": "바닥판(footplate)은 난원창(oval window)을 차지하고, 바로 내측에는 전정(vestibule)이 있으며 구형낭(saccule)이 footplate 바로 내측에 위치함\n머리(capitulum)에는 pyramidal eminence에서 나온 stapedial tendon이 부착됨\noval window는 와우 갑각(promontory)의 후상방에 있고, pyramidal eminence는 안면신경이 고실(수평) 분절에서 유양(수직) 분절로 이행하는 제2슬의 바로 앞 표지임",
-    "en": ""
+    "en": "The footplate fills the oval window, with the vestibule and saccule immediately medial. The stapedius tendon reaches the head from the pyramidal eminence."
   },
   "function": {
     "ko": "footplate가 oval window에서 전정으로 진동을 전달하여 외림프 공간을 움직임\nstapedius는 안면신경의 특수내장원심섬유 지배를 받으며, 건이 capitulum에 부착되어 등골을 고정하는 부착점을 제공함",
-    "en": ""
+    "en": "The footplate moves perilymph in the vestibule. Stapedius, supplied by the facial nerve, steadies the stapes."
   },
   "surgical_points": [
     {

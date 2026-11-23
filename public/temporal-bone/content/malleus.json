@@ -1,13 +1,13 @@
 {
   "id": "malleus",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
     "ko": "머리(head)는 침골 몸체와 관절하여 상고실(epitympanum)을 차지하는 이소골 덩어리의 일부를 이룸\n목(neck)에는 cochleariform process에서 나온 tensor tympani 건이 부착됨\n자루(manubrium)는 고막 중심에 붙어 mallear stria를 이루고 끝은 umbo에 부착되며, 외측돌기(lateral process)와 Rivinus 절흔의 극은 상고실 하연의 이경 표지임\nPrussak 공간은 pars flaccida 바로 내측, 추골 머리·목의 외측에 위치함",
-    "en": ""
+    "en": "The head meets the incus in the epitympanum. The tensor tympani tendon reaches the neck. The manubrium lies in the membrane and ends at the umbo; the lateral process marks the lower edge of the epitympanum."
   },
   "function": {
     "ko": "고막과 연결된 manubrium·lateral process를 통해 외이도 쪽 진동을 이소골 연쇄로 전달함\ntensor tympani 건이 목에 부착되어 추골을 당기는 부착점을 제공함",
-    "en": ""
+    "en": "It carries vibration from the tympanic membrane into the ossicular chain. The tensor tympani pulls on the neck."
   },
   "surgical_points": [
     {

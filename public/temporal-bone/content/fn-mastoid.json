@@ -1,13 +1,13 @@
 {
   "id": "fn-mastoid",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "제2슬에서 메시 끝까지의 하행 분절입니다.",
-    "en": "The descending segment from the second genu to the distal end of the mesh."
+    "en": "The descending segment, 12.57 mm from the second genu to the end of the mesh.",
+    "ko": "하행 분절이다. 제2슬에서 메시 끝까지 12.57 mm."
   },
   "function": {
-    "ko": "이복근릉이 경유돌공을 향합니다.",
-    "en": "The digastric ridge points toward the stylomastoid foramen."
+    "en": "Reference lengths are about 15–20 mm to the stylomastoid foramen. This mesh stops in the mastoid, short of the foramen and the mastoid tip.",
+    "ko": "참고 길이는 경유돌공까지 약 15–20 mm다. 이 메시는 유양부 안에서 끝나며 공과 유양돌기 첨부에 닿지 않는다."
   },
   "clinical": {
     "ko": "이복근릉이 경유돌공을 향합니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "p1, p10",
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
       "verified": false
     }
   ],

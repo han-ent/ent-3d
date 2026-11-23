@@ -47,6 +47,7 @@ export const STRUCTURE_SYSTEMS: StructureSystem[] = [
       'scc-lateral',
       'scc-superior',
       'scc-posterior',
+      'common-crus',
     ],
   },
   {

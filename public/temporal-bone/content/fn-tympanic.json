@@ -1,13 +1,13 @@
 {
   "id": "fn-tympanic",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "제1슬 이후, 제2굽이 이전의 후가쪽 주행입니다.",
-    "en": "The posterolateral run after the first genu and before the second bend."
+    "en": "The posterolateral run above the stapes, 6.45 mm from the geniculate to the second genu.",
+    "ko": "등골 위의 후가쪽 주행이다. 슬신경절에서 제2슬까지 6.45 mm."
   },
   "function": {
-    "ko": "난원창 위를 지납니다. 결손이 흔하다고 가르치나 수치는 다시 확인하지 않았습니다.",
-    "en": "Passes above the oval window. Dehiscence is often taught here; the percentage was not rechecked."
+    "en": "Som and Curtin cite about 12 mm for a full tympanic segment. This surface's horizontal run is shorter; the cut follows the stapes and the second bend, not a fixed length.",
+    "ko": "Som과 Curtin은 고실부 전체를 약 12 mm로 적는다. 이 표면의 수평 주행은 더 짧다. 고정 길이가 아니라 등골과 제2굽이로 잘랐다."
   },
   "clinical": {
     "ko": "난원창 위를 지납니다. 결손이 흔하다고 가르치나 수치는 다시 확인하지 않았습니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "p7",
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
       "verified": false
     }
   ],

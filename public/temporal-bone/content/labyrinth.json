@@ -1,13 +1,13 @@
 {
   "id": "labyrinth",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "분할 전 전정계 메시입니다. 와우 전정계, 전정, 세 반고리관이 들어 있습니다.",
-    "en": "The unsplit mesh that was labeled scala vestibuli. It contains the cochlear scala vestibuli, the vestibule, and all three semicircular canals."
+    "en": "The membranous labyrinth of this specimen: cochlea, vestibule, three semicircular canals, and the common crus.",
+    "ko": "이 표본의 막미로다. 와우, 전정, 반고리관 셋, 총각이 들어 있다."
   },
   "function": {
-    "ko": "자식 구조를 고르면 해당 부분만 봅니다.",
-    "en": "Parent aggregate. Select a child to study one part."
+    "en": "Select a child to study one part. The parent is the whole lumen.",
+    "ko": "한 부분만 보려면 자식 구조를 고른다. 부모는 내강 전체다."
   },
   "clinical": {
     "ko": "자식 구조를 고르면 해당 부분만 봅니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "audit",
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
       "verified": false
     }
   ],

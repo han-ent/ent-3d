@@ -1,16 +1,22 @@
 {
   "id": "bone",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "[샘플] 설명 자리. 검토자가 채웁니다.",
-    "en": "[Sample] placeholder."
+    "en": "The ZETA right temporal bone, with squamous, mastoid, tympanic, and petrous parts in one surface.",
+    "ko": "오른쪽 측두골 ZETA이다. 인부, 유양부, 고실부, 추체부가 한 표면에 있다."
   },
   "function": {
-    "ko": "[샘플] 설명 자리. 검토자가 채웁니다.",
-    "en": "[Sample] placeholder."
+    "en": "It houses the canal, the middle ear, the labyrinth, and the facial nerve.",
+    "ko": "외이도, 중이, 미로, 안면신경을 담는다."
   },
   "surgical_points": [],
-  "sources": [],
+  "sources": [
+    {
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
+      "verified": false
+    }
+  ],
   "review": "미검증",
   "related": [
     "sinus-dura"

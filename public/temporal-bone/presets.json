@@ -1,5 +1,5 @@
 {
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "note": {
     "ko": "카메라의 위쪽은 머리의 위(−Y)입니다. 축은 +X 앞, +Y 아래, +Z 안쪽입니다. 뼈를 갈아내는 기능은 없습니다. 유양동 점은 추정이며 미검증입니다.",
     "en": "Camera up is head-superior (−Y). Axes are +X anterior, +Y inferior, +Z medial. Bone is not drilled. The antrum point is an estimate and is unverified."
@@ -52,6 +52,7 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
@@ -110,6 +111,7 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "marker": {
@@ -186,6 +188,7 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
@@ -249,6 +252,7 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
@@ -320,6 +324,7 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {
@@ -382,7 +387,8 @@
             "vestibule",
             "scc-lateral",
             "scc-superior",
-            "scc-posterior"
+            "scc-posterior",
+            "common-crus"
           ],
           "ghosted": [
             "bone"
@@ -395,6 +401,7 @@
             "scc-lateral",
             "scc-superior",
             "scc-posterior",
+            "common-crus",
             "labyrinth"
           ],
           "camera": {

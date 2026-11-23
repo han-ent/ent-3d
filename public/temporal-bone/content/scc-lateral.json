@@ -1,13 +1,13 @@
 {
   "id": "scc-lateral",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "기존 전정계 메시에서 가장 가쪽에 있는 외측반고리관 활입니다.",
-    "en": "Lateral canal arch, the part of the old scala vestibuli mesh farthest laterally."
+    "en": "The lateral semicircular canal, the loop whose plane is closest to horizontal.",
+    "ko": "외측반고리관이다. 세 관 가운데 수평에 가장 가까운 고리다."
   },
   "function": {
-    "ko": "유양돌기절제의 표지입니다. 절단 경계는 미검증입니다.",
-    "en": "A mastoidectomy landmark. The cut is geometric and unverified."
+    "en": "Its plane sits about 30° off horizontal in this specimen. The second genu of the facial nerve is inferior to the arch.",
+    "ko": "이 표본에서 평면은 수평에서 약 30° 기울어 있다. 안면신경 제2슬은 이 활보다 아래다."
   },
   "clinical": {
     "ko": "유양돌기절제의 표지입니다. 절단 경계는 미검증입니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "audit",
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p. 11",
       "verified": false
     }
   ],

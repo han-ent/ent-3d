@@ -1,6 +1,15 @@
 {
-  "fundusMm": 3.75,
-  "firstGenuMm": 8.55,
-  "secondGenuMm": 14.25,
-  "tmMethod": "superior-12-percent-fallback"
+  "fundusMm": 1.75,
+  "firstGenuMm": 5.75,
+  "secondGenuMm": 14.5,
+  "lengthsMm": {
+    "fn-meatal": 1.75,
+    "fn-labyrinthine": 3.0,
+    "fn-geniculate": 2.0,
+    "fn-tympanic": 6.45,
+    "fn-second-genu": 2.05,
+    "fn-mastoid": 12.57
+  },
+  "meshLimited": "The facial-nerve surface ends in the mastoid, about 20 mm short of the mastoid tip, so the meatal and mastoid lengths are the mesh, not the whole nerve to the stylomastoid foramen.",
+  "tmMethod": "pars flaccida is the superior cap above the malleus lateral process"
 }

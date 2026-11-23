@@ -1,13 +1,13 @@
 {
   "id": "fn-geniculate",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "첫 곡률 정점 앞뒤 1 mm입니다.",
-    "en": "One millimetre on either side of the first curvature peak."
+    "en": "The first genu, a 2.0 mm window where the nerve turns from the labyrinthine course onto the tympanic course, just as it reaches the oval window.",
+    "ko": "제1슬이다. 미로부에서 고실부로 꺾이며 난원창에 닿는 2.0 mm 구간이다."
   },
   "function": {
-    "ko": "대추체신경이 여기서 나갑니다. 중두개와 쪽 결손은 인용한 장에 기술돼 있습니다.",
-    "en": "The greater superficial petrosal nerve leaves here. Dehiscence toward the middle fossa is described in the cited chapter."
+    "en": "The greater petrosal nerve leaves here. It is not in this mesh.",
+    "ko": "대추체신경이 여기서 나간다. 이 메시에는 없다."
   },
   "clinical": {
     "ko": "대추체신경이 여기서 나갑니다. 중두개와 쪽 결손은 인용한 장에 기술돼 있습니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "p1, p7",
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p. 7",
       "verified": false
     }
   ],

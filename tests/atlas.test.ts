@@ -25,7 +25,7 @@ describe('atlas palette', () => {
     const bone = illustrationRamp('bone', '#F3F0E6');
     expect(channel(bone.lit, 0)).toBeGreaterThan(channel(bone.lit, 2));
     expect(channel(bone.shadow, 0)).toBeGreaterThan(channel(bone.shadow, 2));
-    const fluid = ['labyrinth', 'vestibule', 'scala-tympani', 'scala-vestibuli', 'scc-lateral', 'scc-superior', 'scc-posterior'];
+    const fluid = ['labyrinth', 'vestibule', 'scala-tympani', 'scala-vestibuli', 'scc-lateral', 'scc-superior', 'scc-posterior', 'common-crus'];
     const blues = fluid.map((id) => illustrationRamp(id, '#888888').lit);
     expect(new Set(blues).size).toBe(blues.length);
     for (const lit of blues) {

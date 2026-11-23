@@ -1,0 +1,21 @@
+{
+  "id": "common-crus",
+  "surgical_points": [],
+  "review": "미검증",
+  "model_version": "openear-zeta-frame-3",
+  "anatomy": {
+    "en": "The limb shared by the superior and posterior canals before they enter the vestibule.",
+    "ko": "상반고리관과 후반고리관이 전정으로 들어가기 전에 나누는 다리이다."
+  },
+  "function": {
+    "en": "It is the only part that belongs to both vertical canals.",
+    "ko": "두 수직 반고리관이 함께 쓰는 부분이다."
+  },
+  "sources": [
+    {
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
+      "verified": false
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 {
   "id": "sinus-dura",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
     "ko": "추체부 후면은 구불정맥동, 상추체정맥동, 하추체정맥동의 고랑(sulcus)으로 테가 지어져 후두개와 전벽을 이룸\n유양 외피질 후방 근처의 emissary vein 구멍은 sigmoid sulcus와 교통함\n경정맥공의 후방 구획(전통적 pars venosa, 또는 sigmoid compartment)이 구불정맥동을 받고, 경정맥구는 그 외측의 돔형 공간으로 중이 바로 아래에 위치함\nasterion은 횡정맥동–구불정맥동 이행부의 대략적 표지로, retrosigmoid 천공 설계에 쓰임",
-    "en": ""
+    "en": "The posterior face of the petrous bone is grooved by the sigmoid and petrosal sinuses. An emissary vein near the mastoid cortex opens into the sigmoid sulcus, and the posterior part of the jugular foramen receives the sigmoid sinus."
   },
   "function": {
     "ko": "횡정맥동에서 이어져 경정맥공을 통해 내경정맥으로 이어지는 후두개와 정맥 경로임\nCummings는 구불정맥동과 경정맥구를 저압·고유량 정맥 구조로 기술하며, 손상 시 출혈 처치가 필요하다고 함",
-    "en": ""
+    "en": "It continues the transverse sinus into the internal jugular vein. The published mesh still mixes sinus wall and dura."
   },
   "surgical_points": [
     {

@@ -1,13 +1,13 @@
 {
   "id": "scc-superior",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "가장 위쪽에 있는 상반고리관 활입니다.",
-    "en": "Superior canal arch, the part farthest superiorly."
+    "en": "The superior (anterior) semicircular canal, the loop that reaches the highest point of the labyrinth.",
+    "ko": "상(전)반고리관이다. 미로에서 가장 높이 올라가는 고리다."
   },
   "function": {
-    "ko": "궁상융기와 관련됩니다. 절단 경계는 미검증입니다.",
-    "en": "Related to the arcuate eminence. The cut is unverified."
+    "en": "It shares the common crus with the posterior canal. The arcuate eminence overlies its dome.",
+    "ko": "후반고리관과 총각을 공유한다. 궁상융기가 그 꼭대기 위에 있다."
   },
   "clinical": {
     "ko": "궁상융기와 관련됩니다. 절단 경계는 미검증입니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
-      "page": "audit",
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "p. 3",
       "verified": false
     }
   ],

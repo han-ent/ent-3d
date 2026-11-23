@@ -37,17 +37,18 @@ describe('reviewed-draft copy', () => {
     expect(chorda.surgical_points.map((point) => point.text.ko).join('\n')).toContain('확인하지 못해 미검증으로 둠');
   });
 
-  it('stores the cochlea draft on both scala meshes and leaves the other structures pending', () => {
+  it('keeps the two scalae distinct and sourced', () => {
     const vestibuli = read('scala-vestibuli');
     const tympani = read('scala-tympani');
-    expect(vestibuli.anatomy.ko).toBe(tympani.anatomy.ko);
-    expect(vestibuli.anatomy.ko).toContain('약 2¼ 회전');
-    expect(vestibuli.function.ko).toContain('확인하지 못해 미검증으로 둠');
-    expect(vestibuli.sources.some((source) => source.verified === false)).toBe(true);
+    expect(vestibuli.anatomy.ko).not.toBe(tympani.anatomy.ko);
+    expect(tympani.anatomy.ko).toContain('정원창');
+    expect(vestibuli.anatomy.en).toContain('vestibule');
+    expect(vestibuli.sources[0]?.page.length).toBeGreaterThan(0);
     for (const id of ['bone', 'tympanic-membrane', 'external-auditory-canal', 'cochleovestibular-nerve']) {
       const content = read(id);
-      expect(content.anatomy.ko).toContain('[샘플]');
-      expect(content.surgical_points).toEqual([]);
+      expect(content.anatomy.ko).not.toContain('[샘플]');
+      expect(content.anatomy.en.length).toBeGreaterThan(20);
+      expect(content.sources[0]?.citation.length).toBeGreaterThan(0);
     }
     const carotid = read('carotid-artery');
     expect(carotid.anatomy.ko).toContain('경정맥구(jugular bulb)');

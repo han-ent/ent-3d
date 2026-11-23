@@ -1,13 +1,13 @@
 {
   "id": "fn-meatal",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "와우전정신경에 가까운, 안면신경 메시의 안쪽 끝입니다.",
-    "en": "Medial end of the facial-nerve mesh, while it is still near the cochleovestibular nerve."
+    "en": "The part of this facial-nerve surface still against the cochleovestibular nerve, 1.75 mm on the centreline.",
+    "ko": "이 안면신경 표면 가운데 와우전정신경에 붙어 있는 구간이다. 중심선 길이 1.75 mm."
   },
   "function": {
-    "ko": "기저부에서 Bill bar가 뒤쪽 표지입니다. 길이는 기하학적 추정치이며 미검증입니다.",
-    "en": "Bill bar is the posterior landmark at the fundus. Length is geometric and unverified."
+    "en": "The mesh begins near the fundus, so this is only the lateral end of the meatal segment, not the whole internal canal.",
+    "ko": "메시가 기저부 근처에서 시작하므로, 내이도 전체의 내이도부가 아니라 그 가쪽 끝이다."
   },
   "clinical": {
     "ko": "기저부에서 Bill bar가 뒤쪽 표지입니다. 길이는 기하학적 추정치이며 미검증입니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
-      "page": "p9",
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 175 Surgical Anatomy of the Lateral Skull Base",
+      "page": "p. 9",
       "verified": false
     }
   ],

@@ -1,13 +1,13 @@
 {
   "id": "scala-vestibuli",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "와우관(cochlear duct)은 정상적으로 약 2¼ 회전하며 중심의 나선신경절(spiral ganglion)과 축주(modiolus)를 감고, 구심섬유가 modiolus에서 내이도(IAC)로 들어가 와우신경을 이룸\n단면에서는 basilar membrane이 scala tympani(IAC 쪽)와 scala vestibuli(중이 쪽)를 나누고, scala media는 basilar membrane과 Reissner막 사이의 내림프 공간임\n정원창(round window)은 scala tympani로 열리고, 와우수도관(cochlear aqueduct)은 와우 기저의 scala tympani로 연결됨\n와우는 중고실 내측벽에 갑각(promontory)을 만들고, 그 전방 이관 개구의 내측에 내경동맥이 있으며, 슬상신경절은 와우 바로 상방에 위치함",
-    "en": ""
+    "en": "The perilymphatic scala on the vestibular side of the cochlear partition, after the vestibule and canals were separated off.",
+    "ko": "와우 칸막이의 전정 쪽 외림프 계단이다. 전정과 반고리관은 떼어 냈다."
   },
   "function": {
-    "ko": "나선신경절의 구심섬유가 와우신경을 형성하여 IAC로 투사하는 말초 청각 경로의 수용·전달 구조를 이룸\nscala vestibuli·tympani와 scala media의 외림프·내림프 공간이 와우관 단면을 구성하고, 정원창은 scala tympani로 열리는 창임\nCorti 기관의 유모세포 변환(transduction) 세부는 이번에 연 Cummings 청각생리 장에서 확인하지 못해 미검증으로 둠",
-    "en": ""
+    "en": "It meets the scala tympani at the helicotrema. It is not the vestibule.",
+    "ko": "정점에서 고실계와 만난다. 전정이 아니다."
   },
   "surgical_points": [
     {
@@ -34,33 +34,8 @@
   ],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "1929, 1933, 1935",
-      "verified": true
-    },
-    {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch143 Mastoidectomy: Surgical Techniques",
-      "page": "2170",
-      "verified": true
-    },
-    {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch175 Surgical Anatomy of the Lateral Skull Base",
-      "page": "2629, 2631–2632",
-      "verified": true
-    },
-    {
-      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch2 Anatomy of the Temporal Bone",
-      "page": "6, 8, 10–11",
-      "verified": true
-    },
-    {
-      "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch7 The Middle Cranial Fossa Approach to the Internal Auditory Canal",
-      "page": "56–58",
-      "verified": true
-    },
-    {
-      "citation": "Corti 기관 변환(transduction) 세부 / Cummings 7e Ch127–128 등 청각생리 장",
-      "page": "이번 회차 미개봉",
+      "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
+      "page": "Ch. 15",
       "verified": false
     }
   ],

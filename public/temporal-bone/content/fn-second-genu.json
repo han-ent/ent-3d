@@ -1,13 +1,13 @@
 {
   "id": "fn-second-genu",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "아래로 꺾이는 둘째 곡률 정점 앞뒤 1.5 mm입니다.",
-    "en": "1.5 mm on either side of the second curvature peak, where the nerve turns inferiorly."
+    "en": "The pyramidal turn, 2.05 mm around the sharpest bend, where the nerve leaves the oval window and heads inferiorly.",
+    "ko": "추체 회전이다. 가장 급한 굽이 전후의 2.05 mm이며, 신경이 난원창을 떠나 아래로 향한다."
   },
   "function": {
-    "ko": "추체융기, 외측반고리관 근처에 있습니다.",
-    "en": "Near the pyramidal eminence and the lateral canal."
+    "en": "It lies inferior to the lateral canal.",
+    "ko": "외측반고리관보다 아래에 있다."
   },
   "clinical": {
     "ko": "추체융기, 외측반고리관 근처에 있습니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "p7",
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "p. 7",
       "verified": false
     }
   ],

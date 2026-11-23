@@ -1,13 +1,13 @@
 {
   "id": "scala-tympani-middle",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "고실계의 둘째 회전입니다.",
-    "en": "Second turn of the scala tympani about the modiolus."
+    "en": "The second turn of the scala tympani about the modiolus.",
+    "ko": "와우축을 도는 고실계의 둘째 회전이다."
   },
   "function": {
-    "ko": "와우 나선이 안쪽으로 이어집니다.",
-    "en": "Continues the cochlear spiral inward."
+    "en": "It continues the spiral inward from the basal turn.",
+    "ko": "기저회전에서 안쪽으로 이어진다."
   },
   "clinical": {
     "ko": "와우 나선이 안쪽으로 이어집니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "audit",
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "Ch. 126",
       "verified": false
     }
   ],

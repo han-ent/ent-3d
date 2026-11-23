@@ -1,13 +1,13 @@
 {
   "id": "scala-tympani-apical",
-  "model_version": "openear-zeta-frame-2",
+  "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "ko": "고실계의 첨부 회전입니다.",
-    "en": "Remaining apical angle of the scala tympani."
+    "en": "The apical remainder of the scala tympani.",
+    "ko": "고실계의 첨부 나머지다."
   },
   "function": {
-    "ko": "와우축에 가깝습니다.",
-    "en": "Closest to the modiolus."
+    "en": "It approaches the helicotrema.",
+    "ko": "와우공에 가까워진다."
   },
   "clinical": {
     "ko": "와우축에 가깝습니다.",
@@ -16,8 +16,8 @@
   "surgical_points": [],
   "sources": [
     {
-      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed, Ch126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
-      "page": "audit",
+      "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+      "page": "Ch. 126",
       "verified": false
     }
   ],
