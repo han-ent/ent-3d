@@ -198,7 +198,41 @@
       "review": "미검증",
       "tier": "surface",
       "method": "zanatomy"
+    },
+    {
+      "id": "mastoid-tip-area",
+      "en": "Mastoid tip",
+      "ko": "유양돌기 첨부",
+      "anatomy": "Skin-surface anchor at the unverified mastoid-tip landmark.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Same unverified mastoid-tip landmark. Not checked against the skin surface.",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [18.534, 57.721, 15.977],
+      "review": "미검증",
+      "tier": "surface"
+    },
+    {
+      "id": "zygomatic-arch",
+      "en": "Zygomatic arch",
+      "ko": "관골궁",
+      "anatomy": "Skin-surface anchor at the unverified zygomatic-root landmark.",
+      "clinical": "",
+      "sources": [
+        {
+          "citation": "Same unverified zygomatic-root landmark. Not checked against the skin surface.",
+          "page": "미검증",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [46.291, 20.534, 21.999],
+      "review": "미검증",
+      "tier": "surface"
     }
   ],
-  "note": "Auricle points are centroids of Z-Anatomy cartilage parts. Periauricular skin points were removed because this template has no skin mesh."
+  "note": "Auricle points are centroids of Z-Anatomy cartilage parts. Mastoid tip and zygomatic arch are copied from the unverified temporal-bone landmarks so they can show on the skin. All of these anchors are unverified."
 }

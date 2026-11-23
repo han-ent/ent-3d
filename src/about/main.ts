@@ -33,6 +33,7 @@ main.innerHTML = `
     <h2 data-i18n="about.upperTitle"></h2>
     <p data-i18n="about.upperBody"></p>
     <p><a href="https://github.com/LluisV/Z-Anatomy">Z-Anatomy</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></p>
+    <p><a href="https://github.com/makehumancommunity/makehuman/blob/master/makehuman/data/3dobjs/base.obj">MakeHuman hm08 base mesh</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a></p>
     <h2 data-i18n="about.vorTitle"></h2>
     <p data-i18n="about.vorBody"></p>
     <h2 data-i18n="about.reviewTitle"></h2>

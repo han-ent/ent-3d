@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { englishFirst, labelAllowed, placeLabels, tiersForDistance, type StudyLabel } from '../src/shared/labels';
+import { columnPlacements, englishFirst, focusPartList, labelAllowed, placeLabels, tiersForDistance, type StudyLabel } from '../src/shared/labels';
 
 const label = (patch: Partial<StudyLabel>): StudyLabel => ({
   id: 'malleus-umbo',
@@ -53,6 +53,38 @@ describe('label collision', () => {
       const overlap =
         first.x < second.x + 80 && first.x + 80 > second.x && first.y < second.y + 18 && first.y + 18 > second.y;
       expect(overlap).toBe(false);
+    }
+  });
+
+  it('stacks every selected malleus part without overlap', () => {
+    expect(focusPartList('malleus')).toEqual([
+      'malleus-head',
+      'malleus-neck',
+      'malleus-manubrium',
+      'malleus-lateral-process',
+      'malleus-anterior-process',
+      'umbo',
+    ]);
+    expect(focusPartList('fn-mastoid')).toEqual(focusPartList('facial-nerve'));
+    const placed = columnPlacements(
+      ['Head', 'Neck', 'Manubrium', 'Lateral process', 'Anterior process', 'Umbo'].map((id, index) => ({
+        id,
+        anchorX: 400,
+        anchorY: 280 + index * 14,
+        width: 140,
+        height: 34,
+      })),
+      1280,
+      800,
+      { top: 58, right: 16, bottom: 108, left: 16 },
+    );
+    expect(placed).toHaveLength(6);
+    expect(placed.every((item) => item.mode === 'label' && !item.dimmed)).toBe(true);
+    expect(placed.map((item) => item.id)).toEqual(['Head', 'Neck', 'Manubrium', 'Lateral process', 'Anterior process', 'Umbo']);
+    for (let index = 1; index < placed.length; index += 1) {
+      const previous = placed[index - 1]!;
+      const current = placed[index]!;
+      expect(current.y).toBeGreaterThanOrEqual(previous.y + 34);
     }
   });
 

@@ -84,7 +84,7 @@
   "about.sampleTitle": "Files in this build",
   "about.sampleBody": "The glb files are Draco-compressed OpenEar meshes. Axes are +X anterior, +Y inferior, +Z medial, not RAS. The mesh that was labeled scala vestibuli is split into the cochlear scala, the vestibule, and three semicircular canals. The facial nerve is six segments. CT is a 0.25 mm webp stack. The jugular bulb is still not segmented. Sinus and dura may share one mesh.",
   "about.upperTitle": "Upper-body entry",
-  "about.upperBody": "The entry skull, mandible, cervical vertebrae, clavicles, and right auricle are a decimated extract of the Z-Anatomy Blender template (CC BY-SA 4.0; BodyParts3D, CC BY-SA 2.1 Japan). Checked 2026-11-21. That template's Integument collection is empty, so there is no skin surface. The extract is in the ZETA millimetre frame, canal-aligned, scale 1.0. A mastoid-tip scale would have been about 0.75, outside 5%, and was not applied. Registration is unverified.",
+  "about.upperBody": "The entry skull, mandible, cervical vertebrae, clavicles, and right auricle are a decimated extract of the Z-Anatomy Blender template (CC BY-SA 4.0; BodyParts3D, CC BY-SA 2.1 Japan). Checked 2026-11-21. Skin is the MakeHuman hm08 base mesh, released as CC0 1.0 in September 2020 by Data Collection AB, Joel Palmius, and Jonas Hauquier (makehuman/data/3dobjs/base.obj; LICENSE.ASSETS.md). It is cropped to the head, neck, and shoulders, Draco-compressed under 30k triangles, and fitted over this skull so the right ear follows the auricle. That fit is unverified. The skull stays at scale 1, anchored on the ear canal. A mastoid-only scale near 0.75 was not applied: the ZETA malleus chord is about 8.7 mm and the skull length is about 191 mm, both in the adult range, while both Z-Anatomy mastoid tips are long. Residuals are on ?dev=1. Registration is unverified. Atlas shading is procedural and is not a copy of a textbook plate.",
   "about.vorTitle": "VOR",
   "about.vorBody": "Z-Anatomy assets planned for the VOR route are CC BY-SA. Derivatives that include them must stay under the same terms, with attribution kept separate from OpenEar (CC BY).",
   "about.reviewTitle": "Review mark",
@@ -127,5 +127,8 @@
   "ct.anatomical.sagittal": "Sagittal",
   "dev.pick": "Shift-click the model to move the selected landmark, then export JSON.",
   "dev.export": "Export landmarks.json",
-  "dev.title": "Build details"
+  "dev.title": "Build details",
+  "dev.registration": "Registration",
+  "style.atlas": "Atlas",
+  "style.model": "Model"
 }
