@@ -970,6 +970,8 @@ function flyStage(stage: string): void {
   }
 }
 
+let stageBucket = '';
+
 function applyStage(distance: number): void {
   if (!viewer || !manifest) return;
   const next = distance > 160 ? 'body' : distance > 70 ? 'ear' : distance > 28 ? 'bone' : 'inner';
@@ -979,6 +981,9 @@ function applyStage(distance: number): void {
     radius = Math.max(radius, 30);
     skinOpacity = Math.min(skinOpacity, 0.2);
   }
+  const bucket = `${next}:${selected ?? ''}:${radius.toFixed(1)}:${skinOpacity.toFixed(2)}`;
+  if (bucket === stageBucket) return;
+  stageBucket = bucket;
   document.body.dataset.distance = distance.toFixed(0);
   viewer.setCutaway(radius, skinOpacity);
   const key = `${next}:${selected ?? ''}`;

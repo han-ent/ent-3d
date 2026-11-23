@@ -11,6 +11,7 @@ import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
 import { estimateLabelSize, placeLabels, type Placement, type StudyLabel } from '../labels';
 import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM, verticalSpanMm } from '../view-pose';
+import { choosePixelRatio, coveredBySphere } from './budget';
 
 export type PickHit = {
   structureId: string;
@@ -155,12 +156,40 @@ export class EntViewer {
   private gizmoSvg: SVGSVGElement;
   private gizmoCam = new THREE.OrthographicCamera(-1.7, 1.7, 1.7, -1.7, 0.1, 20);
   private keyLight: THREE.DirectionalLight;
+  private started = false;
+  private raf = 0;
+  private dirty = true;
+  private interacting = false;
+  private pointerDown = false;
+  private drawing = false;
+  private gestureUntil = 0;
+  private pose = new THREE.Vector3();
+  private poseTarget = new THREE.Vector3();
+  private poseQuat = new THREE.Quaternion();
+  private pixelLive = false;
+  private occluders: THREE.Object3D[] = [];
+  private centers = new Map<string, THREE.Vector3>();
+  private labelById = new Map<string, StudyLabel>();
+  private labelOffset = new Map<string, { ox: number; oy: number }>();
+  private leaderLines = new Map<string, SVGLineElement>();
+  private studySvg: SVGSVGElement | null = null;
+  private gizmoLines = new Map<string, SVGLineElement>();
+  private worldScratch = new THREE.Vector3();
+  private ndc = new THREE.Vector3();
+  private rayTarget = new THREE.Vector3();
+  private rayDir = new THREE.Vector3();
+  private frustum = new THREE.Frustum();
+  private frustumMatrix = new THREE.Matrix4();
+  private sphereScratch = new THREE.Sphere();
+  private cornerScratch = new THREE.Vector3();
 
   constructor(canvas: HTMLCanvasElement, offsetMm: Vec3) {
     this.canvas = canvas;
     this.offset = [offsetMm[0], offsetMm[1], offsetMm[2]];
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    this.renderer.shadowMap.enabled = false;
+    this.renderer.shadowMap.autoUpdate = false;
+    this.renderer.setPixelRatio(this.pixelRatio(false));
     this.renderer.localClippingEnabled = true;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene.background = new THREE.Color(STAGE);
@@ -231,10 +260,33 @@ export class EntViewer {
     this.studyLayer = document.createElement('div');
     this.studyLayer.className = 'study-layer';
     parent.append(this.calloutLayer, this.studyLayer, this.gizmo);
+    this.controls.addEventListener('start', () => {
+      this.pointerDown = true;
+      this.interacting = true;
+      this.applyPixelRatio(true);
+      this.invalidate();
+    });
+    this.controls.addEventListener('end', () => {
+      this.pointerDown = false;
+      this.interacting = false;
+      this.labelPlanAt = 0;
+      this.applyPixelRatio(false);
+      this.invalidate();
+    });
+    this.controls.addEventListener('change', () => {
+      if (this.drawing) return;
+      this.invalidate();
+    });
     this.frameDefault(true);
 
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointerup', this.onPointerUp);
+    canvas.addEventListener('wheel', () => {
+      this.interacting = true;
+      this.gestureUntil = performance.now() + 180;
+      this.applyPixelRatio(true);
+      this.invalidate();
+    }, { passive: true });
     canvas.addEventListener('pointercancel', () => {
       this.down = null;
     });
@@ -246,8 +298,9 @@ export class EntViewer {
 
   /** Starts drawing. Call after the meshes are loaded so decode is not starved. */
   start(): void {
-    if (!this.running) return;
-    this.renderer.setAnimationLoop(() => this.tick());
+    if (!this.running || this.started) return;
+    this.started = true;
+    this.invalidate();
   }
 
   setScaleElement(element: HTMLElement | null): void {
@@ -323,11 +376,14 @@ export class EntViewer {
   setLabelMode(mode: 'basic' | 'surgical' | 'all'): void {
     this.labelMode = mode;
     this.labelPlanAt = 0;
+    this.invalidate();
   }
 
   setStudyLabels(labels: StudyLabel[]): void {
     this.studyLabels = labels;
+    this.labelById = new Map(labels.map((label) => [label.id, label]));
     this.labelPlanAt = 0;
+    this.invalidate();
   }
 
   flash(id: string): void {
@@ -370,8 +426,14 @@ export class EntViewer {
       meshes.push(obj);
       obj.userData.structureId = id;
       obj.userData.kind = 'structure';
-      this.pickables.push(obj);
+      obj.matrixAutoUpdate = false;
+      obj.updateMatrix();
+      if (!obj.geometry.boundingBox) obj.geometry.computeBoundingBox();
+      if (!obj.geometry.boundingSphere) obj.geometry.computeBoundingSphere();
+      if (!meta?.aggregate) this.pickables.push(obj);
       const outline = new THREE.Mesh(obj.geometry, this.outlineMaterial);
+      outline.matrixAutoUpdate = false;
+      outline.updateMatrix();
       outline.visible = false;
       outline.renderOrder = 29;
       outline.userData.kind = 'outline';
@@ -379,9 +441,13 @@ export class EntViewer {
       outlines.push(outline);
     }
     root.userData.structureId = id;
+    root.matrixAutoUpdate = false;
+    root.updateMatrix();
     this.structures.add(root);
+    root.updateWorldMatrix(true, true);
     const box = new THREE.Box3().setFromObject(root);
     const size = box.isEmpty() ? 1 : box.getSize(new THREE.Vector3()).length();
+    if (!box.isEmpty()) this.centers.set(id, box.getCenter(new THREE.Vector3()));
     const record: StructureRecord = {
       id,
       layer,
@@ -400,12 +466,14 @@ export class EntViewer {
     if (meta?.parentId) this.parentOf.set(id, meta.parentId);
     this.records.set(id, record);
     this.applyLook(record);
+    this.invalidate();
   }
 
   setLabel(id: string, label: string): void {
     const record = this.records.get(id);
     if (record) record.label = label;
     this.syncCallouts();
+    this.invalidate();
   }
 
   setHidden(id: string, hidden: boolean): void {
@@ -562,6 +630,7 @@ export class EntViewer {
     if (!position) {
       if (this.marker) this.marker.visible = false;
       this.syncCallouts();
+      this.invalidate();
       return;
     }
     if (!this.marker) {
@@ -576,12 +645,13 @@ export class EntViewer {
     this.marker.visible = true;
     this.marker.position.set(position[0], position[1], position[2]);
     this.syncCallouts();
+    this.invalidate();
   }
 
   setCrosshair(point: Vec3 | null): void {
     this.crosshair.visible = point !== null;
-    if (!point) return;
-    this.crosshair.position.set(point[0], point[1], point[2]);
+    if (point) this.crosshair.position.set(point[0], point[1], point[2]);
+    this.invalidate();
   }
 
   contourSources(skipBone = true): ContourSource[] {
@@ -652,13 +722,15 @@ export class EntViewer {
       record.texture.image = options.image;
       record.texture.needsUpdate = true;
     }
-    if (!options.pose) return;
-    this.placePlane(record, options.pose, options.flipY === true);
+    if (options.pose) this.placePlane(record, options.pose, options.flipY === true);
+    this.invalidate();
   }
 
   dispose(): void {
     this.running = false;
-    this.renderer.setAnimationLoop(null);
+    this.started = false;
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.raf = 0;
     this.resizeObserver.disconnect();
     this.canvas.removeEventListener('pointerdown', this.onPointerDown);
     this.canvas.removeEventListener('pointerup', this.onPointerUp);
@@ -675,21 +747,83 @@ export class EntViewer {
     return [specimen[0] + this.offset[0], specimen[1] + this.offset[1], specimen[2] + this.offset[2]];
   }
 
-  private tick(): void {
+  private invalidate(): void {
+    this.dirty = true;
+    this.requestFrame();
+  }
+
+  private requestFrame(): void {
+    if (!this.started || !this.running || this.raf) return;
+    this.raf = requestAnimationFrame(this.drawFrame);
+  }
+
+  private drawFrame = (): void => {
+    this.raf = 0;
     if (!this.running) return;
-    this.stepTween(performance.now());
-    this.keyLight.position.copy(this.camera.position);
+    this.drawing = true;
+    const again = this.tick();
+    this.drawing = false;
+    if (again) this.requestFrame();
+  };
+
+  private pixelRatio(interacting: boolean): number {
+    const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+    const width = this.canvas.clientWidth || window.innerWidth || 1280;
+    return choosePixelRatio(window.devicePixelRatio || 1, coarse || width < 820, interacting);
+  }
+
+  private applyPixelRatio(interacting: boolean): void {
+    const next = this.pixelRatio(interacting);
+    if (this.pixelLive === interacting && Math.abs(this.renderer.getPixelRatio() - next) < 0.01) return;
+    this.pixelLive = interacting;
+    this.renderer.setPixelRatio(next);
+    this.resize();
+  }
+
+  /** Draws one frame. Returns true while the camera is still moving. */
+  private tick(): boolean {
+    if (!this.running) return false;
+    const now = performance.now();
+    const beforeTween = this.tween !== null;
+    this.stepTween(now);
+    const moved = this.controls.update();
+    const tweening = this.tween !== null;
+    const drifting = moved && this.meaningfulMove();
+    if (this.interacting && !this.pointerDown && now >= this.gestureUntil && !tweening) {
+      this.interacting = false;
+      this.labelPlanAt = 0;
+      this.dirty = true;
+      this.applyPixelRatio(false);
+    }
+    const active = this.dirty || drifting || beforeTween || this.interacting || this.pointerDown;
+    if (!active) return false;
+    this.dirty = false;
     const distance = this.camera.position.distanceTo(this.controls.target);
+    this.keyLight.position.copy(this.camera.position);
     const worldHeight = 2 * Math.tan((this.camera.fov * Math.PI) / 360) * Math.max(distance, 0.001);
     const pxPerMm = this.canvas.clientHeight / worldHeight;
     this.outlineUniform.value = Math.min(1.6, Math.max(distance < 40 ? 0.55 : 0.2, 2.6 / Math.max(pxPerMm, 0.5)));
-    this.controls.update();
     this.updateScaleBar();
-    this.projectCallouts();
-    this.projectStudyLabels();
-    this.projectGizmo();
     this.onFrameHandler?.(distance);
+    this.cullContextMeshes();
+    this.projectCallouts();
+    this.projectStudyLabels(now);
+    this.projectGizmo();
     this.renderer.render(this.scene, this.camera);
+    this.rememberPose();
+    return drifting || tweening || this.interacting || this.pointerDown || this.dirty;
+  }
+
+  private meaningfulMove(): boolean {
+    const drift = this.camera.position.distanceToSquared(this.pose) + this.controls.target.distanceToSquared(this.poseTarget);
+    const turn = 1 - this.poseQuat.dot(this.camera.quaternion) ** 2;
+    return drift > 1e-4 || turn > 1e-8;
+  }
+
+  private rememberPose(): void {
+    this.pose.copy(this.camera.position);
+    this.poseTarget.copy(this.controls.target);
+    this.poseQuat.copy(this.camera.quaternion);
   }
 
   private resize(): void {
@@ -700,6 +834,7 @@ export class EntViewer {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+    this.invalidate();
   }
 
   private updateScaleBar(): void {
@@ -711,8 +846,10 @@ export class EntViewer {
     const chosen = chooseScaleMm(pxPerMm);
     const line = this.scaleEl.querySelector<HTMLElement>('[data-scale-line]');
     const label = this.scaleEl.querySelector<HTMLElement>('[data-scale-label]');
-    if (line) line.style.width = `${Math.max(1, Math.round(chosen.px))}px`;
-    if (label) label.textContent = `${chosen.mm} mm`;
+    const widthPx = `${Math.max(1, Math.round(chosen.px))}px`;
+    const text = `${chosen.mm} mm`;
+    if (line && line.style.width !== widthPx) line.style.width = widthPx;
+    if (label && label.textContent !== text) label.textContent = text;
   }
 
   private warnIfScaled(mesh: THREE.Object3D, id: string): void {
@@ -730,6 +867,7 @@ export class EntViewer {
   private refreshLook(): void {
     for (const record of this.records.values()) this.applyLook(record);
     this.syncCallouts();
+    this.invalidate();
   }
 
   private shown(record: StructureRecord): boolean {
@@ -897,6 +1035,7 @@ export class EntViewer {
         this.measures.add(mesh);
       }
     }
+    this.invalidate();
   }
 
   private moveCamera(position: Vec3, target: Vec3, up: Vec3, fov: number, immediate: boolean): void {
@@ -912,6 +1051,7 @@ export class EntViewer {
       this.camera.fov = fov;
       this.camera.updateProjectionMatrix();
       this.controls.update();
+      this.invalidate();
       return;
     }
     this.tween = {
@@ -925,6 +1065,7 @@ export class EntViewer {
       toF: fov,
       start: performance.now(),
     };
+    this.invalidate();
   }
 
   private stepTween(now: number): void {
@@ -974,10 +1115,15 @@ export class EntViewer {
   }
 
   private projectCallouts(): void {
+    if (this.calloutButtons.size === 0) {
+      if (this.leaderSvg.childNodes.length > 0) this.leaderSvg.replaceChildren();
+      return;
+    }
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
     this.leaderSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     this.leaderSvg.replaceChildren();
+    if (this.interacting) return;
     const fans: Array<[number, number]> = [
       [34, -40],
       [-48, -16],
@@ -1019,11 +1165,11 @@ export class EntViewer {
       line.setAttribute('stroke-width', '1');
       this.leaderSvg.append(line);
     };
-    if (this.selected) {
+    if (this.selected && this.calloutButtons.has(this.selected)) {
       const record = this.records.get(this.selected);
       if (record?.object.visible) {
-        const box = new THREE.Box3().setFromObject(record.object);
-        place(this.selected, box.getCenter(new THREE.Vector3()), record.label);
+        const center = this.centers.get(this.selected);
+        if (center) place(this.selected, center, record.label);
       }
     }
     if (this.marker?.visible && this.markerLabel) {
@@ -1072,6 +1218,10 @@ export class EntViewer {
       };
       material.customProgramCacheKey = () => `ent3d-cut-${kind}`;
       mesh.material = material;
+      mesh.matrixAutoUpdate = false;
+      mesh.updateMatrix();
+      if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+      if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
       mesh.userData.structureId = kind === 'auricle' ? 'upper-body' : 'skull-layer';
       mesh.userData.kind = 'structure';
       this.pickables.push(mesh);
@@ -1089,9 +1239,12 @@ export class EntViewer {
       hotspot.position.set(eacMm[0], eacMm[1], eacMm[2]);
       hotspot.userData.structureId = 'ear-hotspot';
       hotspot.userData.kind = 'structure';
+      hotspot.matrixAutoUpdate = false;
+      hotspot.updateMatrix();
       this.pickables.push(hotspot);
       this.world.add(hotspot);
       this.earHotspot = hotspot;
+      this.invalidate();
     });
   }
 
@@ -1113,32 +1266,83 @@ export class EntViewer {
     if (this.earHotspot) this.earHotspot.visible = radiusMm < 8;
   }
 
-  private projectStudyLabels(): void {
+  /** Hide the head when the cut discards it or it leaves the camera frustum. */
+  private cullContextMeshes(): void {
+    this.camera.updateMatrixWorld();
+    this.cullContext(this.skullLayer, this.cutRadius.value * 0.72);
+    this.cullContext(this.upperBody, this.cutRadius.value);
+  }
+
+  private cullContext(mesh: THREE.Mesh | null, limit: number): void {
+    if (!mesh) return;
+    const material = mesh.material as THREE.MeshStandardMaterial;
+    if (material.opacity <= 0.02 || this.meshInsideCut(mesh, limit) || this.outsideFrustum(mesh)) {
+      mesh.visible = false;
+      return;
+    }
+    mesh.visible = true;
+  }
+
+  private meshInsideCut(mesh: THREE.Mesh, radius: number): boolean {
+    if (!(radius > 0)) return false;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const box = mesh.geometry.boundingBox;
+    if (!box) return false;
+    mesh.updateWorldMatrix(true, false);
+    const corners: [number, number, number][] = [];
+    for (const x of [box.min.x, box.max.x]) {
+      for (const y of [box.min.y, box.max.y]) {
+        for (const z of [box.min.z, box.max.z]) {
+          this.cornerScratch.set(x, y, z).applyMatrix4(mesh.matrixWorld);
+          corners.push([this.cornerScratch.x, this.cornerScratch.y, this.cornerScratch.z]);
+        }
+      }
+    }
+    return coveredBySphere(corners, [this.cutCenter.x, this.cutCenter.y, this.cutCenter.z], radius);
+  }
+
+  private outsideFrustum(mesh: THREE.Mesh): boolean {
+    if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
+    const sphere = mesh.geometry.boundingSphere;
+    if (!sphere) return false;
+    mesh.updateWorldMatrix(true, false);
+    this.frustumMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+    this.frustum.setFromProjectionMatrix(this.frustumMatrix);
+    this.sphereScratch.copy(sphere).applyMatrix4(mesh.matrixWorld);
+    return !this.frustum.intersectsSphere(this.sphereScratch);
+  }
+
+  private projectStudyLabels(now: number): void {
     if (!this.studyLayer) return;
-    const now = performance.now();
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
-    if (now - this.labelPlanAt > 100) {
+    const due = this.labelPlanAt === 0 || now - this.labelPlanAt > 100;
+    if (!this.interacting && due) {
       this.labelPlanAt = now;
       this.labelPlan = this.layoutStudyLabels(width, height);
+      this.rememberOffsets(width, height);
     }
     const wanted = new Set(this.labelPlan.map((item) => item.id));
     for (const [id, button] of this.studyButtons) {
       if (!wanted.has(id)) {
         button.remove();
         this.studyButtons.delete(id);
+        this.leaderLines.get(id)?.remove();
+        this.leaderLines.delete(id);
       }
     }
-    this.studyLayer.querySelectorAll('svg').forEach((node) => node.remove());
-    const svg = document.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('class', 'leaders');
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    this.studyLayer.append(svg);
+    const svg = this.ensureStudySvg(width, height);
+    svg.style.display = this.interacting ? 'none' : '';
     for (const item of this.labelPlan) {
+      const source = this.labelById.get(item.id);
+      const priority = source?.priority ?? 0;
+      const secondary = item.id !== this.selected && (item.mode === 'dot' || priority < 40);
       let button = this.studyButtons.get(item.id);
       if (!button) {
         button = document.createElement('button');
         button.type = 'button';
+        button.style.left = '0';
+        button.style.top = '0';
         button.addEventListener('pointerup', (event) => {
           event.stopPropagation();
           event.preventDefault();
@@ -1147,42 +1351,92 @@ export class EntViewer {
         this.studyLayer.append(button);
         this.studyButtons.set(item.id, button);
       }
-      const source = this.studyLabels.find((label) => label.id === item.id);
-      button.className = item.mode === 'dot' ? 'study-dot' : 'study-label';
-      button.replaceChildren();
-      if (item.mode === 'label' && source) {
-        const english = document.createElement('span');
-        english.className = 'study-en';
-        english.textContent = source.en || source.text;
-        button.append(english);
-        if (source.ko) {
-          const korean = document.createElement('span');
-          korean.className = 'study-ko';
-          korean.textContent = source.ko;
-          button.append(korean);
+      const conceal = this.interacting && secondary;
+      button.hidden = conceal;
+      if (conceal) {
+        const hiddenLine = this.leaderLines.get(item.id);
+        if (hiddenLine) hiddenLine.style.display = 'none';
+        continue;
+      }
+      const modeClass = item.mode === 'dot' ? 'study-dot' : 'study-label';
+      if (button.className !== modeClass) button.className = modeClass;
+      const caption = source ? `${item.mode}|${source.en}|${source.ko}` : item.mode;
+      if (button.dataset.caption !== caption) {
+        button.dataset.caption = caption;
+        button.replaceChildren();
+        if (item.mode === 'label' && source) {
+          const english = document.createElement('span');
+          english.className = 'study-en';
+          english.textContent = source.en || source.text;
+          button.append(english);
+          if (source.ko) {
+            const korean = document.createElement('span');
+            korean.className = 'study-ko';
+            korean.textContent = source.ko;
+            button.append(korean);
+          }
         }
       }
-      button.style.left = `${item.x}px`;
-      button.style.top = `${item.y}px`;
-      button.style.opacity = item.dimmed ? '0.38' : '1';
-      button.dataset.priority = String(source?.priority ?? 0);
-      if (item.mode === 'label' && source) {
-        const anchor = this.projectSpecimen(source.position, width, height);
-        if (anchor) {
-          const line = document.createElementNS(SVG_NS, 'line');
-          line.setAttribute('x1', String(anchor.x));
-          line.setAttribute('y1', String(anchor.y));
-          line.setAttribute('x2', String(item.x));
-          line.setAttribute('y2', String(item.y + 8));
-          line.setAttribute('stroke', '#222');
-          line.setAttribute('stroke-width', '1');
-          svg.append(line);
-        }
+      const offset = this.labelOffset.get(item.id) ?? { ox: 0, oy: 0 };
+      const anchor = source ? this.projectSpecimen(source.position, width, height) : null;
+      const behind = !anchor || anchor.behind;
+      const x = anchor && !anchor.behind ? anchor.x + offset.ox : item.x;
+      const y = anchor && !anchor.behind ? anchor.y + offset.oy : item.y;
+      button.hidden = behind;
+      if (behind) continue;
+      const shift = item.mode === 'dot' ? ' translate(-50%, -50%)' : '';
+      button.style.transform = `translate3d(${x}px, ${y}px, 0)${shift}`;
+      const opacity = item.dimmed ? '0.38' : '1';
+      if (button.style.opacity !== opacity) button.style.opacity = opacity;
+      if (item.mode !== 'label' || !anchor) {
+        const hiddenLine = this.leaderLines.get(item.id);
+        if (hiddenLine) hiddenLine.style.display = 'none';
+        continue;
       }
+      let line = this.leaderLines.get(item.id);
+      if (!line) {
+        line = document.createElementNS(SVG_NS, 'line') as SVGLineElement;
+        line.setAttribute('stroke', '#222');
+        line.setAttribute('stroke-width', '1');
+        svg.append(line);
+        this.leaderLines.set(item.id, line);
+      }
+      line.style.display = this.interacting ? 'none' : '';
+      if (this.interacting) continue;
+      line.setAttribute('x1', String(anchor.x));
+      line.setAttribute('y1', String(anchor.y));
+      line.setAttribute('x2', String(x));
+      line.setAttribute('y2', String(y + 8));
+    }
+  }
+
+  private ensureStudySvg(width: number, height: number): SVGSVGElement {
+    if (!this.studySvg) {
+      const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+      svg.classList.add('leaders');
+      this.studyLayer?.append(svg);
+      this.studySvg = svg;
+    }
+    const view = `0 0 ${width} ${height}`;
+    if (this.studySvg.getAttribute('viewBox') !== view) this.studySvg.setAttribute('viewBox', view);
+    return this.studySvg;
+  }
+
+  private rememberOffsets(width: number, height: number): void {
+    for (const item of this.labelPlan) {
+      const source = this.labelById.get(item.id);
+      if (!source) continue;
+      const anchor = this.projectSpecimen(source.position, width, height);
+      if (!anchor || anchor.behind) {
+        this.labelOffset.set(item.id, { ox: 0, oy: 0 });
+        continue;
+      }
+      this.labelOffset.set(item.id, { ox: item.x - anchor.x, oy: item.y - anchor.y });
     }
   }
 
   private layoutStudyLabels(width: number, height: number): Placement[] {
+    this.rebuildOccluders();
     const distance = this.cameraDistance();
     const inputs = [];
     for (const label of this.studyLabels) {
@@ -1221,68 +1475,87 @@ export class EntViewer {
   }
 
   private projectSpecimen(position: Vec3, width: number, height: number): { x: number; y: number; behind: boolean } | null {
-    const world = new THREE.Vector3(position[0] + this.offset[0], position[1] + this.offset[1], position[2] + this.offset[2]);
-    const ndc = world.project(this.camera);
-    if (ndc.z > 1) return { x: 0, y: 0, behind: true };
-    return { x: (ndc.x * 0.5 + 0.5) * width, y: (-ndc.y * 0.5 + 0.5) * height, behind: false };
+    this.worldScratch.set(position[0] + this.offset[0], position[1] + this.offset[1], position[2] + this.offset[2]);
+    this.ndc.copy(this.worldScratch).project(this.camera);
+    if (this.ndc.z > 1) return { x: 0, y: 0, behind: true };
+    return { x: (this.ndc.x * 0.5 + 0.5) * width, y: (-this.ndc.y * 0.5 + 0.5) * height, behind: false };
+  }
+
+  /** Opaque, visible meshes only. The transparent bone used to be tested and then ignored. */
+  private rebuildOccluders(): void {
+    const meshes: THREE.Object3D[] = [];
+    for (const record of this.records.values()) {
+      if (!record.object.visible || record.aggregate) continue;
+      const opacity = record.materials[0]?.opacity ?? 1;
+      if (opacity < 0.45) continue;
+      for (const mesh of record.meshes) meshes.push(mesh);
+    }
+    if (this.skullLayer?.visible) {
+      const opacity = (this.skullLayer.material as THREE.MeshStandardMaterial).opacity;
+      if (opacity >= 0.45) meshes.push(this.skullLayer);
+    }
+    if (this.upperBody?.visible && this.cutRadius.value <= 5) {
+      const opacity = (this.upperBody.material as THREE.MeshStandardMaterial).opacity;
+      if (opacity >= 0.45) meshes.push(this.upperBody);
+    }
+    this.occluders = meshes;
   }
 
   private anchorOccluded(position: Vec3): boolean {
-    const world = new THREE.Vector3(position[0] + this.offset[0], position[1] + this.offset[1], position[2] + this.offset[2]);
-    const direction = world.clone().sub(this.camera.position);
-    const length = direction.length();
+    if (this.occluders.length === 0) return false;
+    this.rayTarget.set(position[0] + this.offset[0], position[1] + this.offset[1], position[2] + this.offset[2]);
+    this.rayDir.copy(this.rayTarget).sub(this.camera.position);
+    const length = this.rayDir.length();
     if (length < 0.5) return false;
-    this.raycaster.set(this.camera.position, direction.normalize());
-    const hits = this.raycaster.intersectObjects(this.pickables, false);
-    for (const hit of hits) {
-      if (!isShown(hit.object)) continue;
-      if (hit.distance >= length - 0.8) return false;
-      const id = String(hit.object.userData.structureId ?? '');
-      const record = this.records.get(id);
-      const opacity = record?.materials[0]?.opacity ?? 1;
-      if (id === 'bone' && opacity < 0.4) continue;
-      if (id === 'upper-body' && this.cutRadius.value > 5) continue;
-      if (opacity >= 0.45) return true;
-    }
-    return false;
+    this.rayDir.multiplyScalar(1 / length);
+    this.raycaster.near = 0;
+    this.raycaster.far = Math.max(0.01, length - 0.8);
+    this.raycaster.set(this.camera.position, this.rayDir);
+    const hits = this.raycaster.intersectObjects(this.occluders, false);
+    return hits.some((hit) => isShown(hit.object));
   }
 
   private projectGizmo(): void {
-    const direction = new THREE.Vector3();
-    this.camera.getWorldDirection(direction);
-    this.gizmoCam.position.copy(direction.multiplyScalar(-4));
+    this.camera.getWorldDirection(this.rayDir);
+    this.gizmoCam.position.copy(this.rayDir.multiplyScalar(-4));
     this.gizmoCam.up.copy(this.camera.up);
     this.gizmoCam.lookAt(0, 0, 0);
     this.gizmoCam.updateMatrixWorld();
     const project = (x: number, y: number, z: number) => {
-      const point = new THREE.Vector3(x, y, z).project(this.gizmoCam);
-      return { x: (point.x * 0.5 + 0.5) * 84, y: (-point.y * 0.5 + 0.5) * 84 };
+      this.ndc.set(x, y, z).project(this.gizmoCam);
+      return { x: (this.ndc.x * 0.5 + 0.5) * 84, y: (-this.ndc.y * 0.5 + 0.5) * 84 };
     };
     const origin = project(0, 0, 0);
-    this.gizmoSvg.replaceChildren();
     for (const axis of GIZMO_AXES) {
       const tip = project(axis.dir[0] * 1.05, axis.dir[1] * 1.05, axis.dir[2] * 1.05);
-      if (Math.hypot(tip.x - origin.x, tip.y - origin.y) < 10) {
-        const hiddenLabel = this.gizmo.querySelector<HTMLElement>(`[data-axis="${axis.id}"]`);
-        if (hiddenLabel) hiddenLabel.hidden = true;
-        continue;
+      const collapsed = Math.hypot(tip.x - origin.x, tip.y - origin.y) < 10;
+      let line = this.gizmoLines.get(axis.id);
+      if (!line) {
+        line = document.createElementNS(SVG_NS, 'line') as SVGLineElement;
+        line.setAttribute('stroke', '#222');
+        line.setAttribute('stroke-width', '1.25');
+        this.gizmoSvg.append(line);
+        this.gizmoLines.set(axis.id, line);
       }
-      const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('x1', String(origin.x));
-      line.setAttribute('y1', String(origin.y));
-      line.setAttribute('x2', String(tip.x));
-      line.setAttribute('y2', String(tip.y));
-      line.setAttribute('stroke', '#222');
-      line.setAttribute('stroke-width', '1.25');
-      this.gizmoSvg.append(line);
+      line.style.display = collapsed ? 'none' : '';
+      if (!collapsed) {
+        line.setAttribute('x1', String(origin.x));
+        line.setAttribute('y1', String(origin.y));
+        line.setAttribute('x2', String(tip.x));
+        line.setAttribute('y2', String(tip.y));
+      }
       const label = this.gizmo.querySelector<HTMLElement>(`[data-axis="${axis.id}"]`);
       if (!label) continue;
       const textPos = project(axis.dir[0] * 1.35, axis.dir[1] * 1.35, axis.dir[2] * 1.35);
-      const separated = Math.hypot(textPos.x - origin.x, textPos.y - origin.y) > 16;
+      const separated = !collapsed && Math.hypot(textPos.x - origin.x, textPos.y - origin.y) > 16;
       label.hidden = !separated;
       if (!separated) continue;
-      label.style.left = `${textPos.x}px`;
-      label.style.top = `${textPos.y}px`;
+      if (!label.dataset.placed) {
+        label.style.left = '0';
+        label.style.top = '0';
+        label.dataset.placed = '1';
+      }
+      label.style.transform = `translate3d(${textPos.x}px, ${textPos.y}px, 0) translate(-50%, -50%)`;
     }
   }
 
