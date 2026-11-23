@@ -2,8 +2,8 @@ import type { Vec3 } from './types';
 
 /**
  * Cephalometric points shared by later regions (sinus, rhinology, neck).
- * Coordinates that are filled are this right-ear specimen or the Z-Anatomy
- * skull before the temporal-bone rigid map. Orbitale and nasion are defined
+ * Coordinates that are filled are this right-ear specimen in the upright head,
+ * or the matching point on the upright Z-Anatomy skull. Orbitale and nasion are defined
  * here so the next region can fill them; this skull extract was not used to
  * invent those two coordinates.
  */
@@ -12,9 +12,9 @@ export type HeadLandmark = {
   en: string;
   ko: string;
   definition: string;
-  /** Specimen millimetres, +X anterior, +Y inferior, +Z medial. */
+  /** Specimen point after it has been turned into the upright head, in millimetres. */
   zetaMm?: Vec3;
-  /** Original Z-Anatomy skull millimetres, before the rigid map. */
+  /** Matching point on the upright Z-Anatomy skull, in millimetres. */
   skullMm?: Vec3;
 };
 
@@ -24,8 +24,8 @@ export const HEAD_LANDMARKS: HeadLandmark[] = [
     en: 'Porion',
     ko: '이공점',
     definition: 'Highest point on the upper rim of the external acoustic meatus.',
-    zetaMm: [28.51, 23.64, 14.46],
-    skullMm: [48.5, 4.2, 27.6],
+    zetaMm: [33.01, 46.847, 39.386],
+    skullMm: [25.255, 36.659, 34.286],
   },
   {
     id: 'orbitale',
@@ -44,6 +44,6 @@ export const HEAD_LANDMARKS: HeadLandmark[] = [
     en: 'Mastoid tip',
     ko: '유양돌기 첨부',
     definition: 'Most inferior point of the mastoid process.',
-    zetaMm: [15.16, 57.25, 14.11],
+    zetaMm: [30.061, 82.471, 44.874],
   },
 ];

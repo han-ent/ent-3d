@@ -6,12 +6,8 @@
     "ko": "와우 전정계의 중간회전이다."
   },
   "function": {
-    "en": "Cut by angle about the same modiolus as the scala tympani.",
-    "ko": "고실계와 같은 와우축 각도로 나눴다."
-  },
-  "clinical": {
-    "ko": "고실계와 같은 와우축 각도로 나눴습니다.",
-    "en": "Angle split about the same modiolus axis as the scala tympani."
+    "en": "It follows the same modiolar axis as the scala tympani.",
+    "ko": "고실계와 같은 와우축을 따라간다."
   },
   "surgical_points": [],
   "sources": [

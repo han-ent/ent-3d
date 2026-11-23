@@ -1,15 +1,15 @@
 {
-  "fundusMm": 1.75,
-  "firstGenuMm": 5.75,
+  "fundusMm": 1.25,
+  "firstGenuMm": 3.0,
   "secondGenuMm": 14.5,
   "lengthsMm": {
-    "fn-meatal": 1.75,
-    "fn-labyrinthine": 3.0,
+    "fn-meatal": 1.25,
+    "fn-labyrinthine": 0.75,
     "fn-geniculate": 2.0,
-    "fn-tympanic": 6.45,
-    "fn-second-genu": 2.05,
+    "fn-tympanic": 9.5,
+    "fn-second-genu": 1.75,
     "fn-mastoid": 12.57
   },
-  "meshLimited": "The facial-nerve surface ends in the mastoid, about 20 mm short of the mastoid tip, so the meatal and mastoid lengths are the mesh, not the whole nerve to the stylomastoid foramen.",
+  "meshLimited": "The nerve surface stops near y = 35 mm. The bony fallopian canal continues about 3.5 mm, to about y = 38 mm, so the mastoid segment is about 16 mm to that point.",
   "tmMethod": "pars flaccida is the superior cap above the malleus lateral process"
 }

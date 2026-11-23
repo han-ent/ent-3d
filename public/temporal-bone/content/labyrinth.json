@@ -9,10 +9,6 @@
     "en": "Select a child to study one part. The parent is the whole lumen.",
     "ko": "한 부분만 보려면 자식 구조를 고른다. 부모는 내강 전체다."
   },
-  "clinical": {
-    "ko": "자식 구조를 고르면 해당 부분만 봅니다.",
-    "en": "Parent aggregate. Select a child to study one part."
-  },
   "surgical_points": [],
   "sources": [
     {

@@ -3,235 +3,155 @@
   "scale": 1,
   "appliedScale": 1,
   "within5Percent": true,
-  "scaleDecision": "Rigid map of the Z-Anatomy skull and MakeHuman skin into the ZETA frame. Rotation is 22.0° about Z, the sagittal tilt between head-inferior and specimen +Y. The audit's 51° figure was the Umeyama of an earlier, unpaired landmark set and is not applied. Scale stays 1. The skull porion is seated 5 mm lateral to the bony porus so the lateral cortex lies inside the skin.",
+  "scaleDecision": "The head stays upright, as on main. The temporal bone is rotated into that head: 30.8° in all (27° yaw about head-superior and 15° pitch about head-lateral). Scale is 1. The bony porus lies on the cavum conchae axis.",
   "current": {
-    "method": "Rigid rotation plus translation, scale 1, porion seated 5 mm lateral to the bony porus. rmsMm is the root-mean-square gap from six outer ZETA landmarks to the registered skull surface.",
-    "rmsMm": 5.13,
+    "method": "Rigid rotation of the specimen into the upright head. rmsMm is the distance between independently defined landmark pairs.",
+    "rmsMm": 15.175,
     "pairs": [
       {
         "id": "eac-porus",
         "en": "EAC porus",
         "ko": "외이도 입구",
-        "kind": "outer",
-        "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          48.532,
-          4.168,
-          27.642
+          25.255,
+          36.659,
+          34.286
         ],
         "zetaMm": [
-          28.515,
-          23.638,
-          14.464
+          33.01,
+          46.847,
+          39.386
         ],
-        "transformedSkullMm": [
-          28.533,
-          23.596,
-          9.506
-        ],
-        "residualMm": 4.959
+        "residualMm": 13.782
       },
       {
         "id": "mastoid-tip",
         "en": "Mastoid tip",
         "ko": "유양돌기 첨부",
-        "kind": "outer",
-        "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          20.117,
-          30.652,
-          35.581
+          28.172,
+          66.967,
+          60.731
         ],
         "zetaMm": [
-          15.165,
-          57.246,
-          14.114
+          30.061,
+          82.471,
+          44.874
         ],
-        "transformedSkullMm": [
-          12.108,
-          58.795,
-          17.445
-        ],
-        "residualMm": 4.779
+        "residualMm": 22.258
       },
       {
         "id": "zygomatic-root",
         "en": "Zygomatic root",
         "ko": "관골돌기 기시부",
-        "kind": "outer",
-        "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          58.538,
-          5.752,
-          31.698
+          32.364,
+          39.595,
+          37.029
         ],
         "zetaMm": [
-          34.612,
-          21.663,
-          16.833
+          38.785,
+          43.253,
+          38.749
         ],
-        "transformedSkullMm": [
-          38.403,
-          21.317,
-          13.562
-        ],
-        "residualMm": 5.019
+        "residualMm": 7.588
       },
       {
-        "id": "styloid-base",
-        "en": "Styloid base",
-        "ko": "경상돌기 기저",
-        "kind": "outer",
-        "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
+        "id": "stylomastoid-foramen",
+        "en": "Stylomastoid foramen",
+        "ko": "경유돌공",
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          38.449,
-          39.421,
-          50.995
+          28.616,
+          48.539,
+          55.361
         ],
         "zetaMm": [
-          30.843,
-          58.963,
-          35.526
+          35.994,
+          63.152,
+          56.11
         ],
-        "transformedSkullMm": [
-          32.389,
-          60.059,
-          32.86
-        ],
-        "residualMm": 3.272
+        "residualMm": 16.388
       },
       {
-        "id": "henle-spine",
-        "en": "Spine of Henle",
-        "ko": "Henle 극",
-        "kind": "outer",
-        "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
+        "id": "arcuate-eminence",
+        "en": "Arcuate eminence",
+        "ko": "궁상융기",
+        "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
         "skullMm": [
-          48.532,
-          4.168,
-          27.642
+          25.661,
+          30.729,
+          49.45
         ],
         "zetaMm": [
-          24.81,
-          22.5,
-          13.405
+          28.963,
+          32.513,
+          60.668
         ],
-        "transformedSkullMm": [
-          28.533,
-          23.596,
-          9.506
-        ],
-        "residualMm": 5.501
-      },
-      {
-        "id": "digastric-ridge",
-        "en": "Digastric ridge",
-        "ko": "이복근릉",
-        "kind": "outer",
-        "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
-        "skullMm": [
-          29.814,
-          31.424,
-          40.275
-        ],
-        "zetaMm": [
-          16.773,
-          51.87,
-          19.497
-        ],
-        "transformedSkullMm": [
-          21.388,
-          55.879,
-          22.139
-        ],
-        "residualMm": 6.66
+        "residualMm": 11.829
       }
     ]
   },
-  "internalPairs": [
-    {
-      "id": "arcuate-eminence",
-      "en": "Arcuate eminence",
-      "ko": "궁상융기",
-      "kind": "internal-no-skull-surface",
-      "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
-      "skullMm": [
-        49.498,
-        -15.225,
-        26.85
-      ],
-      "zetaMm": [
-        18.739,
-        8.587,
-        33.243
-      ],
-      "transformedSkullMm": [
-        22.163,
-        5.253,
-        8.714
-      ],
-      "residualMm": 24.99
-    },
-    {
-      "id": "jugular-foramen",
-      "en": "Jugular foramen region",
-      "ko": "경정맥공 부근",
-      "kind": "internal-no-skull-surface",
-      "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
-      "skullMm": [
-        33.793,
-        32.912,
-        57.428
-      ],
-      "zetaMm": [
-        20.401,
-        36.182,
-        46.657
-      ],
-      "transformedSkullMm": [
-        25.635,
-        55.768,
-        39.292
-      ],
-      "residualMm": 21.569
-    }
-  ],
   "applied": {
     "scale": 1,
+    "maps": "specimen-to-upright-head",
     "rotation": [
       [
-        0.927184,
-        0.374607,
-        0.0
+        0.860224,
+        0.258533,
+        0.439516
       ],
       [
-        -0.374607,
-        0.927184,
-        0.0
+        -0.233729,
+        0.965974,
+        -0.11075
       ],
       [
-        0.0,
-        0.0,
-        1.0
+        -0.453194,
+        -0.007458,
+        0.891381
       ]
     ],
     "translationMm": [
-      -18.0268,
-      37.9118,
-      -18.1356
+      -3.9878,
+      32.2804,
+      39.592
     ],
-    "angleDeg": 22.0,
-    "porionSkullMm": [
-      48.5,
-      4.2,
-      27.6
+    "angleDeg": 30.82,
+    "yawDeg": -27.0,
+    "pitchDeg": 15.0,
+    "canalSlideMm": 19.0,
+    "rmsMm": 15.175
+  },
+  "headAxes": {
+    "anterior": [
+      0.971989,
+      -0.234364,
+      0.017637
     ],
-    "lateralSeatMm": [
-      0.0,
-      0.0,
-      -5.0
+    "inferior": [
+      0.234416,
+      0.972136,
+      -0.000939
     ],
-    "rmsMm": 5.13
+    "lateral": [
+      0.016925,
+      -0.005047,
+      -0.999844
+    ],
+    "superior": [
+      -0.234416,
+      -0.972136,
+      0.000939
+    ]
+  },
+  "canalPlanes": {
+    "lateralToFrankfortDeg": 30.0,
+    "superiorToSagittalDeg": 41.5,
+    "posteriorToSagittalDeg": 42.0
   },
   "containment": {
     "outsideVertices": 0,
@@ -240,21 +160,22 @@
   },
   "concha": {
     "xyzMm": [
-      29.466,
-      20.297,
-      -3.558
+      24.763,
+      45.342,
+      22.336
     ],
     "axisOffsetMm": 0.0,
     "porusMm": [
-      28.515,
-      23.638,
-      14.464
-    ]
+      33.01,
+      46.847,
+      39.386
+    ],
+    "definition": "Cavum conchae: medial floor of the inferior bowl of the auricle, on the unmoved pinna."
   },
   "umeyama": {
     "scale": 1,
-    "rmsMm": 5.13,
-    "note": "Applied transform is rigid with scale fixed at 1. rmsMm is the seven-pair residual of that map, not a free similarity."
+    "rmsMm": 15.175,
+    "note": "Scale is fixed at 1. rmsMm is the matched-pair residual of the specimen rotation."
   },
   "umeyamaWithoutMastoid": {
     "scale": 1.1134025689143707,
@@ -322,5 +243,5 @@
       "source": "Same porion–mastoidale reference as the ZETA drop. Skull porion is the lateral meatus rim, so this is closer to the caliper definition than the canal centroid."
     }
   ],
-  "frameNote": "Specimen axes verified on the meshes: cochlea is anteromedial to the canals, the superior canal is the minimum Y, and the lateral canal opens toward minimum Z. +X anterior, +Y inferior, +Z medial."
+  "frameNote": "Head meshes are the upright main models. Specimen meshes are rotated into that frame."
 }

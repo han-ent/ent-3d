@@ -2,16 +2,12 @@
   "id": "fn-mastoid",
   "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "en": "The descending segment, 12.57 mm from the second genu to the end of the mesh.",
-    "ko": "하행 분절이다. 제2슬에서 메시 끝까지 12.57 mm."
+    "en": "The descending segment, 12.57 mm from the second genu to the end of the nerve.",
+    "ko": "하행 분절이다. 제2슬에서 신경 끝까지 12.57 mm."
   },
   "function": {
-    "en": "Reference lengths are about 15–20 mm to the stylomastoid foramen. This mesh stops in the mastoid, short of the foramen and the mastoid tip.",
-    "ko": "참고 길이는 경유돌공까지 약 15–20 mm다. 이 메시는 유양부 안에서 끝나며 공과 유양돌기 첨부에 닿지 않는다."
-  },
-  "clinical": {
-    "ko": "이복근릉이 경유돌공을 향합니다.",
-    "en": "The digastric ridge points toward the stylomastoid foramen."
+    "en": "The bony canal continues about 3.5 mm beyond the nerve, to about 16 mm in all. A full mastoid segment to the stylomastoid foramen is often 15–20 mm.",
+    "ko": "골관은 신경보다 약 3.5 mm 더 이어져 전체는 약 16 mm다. 경유돌공까지의 유양부는 흔히 15–20 mm다."
   },
   "surgical_points": [],
   "sources": [

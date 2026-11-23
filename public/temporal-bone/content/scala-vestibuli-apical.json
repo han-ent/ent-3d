@@ -9,10 +9,6 @@
     "en": "It is the part nearest the helicotrema.",
     "ko": "와우공에 가장 가까운 부분이다."
   },
-  "clinical": {
-    "ko": "와우축 기준 각도 분할입니다.",
-    "en": "Angle split about the modiolus."
-  },
   "surgical_points": [],
   "sources": [
     {

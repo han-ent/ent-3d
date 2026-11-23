@@ -6,7 +6,7 @@
       "id": "helix",
       "en": "Helix",
       "ko": "이륜",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -16,9 +16,9 @@
         }
       ],
       "xyz_mm": [
-        20.18,
-        -4.405,
-        -11.869
+        34.157,
+        17.269,
+        3.251
       ],
       "review": "미검증",
       "tier": "surface"
@@ -27,7 +27,7 @@
       "id": "crus-helix",
       "en": "Crus of helix",
       "ko": "이륜각",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -37,9 +37,9 @@
         }
       ],
       "xyz_mm": [
-        32.949,
-        11.257,
-        -0.592
+        25.454,
+        39.268,
+        19.969
       ],
       "review": "미검증",
       "tier": "surface"
@@ -48,7 +48,7 @@
       "id": "antihelix",
       "en": "Antihelix",
       "ko": "대이륜",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -58,9 +58,9 @@
         }
       ],
       "xyz_mm": [
-        25.769,
-        16.564,
-        -5.775
+        25.247,
+        41.141,
+        20.684
       ],
       "review": "미검증",
       "tier": "surface"
@@ -69,7 +69,7 @@
       "id": "scapha",
       "en": "Scapha",
       "ko": "주상와",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -79,9 +79,9 @@
         }
       ],
       "xyz_mm": [
-        16.243,
-        2.811,
-        -14.614
+        27.463,
+        26.864,
+        0.51
       ],
       "review": "미검증",
       "tier": "surface"
@@ -90,7 +90,7 @@
       "id": "triangular-fossa",
       "en": "Triangular fossa",
       "ko": "삼각와",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -100,9 +100,9 @@
         }
       ],
       "xyz_mm": [
-        23.194,
-        5.427,
-        -6.078
+        32.696,
+        28.172,
+        7.143
       ],
       "review": "미검증",
       "tier": "surface"
@@ -111,7 +111,7 @@
       "id": "cymba",
       "en": "Cymba conchae",
       "ko": "이갑개정",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -121,9 +121,9 @@
         }
       ],
       "xyz_mm": [
-        26.436,
-        14.425,
-        -4.951
+        25.247,
+        41.141,
+        20.684
       ],
       "review": "미검증",
       "tier": "surface"
@@ -132,7 +132,7 @@
       "id": "cavum",
       "en": "Cavum conchae",
       "ko": "이갑개강",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -142,9 +142,9 @@
         }
       ],
       "xyz_mm": [
-        24.839,
-        19.925,
-        -5.468
+        24.763,
+        45.342,
+        22.336
       ],
       "review": "미검증",
       "tier": "surface"
@@ -153,7 +153,7 @@
       "id": "tragus",
       "en": "Tragus",
       "ko": "이주",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -163,9 +163,9 @@
         }
       ],
       "xyz_mm": [
-        54.256,
-        39.497,
-        11.907
+        53.415,
+        50.276,
+        22.339
       ],
       "review": "미검증",
       "tier": "surface"
@@ -174,7 +174,7 @@
       "id": "antitragus",
       "en": "Antitragus",
       "ko": "대이주",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -184,9 +184,9 @@
         }
       ],
       "xyz_mm": [
-        24.662,
-        25.612,
-        -3.03
+        25.522,
+        50.406,
+        23.946
       ],
       "review": "미검증",
       "tier": "surface"
@@ -195,7 +195,7 @@
       "id": "intertragic-notch",
       "en": "Intertragic notch",
       "ko": "주간절흔",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -205,9 +205,9 @@
         }
       ],
       "xyz_mm": [
-        48.896,
-        43.319,
-        6.721
+        49.816,
+        61.71,
+        24.811
       ],
       "review": "미검증",
       "tier": "surface"
@@ -216,7 +216,7 @@
       "id": "lobule",
       "en": "Lobule",
       "ko": "이수(귓불)",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -226,9 +226,9 @@
         }
       ],
       "xyz_mm": [
-        42.764,
-        45.249,
-        -0.592
+        47.47,
+        73.052,
+        30.102
       ],
       "review": "미검증",
       "tier": "surface"
@@ -237,7 +237,7 @@
       "id": "mastoid-tip-skin",
       "en": "Mastoid tip",
       "ko": "유양돌기 첨부",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -247,9 +247,9 @@
         }
       ],
       "xyz_mm": [
-        11.206,
-        65.656,
-        6.337
+        31.442,
+        81.834,
+        37.818
       ],
       "review": "미검증",
       "tier": "surface"
@@ -258,7 +258,7 @@
       "id": "postauricular-sulcus",
       "en": "Postauricular sulcus",
       "ko": "이개후구",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -268,9 +268,9 @@
         }
       ],
       "xyz_mm": [
-        11.765,
-        12.152,
-        -14.004
+        22.148,
+        36.67,
+        3.861
       ],
       "review": "미검증",
       "tier": "surface"
@@ -279,7 +279,7 @@
       "id": "zygomatic-arch",
       "en": "Zygomatic arch",
       "ko": "관골궁",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -289,9 +289,9 @@
         }
       ],
       "xyz_mm": [
-        39.143,
-        17.954,
-        1.849
+        40.488,
+        47.06,
+        23.556
       ],
       "review": "미검증",
       "tier": "surface"
@@ -300,7 +300,7 @@
       "id": "temporal-line-skin",
       "en": "Temporal line",
       "ko": "측두선",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -310,9 +310,9 @@
         }
       ],
       "xyz_mm": [
-        25.732,
-        16.936,
-        -0.689
+        17.533,
+        42.972,
+        26.234
       ],
       "review": "미검증",
       "tier": "surface"
@@ -321,7 +321,7 @@
       "id": "tragal-pointer",
       "en": "Tragal pointer",
       "ko": "이주 포인터",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -331,9 +331,9 @@
         }
       ],
       "xyz_mm": [
-        53.545,
-        40.82,
-        11.996
+        53.415,
+        50.276,
+        22.339
       ],
       "review": "미검증",
       "tier": "surface"
@@ -342,7 +342,7 @@
       "id": "preauricular",
       "en": "Preauricular area",
       "ko": "이개전부",
-      "anatomy": "Point on the registered auricle or the skin beside it.",
+      "anatomy": "Point on the auricle, or on the skin beside the ear.",
       "clinical": "",
       "sources": [
         {
@@ -352,9 +352,9 @@
         }
       ],
       "xyz_mm": [
-        62.544,
-        41.316,
-        3.823
+        62.574,
+        45.838,
+        21.159
       ],
       "review": "미검증",
       "tier": "surface"

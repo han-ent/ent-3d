@@ -6,7 +6,7 @@
     "en": "The petrous carotid enters just in front of the jugular bulb, climbs the anterior wall of the tympanum, and turns horizontally in front of the cochlea, medial to the eustachian tube opening."
   },
   "function": {
-    "ko": "추체부 경동맥관을 가로질러 해면정맥동으로 이어지는 주된 두개내 동맥 경로임\n관 내 교감신경총을 동반하며, 고실 전벽·이관·와우와 밀접하여 중이·추체첨 병변이나 외상에 노출될 수 있음\n전대뇌순환에 대한 영역별 공급 세부는 이번에 연 장에서 직접 확인하지 못해 미검증으로 둠",
+    "ko": "추체부 경동맥관을 가로질러 해면정맥동으로 이어지는 주된 두개내 동맥 경로임\n관 내 교감신경총을 동반하며, 고실 전벽·이관·와우와 밀접하여 중이·추체첨 병변이나 외상에 노출될 수 있음",
     "en": "It is the main arterial path through the petrous bone into the cavernous sinus, and it carries a sympathetic plexus in the canal."
   },
   "surgical_points": [
@@ -57,11 +57,6 @@
       "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch7 The Middle Cranial Fossa Approach to the Internal Auditory Canal",
       "page": "57–58",
       "verified": true
-    },
-    {
-      "citation": "내경동맥의 전대뇌순환 영역별 공급 세부",
-      "page": "이번 회차 미개봉",
-      "verified": false
     }
   ],
   "review": "미검증",

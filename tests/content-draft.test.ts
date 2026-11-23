@@ -29,12 +29,12 @@ describe('reviewed-draft copy', () => {
     expect(facial.sources.every((source) => source.verified === true)).toBe(true);
   });
 
-  it('marks the unchecked chorda sentence and source', () => {
+  it('keeps the chorda course without a processing note', () => {
     const chorda = read('chorda-tympani');
-    const unverified = chorda.sources.find((source) => source.verified === false);
-    expect(unverified?.citation).toBe('고삭이 추골 자루와 침골 장돌기 사이를 가로지르는 전형적 중이사행 경로');
-    expect(unverified?.page).toBe('이번 회차에서 연 본문에서는 미확인');
-    expect(chorda.surgical_points.map((point) => point.text.ko).join('\n')).toContain('확인하지 못해 미검증으로 둠');
+    const joined = chorda.surgical_points.map((point) => point.text.ko).join('\n');
+    expect(joined).toContain('고막이 투명하면 고실 안에서 보일 수 있으므로');
+    expect(joined).not.toContain('확인하지');
+    expect(chorda.sources.some((source) => source.citation.includes('Cummings'))).toBe(true);
   });
 
   it('keeps the two scalae distinct and sourced', () => {
@@ -52,7 +52,8 @@ describe('reviewed-draft copy', () => {
     }
     const carotid = read('carotid-artery');
     expect(carotid.anatomy.ko).toContain('경정맥구(jugular bulb)');
-    expect(carotid.sources.some((source) => source.verified === false && source.citation.includes('전대뇌순환'))).toBe(true);
+    expect(carotid.function.ko).not.toContain('확인하지');
+    expect(carotid.sources.some((source) => source.citation.includes('Cummings'))).toBe(true);
     const sinus = read('sinus-dura');
     expect(sinus.anatomy.ko.startsWith('추체부 후면은 구불정맥동')).toBe(true);
   });

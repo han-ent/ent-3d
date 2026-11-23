@@ -27,7 +27,7 @@
     {
       "id": "chorda-tympani-p3",
       "text": {
-        "ko": "경외이도: 고막 또는 고실 내에서 확인될 수 있으므로 고실 조작 시 견인·절단 가능성에 주의함 고삭이 추골 자루와 침골 장돌기 사이를 가로지른다는 전형적 기술은 이번에 연 Cummings·Francis 본문에서는 확인하지 못해 미검증으로 둠",
+        "ko": "경외이도: 고막이 투명하면 고실 안에서 보일 수 있으므로, 고실 조작 때 견인하거나 자르지 않도록 한다.",
         "en": ""
       }
     }
@@ -52,11 +52,6 @@
       "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed, Ch3 Mastoidectomy",
       "page": "34–35, 40",
       "verified": true
-    },
-    {
-      "citation": "고삭이 추골 자루와 침골 장돌기 사이를 가로지르는 전형적 중이사행 경로",
-      "page": "이번 회차에서 연 본문에서는 미확인",
-      "verified": false
     }
   ],
   "review": "미검증",

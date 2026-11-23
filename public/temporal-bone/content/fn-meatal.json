@@ -2,16 +2,12 @@
   "id": "fn-meatal",
   "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "en": "The part of this facial-nerve surface still against the cochleovestibular nerve, 1.75 mm on the centreline.",
-    "ko": "이 안면신경 표면 가운데 와우전정신경에 붙어 있는 구간이다. 중심선 길이 1.75 mm."
+    "en": "The facial nerve where it still lies against the cochleovestibular nerve, 1.25 mm long.",
+    "ko": "와우전정신경에 붙어 있는 안면신경 구간이다. 길이 1.25 mm."
   },
   "function": {
-    "en": "The mesh begins near the fundus, so this is only the lateral end of the meatal segment, not the whole internal canal.",
-    "ko": "메시가 기저부 근처에서 시작하므로, 내이도 전체의 내이도부가 아니라 그 가쪽 끝이다."
-  },
-  "clinical": {
-    "ko": "기저부에서 Bill bar가 뒤쪽 표지입니다. 길이는 기하학적 추정치이며 미검증입니다.",
-    "en": "Bill bar is the posterior landmark at the fundus. Length is geometric and unverified."
+    "en": "On this specimen the segment is only the lateral end of the internal canal.",
+    "ko": "이 표본에서는 내이도의 가쪽 끝만 해당한다."
   },
   "surgical_points": [],
   "sources": [

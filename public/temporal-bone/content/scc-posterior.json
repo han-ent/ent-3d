@@ -9,10 +9,6 @@
     "en": "Its plane is near vertical and roughly a right angle from the superior canal.",
     "ko": "평면은 거의 수직이고 상반고리관과 대략 직각이다."
   },
-  "clinical": {
-    "ko": "상반고리관과 총각을 공유하며, 총각은 따로 나누지 않았습니다.",
-    "en": "Shares the common crus with the superior canal; the crus is not a separate mesh."
-  },
   "surgical_points": [],
   "sources": [
     {

@@ -6,8 +6,8 @@
       "id": "iac",
       "en": "Internal auditory canal",
       "ko": "내이도",
-      "anatomy": "Medial end of the cochleovestibular nerve mesh, in the internal canal.",
-      "clinical": "The facial nerve is anterosuperior at the fundus. Bill bar is not segmented.",
+      "anatomy": "Medial end of the canal, where the cochlear and vestibular nerves enter the posterior fossa.",
+      "clinical": "The facial nerve lies anterosuperior at the fundus.",
       "sources": [
         {
           "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
@@ -23,15 +23,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 114,
+      "slice_index": 53,
       "xy": [
-        0.4169,
-        0.2964
+        0.7359,
+        0.5763
       ],
       "xyz_mm": [
-        14.942,
-        20.72,
-        53.257
+        37.63,
+        42.905,
+        80.138
       ]
     },
     {
@@ -55,15 +55,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 123,
+      "slice_index": 65,
       "xy": [
-        0.4843,
-        0.5368
+        0.702,
+        0.8233
       ],
       "xyz_mm": [
-        20.567,
-        23.038,
-        34.449
+        34.801,
+        45.912,
+        60.807
       ]
     },
     {
@@ -87,15 +87,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 115,
+      "slice_index": 56,
       "xy": [
-        0.496,
-        0.5183
+        0.7135,
+        0.8123
       ],
       "xyz_mm": [
-        21.546,
-        21.04,
-        35.894
+        35.762,
+        43.593,
+        61.666
       ]
     },
     {
@@ -119,15 +119,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 126,
+      "slice_index": 68,
       "xy": [
-        0.4937,
-        0.5346
+        0.7137,
+        0.826
       ],
       "xyz_mm": [
-        21.353,
-        23.919,
-        34.616
+        35.779,
+        46.561,
+        60.593
       ]
     },
     {
@@ -151,23 +151,23 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 121,
+      "slice_index": 60,
       "xy": [
-        0.496,
-        0.4791
+        0.7343,
+        0.7776
       ],
       "xyz_mm": [
-        21.549,
-        22.508,
-        38.961
+        37.492,
+        44.671,
+        64.387
       ]
     },
     {
       "id": "vestibule-center",
       "en": "Vestibule",
       "ko": "전정",
-      "anatomy": "Central chamber left after the three canals, their common crus, and the cochlea are separated.",
-      "clinical": "The oval window opens into it.",
+      "anatomy": "Central chamber of the labyrinth, between the canals and the cochlea.",
+      "clinical": "The oval window opens into its lateral wall.",
       "sources": [
         {
           "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
@@ -183,15 +183,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 110,
+      "slice_index": 58,
       "xy": [
-        0.4777,
-        0.5253
+        0.6991,
+        0.81
       ],
       "xyz_mm": [
-        20.021,
-        19.836,
-        35.344
+        34.555,
+        44.047,
+        61.847
       ]
     },
     {
@@ -215,15 +215,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 104,
+      "slice_index": 51,
       "xy": [
-        0.4683,
-        0.6151
+        0.6417,
+        0.885
       ],
       "xyz_mm": [
-        19.236,
-        18.4,
-        28.317
+        29.762,
+        42.422,
+        55.978
       ]
     },
     {
@@ -247,15 +247,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 131,
+      "slice_index": 70,
       "xy": [
-        0.5352,
-        0.5528
+        0.7457,
+        0.8624
       ],
       "xyz_mm": [
-        24.816,
-        25.134,
-        33.198
+        38.449,
+        47.082,
+        57.75
       ]
     },
     {
@@ -279,15 +279,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 111,
+      "slice_index": 52,
       "xy": [
-        0.5244,
-        0.5806
+        0.7096,
+        0.8815
       ],
       "xyz_mm": [
-        23.917,
-        20.164,
-        31.023
+        35.434,
+        42.732,
+        56.256
       ]
     },
     {
@@ -311,15 +311,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 115,
+      "slice_index": 56,
       "xy": [
-        0.496,
-        0.5285
+        0.7093,
+        0.8214
       ],
       "xyz_mm": [
-        21.546,
-        21.04,
-        35.094
+        35.41,
+        43.682,
+        60.953
       ]
     },
     {
@@ -343,15 +343,15 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 125,
+      "slice_index": 69,
       "xy": [
-        0.5795,
-        0.7922
+        0.6806,
+        1.0971
       ],
       "xyz_mm": [
-        28.515,
-        23.638,
-        14.464
+        33.01,
+        46.847,
+        39.386
       ]
     },
     {
@@ -359,7 +359,7 @@
       "en": "Carotid canal",
       "ko": "경동맥관",
       "anatomy": "Petrous internal carotid, anterior to the cochlea.",
-      "clinical": "The genu and horizontal segment are not split.",
+      "clinical": "It turns from a vertical segment into a horizontal one in front of the cochlea.",
       "sources": [
         {
           "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
@@ -375,23 +375,23 @@
       "review": "미검증",
       "plane": "coronal",
       "anatomicalPlane": "axial",
-      "slice_index": 160,
+      "slice_index": 91,
       "xy": [
-        0.539,
-        0.3808
+        0.8422,
+        0.7116
       ],
       "xyz_mm": [
-        25.133,
-        32.355,
-        46.653
+        46.502,
+        52.493,
+        69.546
       ]
     },
     {
       "id": "sigmoid-sinus",
       "en": "Sigmoid sinus",
       "ko": "S상정맥동",
-      "anatomy": "Posterior venous channel. This mesh still mixes sinus and dura.",
-      "clinical": "Posterior limit of mastoidectomy. The jugular bulb is not a separate mesh.",
+      "anatomy": "Posterior venous channel along the back of the mastoid.",
+      "clinical": "It is the posterior limit of mastoidectomy.",
       "sources": [
         {
           "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
@@ -407,15 +407,15 @@
       "review": "미검증",
       "plane": "axial",
       "anatomicalPlane": "sagittal",
-      "slice_index": 111,
+      "slice_index": 54,
       "xy": [
-        0.2895,
-        0.4071
+        0.5299,
+        0.5455
       ],
       "xyz_mm": [
-        4.302,
-        35.772,
-        26.089
+        20.428,
+        62.94,
+        60.631
       ]
     },
     {
@@ -439,23 +439,23 @@
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 184,
+      "slice_index": 237,
       "xy": [
-        0.2753,
-        0.578
+        0.0702,
+        0.892
       ],
       "xyz_mm": [
-        26.243,
-        12.425,
-        31.22
+        35.521,
+        34.691,
+        55.435
       ]
     },
     {
       "id": "mastoid-antrum",
       "en": "Mastoid antrum",
       "ko": "유양동",
-      "anatomy": "Air-cell space medial to the spine of Henle. No air-cell mesh.",
-      "clinical": "Opens into the epitympanum through the aditus.",
+      "anatomy": "The largest mastoid air space, medial to the spine of Henle.",
+      "clinical": "It opens into the epitympanum through the aditus.",
       "sources": [
         {
           "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
@@ -471,15 +471,15 @@
       "review": "미검증",
       "plane": "axial",
       "anatomicalPlane": "sagittal",
-      "slice_index": 93,
+      "slice_index": 5,
       "xy": [
-        0.5107,
-        0.61
+        0.6504,
+        0.7935
       ],
       "xyz_mm": [
-        22.777,
-        20.856,
-        21.589
+        30.486,
+        44.712,
+        48.358
       ]
     },
     {
@@ -503,15 +503,15 @@
       "review": "미검증",
       "plane": "axial",
       "anatomicalPlane": "sagittal",
-      "slice_index": 112,
+      "slice_index": 26,
       "xy": [
-        0.4863,
-        0.482
+        0.6839,
+        0.6706
       ],
       "xyz_mm": [
-        20.733,
-        30.267,
-        26.423
+        33.286,
+        53.745,
+        53.523
       ]
     },
     {
@@ -535,15 +535,15 @@
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 154,
+      "slice_index": 216,
       "xy": [
-        0.265,
-        0.5393
+        0.0791,
+        0.8147
       ],
       "xyz_mm": [
-        18.877,
-        11.672,
-        34.254
+        30.323,
+        35.349,
+        61.483
       ]
     },
     {
@@ -551,7 +551,7 @@
       "en": "Mastoid tip",
       "ko": "유양돌기 첨부",
       "anatomy": "Inferior end of the mastoid process.",
-      "clinical": "Landmark for the mastoid segment, which this nerve mesh does not reach.",
+      "clinical": "The mastoid segment of the facial nerve ends above this tip.",
       "sources": [
         {
           "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
@@ -567,23 +567,23 @@
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 140,
+      "slice_index": 215,
       "xy": [
-        0.8851,
-        0.7966
+        0.7202,
+        1.0269
       ],
       "xyz_mm": [
-        15.165,
-        57.246,
-        14.114
+        30.061,
+        82.471,
+        44.873
       ]
     },
     {
       "id": "jugular-bulb",
       "en": "Jugular bulb",
       "ko": "경정맥구",
-      "anatomy": "Venous bulb under the middle ear, estimated inferior to the petrous carotid.",
-      "clinical": "A high bulb narrows the hypotympanum. Not segmented.",
+      "anatomy": "Venous bulb under the hypotympanum, just behind the petrous carotid.",
+      "clinical": "A high bulb narrows the floor of the middle ear.",
       "sources": [
         {
           "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
@@ -599,15 +599,15 @@
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 161,
+      "slice_index": 268,
       "xy": [
-        0.5985,
-        0.3808
+        0.3777,
+        0.6845
       ],
       "xyz_mm": [
-        20.401,
-        36.182,
-        46.657
+        43.422,
+        57.296,
+        71.666
       ]
     },
     {
@@ -615,7 +615,7 @@
       "en": "Geniculate ganglion",
       "ko": "슬신경절",
       "anatomy": "First genu, where the labyrinthine segment turns into the tympanic segment.",
-      "clinical": "The greater petrosal nerve leaves here. This mesh has no separate GSPN.",
+      "clinical": "The greater petrosal nerve leaves the ganglion here.",
       "sources": [
         {
           "citation": "Möller TB, Reif E. Pocket Atlas of Sectional Anatomy, Vol. 1 Head and Neck, 4th ed.",
@@ -631,15 +631,15 @@
       "review": "미검증",
       "plane": "sagittal",
       "anatomicalPlane": "coronal",
-      "slice_index": 174,
+      "slice_index": 250,
       "xy": [
-        0.3711,
-        0.5241
+        0.1487,
+        0.8069
       ],
       "xyz_mm": [
-        23.832,
-        19.471,
-        35.442
+        38.753,
+        40.462,
+        62.089
       ]
     }
   ]

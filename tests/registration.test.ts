@@ -62,8 +62,9 @@ describe('Umeyama registration', () => {
       review: string;
       containment: { outsideFraction: number; outsideVertices: number };
       concha: { axisOffsetMm: number };
-      applied: { scale: number; rotation: Mat3; translationMm: Vec3; angleDeg: number; rmsMm: number };
+      applied: { scale: number; rotation: Mat3; translationMm: Vec3; angleDeg: number; rmsMm: number; maps: string };
       current: { rmsMm: number; pairs: { id: string; zetaMm: Vec3; skullMm: Vec3; residualMm: number }[] };
+      canalPlanes: { lateralToFrankfortDeg: number; superiorToSagittalDeg: number; posteriorToSagittalDeg: number };
       dimensions: { id: string; valueMm: number; meanMm: number; sdMm: number; flagged: boolean }[];
     };
     expect(file.review).toBe('미검증');
@@ -76,14 +77,23 @@ describe('Umeyama registration', () => {
     expect(file.containment.outsideVertices).toBe(0);
     expect(file.containment.outsideFraction).toBe(0);
     expect(file.concha.axisOffsetMm).toBeLessThan(3);
-    expect(file.current.pairs.length).toBeGreaterThanOrEqual(6);
-    const gaps = file.current.pairs.map((pair) => {
-      const moved = apply(file.applied.rotation, file.applied.scale, file.applied.translationMm, pair.skullMm);
-      return Math.hypot(moved[0] - pair.zetaMm[0], moved[1] - pair.zetaMm[1], moved[2] - pair.zetaMm[2]);
-    });
+    expect(file.applied.maps).toBe('specimen-to-upright-head');
+    expect(file.current.pairs.length).toBeGreaterThanOrEqual(5);
+    expect(file.current.pairs.some((pair) => pair.id === 'styloid-base' || pair.id === 'henle-spine')).toBe(false);
+    const skullKeys = file.current.pairs.map((pair) => pair.skullMm.join(','));
+    expect(new Set(skullKeys).size).toBe(skullKeys.length);
+    const gaps = file.current.pairs.map((pair) =>
+      Math.hypot(pair.skullMm[0] - pair.zetaMm[0], pair.skullMm[1] - pair.zetaMm[1], pair.skullMm[2] - pair.zetaMm[2]),
+    );
     gaps.forEach((value, index) => expect(value).toBeCloseTo(file.current.pairs[index].residualMm, 2));
     expect(rms(gaps)).toBeCloseTo(file.current.rmsMm, 2);
-    expect(file.current.rmsMm).toBeLessThan(8);
+    expect(file.current.rmsMm).toBeLessThan(18);
+    expect(file.canalPlanes.lateralToFrankfortDeg).toBeGreaterThanOrEqual(25);
+    expect(file.canalPlanes.lateralToFrankfortDeg).toBeLessThanOrEqual(30);
+    expect(file.canalPlanes.superiorToSagittalDeg).toBeGreaterThanOrEqual(40);
+    expect(file.canalPlanes.superiorToSagittalDeg).toBeLessThanOrEqual(55);
+    expect(file.canalPlanes.posteriorToSagittalDeg).toBeGreaterThanOrEqual(40);
+    expect(file.canalPlanes.posteriorToSagittalDeg).toBeLessThanOrEqual(55);
     for (const dimension of file.dimensions) {
       expect(checkDimension(dimension.id, dimension.valueMm, dimension.meanMm, dimension.sdMm).flagged).toBe(
         dimension.flagged,

@@ -10,8 +10,8 @@
     "data_url": "https://zenodo.org/records/1473724",
     "geometry": "openear",
     "geometry_note": {
-      "en": "Right temporal bone, ZETA. Axes checked on the meshes: +X anterior, +Y inferior, +Z medial. Canals were split by their loops and planes. The facial nerve was split at the fundus, the oval window, and the second bend. The head is rigidly registered; scale is 1.",
-      "ko": "오른쪽 측두골 ZETA. 메시에서 축을 확인했다. +X 앞, +Y 아래, +Z 안쪽. 반고리관은 고리와 평면으로 나눴고, 안면신경은 기저부, 난원창, 제2굽이로 나눴다. 머리는 강체 정합이며 배율은 1이다."
+      "en": "Right temporal bone, specimen ZETA, turned into the upright head. +X anterior, +Y inferior, +Z medial before that turn. Scale is 1.",
+      "ko": "오른쪽 측두골 ZETA를 똑바로 선 머리에 맞추었다. 맞추기 전 축은 +X 앞, +Y 아래, +Z 안쪽이다. 배율은 1이다."
     }
   },
   "model_version": "openear-zeta-frame-3",
@@ -23,20 +23,20 @@
   "coordinate_system": {
     "units": "mm",
     "x": {
-      "ko": "앞(+X) / 뒤(−X)",
-      "en": "anterior +X / posterior −X"
+      "en": "nearly anterior",
+      "ko": "거의 앞"
     },
     "y": {
-      "ko": "아래(+Y) / 위(−Y)",
-      "en": "inferior +Y / superior −Y"
+      "en": "nearly inferior",
+      "ko": "거의 아래"
     },
     "z": {
-      "ko": "안쪽(+Z) / 가쪽(−Z). 오른쪽 귀",
-      "en": "medial +Z / lateral −Z. Right ear"
+      "en": "nearly medial. Right ear",
+      "ko": "거의 안쪽. 오른쪽 귀"
     },
     "note": {
-      "ko": "메시 축은 RAS가 아닙니다. +X 앞, +Y 아래, +Z 안쪽입니다. 꼭짓점은 그대로이고 viewer_offset_mm만 화면 평행이동입니다. 배율은 1입니다.",
-      "en": "Mesh axes are not RAS. +X is anterior, +Y is inferior, +Z is medial. Vertices are unscaled; viewer_offset_mm is only a view translation."
+      "en": "Coordinates are millimetres in the upright head. Scale is 1. The exact anterior, inferior, and lateral directions are anatomicalFrame.",
+      "ko": "좌표는 똑바로 선 머리의 밀리미터다. 배율은 1이다. 정확한 앞·아래·가쪽은 anatomicalFrame에 있다."
     }
   },
   "layers": [
@@ -691,43 +691,43 @@
   "missing_structures": [
     {
       "name": "Jugular bulb",
-      "note": "Not segmented. A review point is in landmarks.json. This is the jugular bulb (경정맥구), not the jugular foramen (목정맥공)."
+      "note": "A review point is in landmarks.json. This is the jugular bulb (경정맥구), not the jugular foramen (목정맥공)."
     },
     {
-      "name": "Mastoid antrum mesh",
-      "note": "Phase 1 has a landmark only. Air-cell segmentation is later."
+      "name": "Mastoid antrum",
+      "note": "Only a landmark is shown."
     }
   ],
   "anatomicalFrame": {
     "anterior": [
-      1,
-      0,
-      0
+      0.971989,
+      -0.234364,
+      0.017637
     ],
     "posterior": [
-      -1,
-      0,
-      0
+      -0.971989,
+      0.234364,
+      -0.017637
     ],
     "inferior": [
-      0,
-      1,
-      0
+      0.234416,
+      0.972136,
+      -0.000939
     ],
     "superior": [
-      0,
-      -1,
-      0
+      -0.234416,
+      -0.972136,
+      0.000939
     ],
     "medial": [
-      0,
-      0,
-      1
+      -0.016925,
+      0.005047,
+      0.999844
     ],
     "lateral": [
-      0,
-      0,
-      -1
+      0.016925,
+      -0.005047,
+      -0.999844
     ],
     "review": "미검증"
   }

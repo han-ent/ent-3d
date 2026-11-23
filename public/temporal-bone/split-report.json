@@ -9,33 +9,33 @@
     "parentVertices": 10000,
     "children": {
       "scc-lateral": {
-        "exclusiveVertices": 1995,
-        "exportedVertices": 2113,
-        "faces": 3992
+        "exclusiveVertices": 1489,
+        "exportedVertices": 1554,
+        "faces": 2978
       },
       "scc-superior": {
-        "exclusiveVertices": 1718,
-        "exportedVertices": 1821,
-        "faces": 3434
+        "exclusiveVertices": 1548,
+        "exportedVertices": 1603,
+        "faces": 3096
       },
       "scc-posterior": {
-        "exclusiveVertices": 2014,
-        "exportedVertices": 2067,
-        "faces": 4028
+        "exclusiveVertices": 1959,
+        "exportedVertices": 2016,
+        "faces": 3922
       },
       "common-crus": {
-        "exclusiveVertices": 451,
-        "exportedVertices": 515,
-        "faces": 904
+        "exclusiveVertices": 437,
+        "exportedVertices": 495,
+        "faces": 876
       },
       "vestibule": {
-        "exclusiveVertices": 288,
-        "exportedVertices": 388,
-        "faces": 570
+        "exclusiveVertices": 2013,
+        "exportedVertices": 2144,
+        "faces": 4028
       },
       "scala-vestibuli": {
-        "exclusiveVertices": 3534,
-        "exportedVertices": 3534
+        "exclusiveVertices": 2554,
+        "exportedVertices": 2554
       }
     },
     "exclusiveSum": 10000
@@ -62,53 +62,53 @@
     "exclusiveSum": 8000
   },
   "scala-vestibuli": {
-    "parentVertices": 3534,
+    "parentVertices": 2554,
     "children": {
       "scala-vestibuli-basal": {
-        "exclusiveVertices": 1281,
-        "exportedVertices": 1390,
-        "faces": 2490
+        "exclusiveVertices": 1250,
+        "exportedVertices": 1347,
+        "faces": 2465
       },
       "scala-vestibuli-middle": {
-        "exclusiveVertices": 1599,
-        "exportedVertices": 1807,
-        "faces": 3195
+        "exclusiveVertices": 907,
+        "exportedVertices": 1080,
+        "faces": 1800
       },
       "scala-vestibuli-apical": {
-        "exclusiveVertices": 654,
-        "exportedVertices": 751,
-        "faces": 1306
+        "exclusiveVertices": 397,
+        "exportedVertices": 469,
+        "faces": 786
       }
     },
-    "exclusiveSum": 3534
+    "exclusiveSum": 2554
   },
   "facial-nerve": {
     "parentVertices": 10000,
     "children": {
       "fn-meatal": {
-        "exclusiveVertices": 824,
-        "exportedVertices": 872,
-        "faces": 1646
+        "exclusiveVertices": 522,
+        "exportedVertices": 560,
+        "faces": 1042
       },
       "fn-labyrinthine": {
-        "exclusiveVertices": 1144,
-        "exportedVertices": 1220,
-        "faces": 2288
+        "exclusiveVertices": 575,
+        "exportedVertices": 640,
+        "faces": 1148
       },
       "fn-geniculate": {
-        "exclusiveVertices": 509,
-        "exportedVertices": 559,
-        "faces": 1018
+        "exclusiveVertices": 672,
+        "exportedVertices": 739,
+        "faces": 1344
       },
       "fn-tympanic": {
-        "exclusiveVertices": 1600,
-        "exportedVertices": 1652,
-        "faces": 3200
+        "exclusiveVertices": 2379,
+        "exportedVertices": 2437,
+        "faces": 4758
       },
       "fn-second-genu": {
-        "exclusiveVertices": 632,
-        "exportedVertices": 697,
-        "faces": 1264
+        "exclusiveVertices": 561,
+        "exportedVertices": 629,
+        "faces": 1122
       },
       "fn-mastoid": {
         "exclusiveVertices": 5291,
@@ -119,22 +119,22 @@
     "segments": {
       "fn-meatal": [
         0.0,
-        1.75
+        1.25
       ],
       "fn-labyrinthine": [
-        1.75,
-        4.75
+        1.25,
+        2.0
       ],
       "fn-geniculate": [
-        4.75,
-        6.75
+        2.0,
+        4.0
       ],
       "fn-tympanic": [
-        6.75,
-        13.2
+        4.0,
+        13.5
       ],
       "fn-second-genu": [
-        13.2,
+        13.5,
         15.25
       ],
       "fn-mastoid": [
@@ -143,11 +143,11 @@
       ]
     },
     "lengthsMm": {
-      "fn-meatal": 1.75,
-      "fn-labyrinthine": 3.0,
+      "fn-meatal": 1.25,
+      "fn-labyrinthine": 0.75,
       "fn-geniculate": 2.0,
-      "fn-tympanic": 6.45,
-      "fn-second-genu": 2.05,
+      "fn-tympanic": 9.5,
+      "fn-second-genu": 1.75,
       "fn-mastoid": 12.57
     },
     "arcMm": 27.82,
@@ -170,5 +170,5 @@
     "method": "superior-12-percent-fallback",
     "exclusiveSum": 4000
   },
-  "landmarkCount": 54
+  "landmarkCount": 55
 }

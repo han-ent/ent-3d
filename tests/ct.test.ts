@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { planeAxes, slicePose, voxelCenter } from '../src/shared/ct';
+import { directionColumn, planeAxes, slicePose, voxelCenter } from '../src/shared/ct';
 import type { VolumeMeta } from '../src/shared/types';
 
 const identity: VolumeMeta = {
@@ -54,10 +54,21 @@ describe('CT millimetre placement', () => {
     expect(volume.planes.axial.axis).toBe(planeAxes('axial').normal);
     expect(volume.planes.coronal.axis).toBe(planeAxes('coronal').normal);
     expect(volume.planes.sagittal.axis).toBe(planeAxes('sagittal').normal);
-    const pose = slicePose(volume, 'axial', volume.planes.axial.initial_index ?? 0);
+    const index = volume.planes.axial.initial_index ?? 0;
+    const pose = slicePose(volume, 'axial', index);
     expect(pose.width).toBeCloseTo(volume.dims[0] * volume.spacing_mm[0]);
     expect(pose.height).toBeCloseTo(volume.dims[1] * volume.spacing_mm[1]);
-    expect(pose.position[2]).toBeCloseTo(volume.origin_mm[2] + (volume.planes.axial.initial_index ?? 0) * volume.spacing_mm[2]);
-    expect(pose.v[1]).toBeLessThan(0);
+    const center = voxelCenter(volume, (volume.dims[0] - 1) / 2, (volume.dims[1] - 1) / 2, index);
+    expect(pose.position[0]).toBeCloseTo(center[0], 5);
+    expect(pose.position[1]).toBeCloseTo(center[1], 5);
+    expect(pose.position[2]).toBeCloseTo(center[2], 5);
+    const normal = directionColumn(volume.direction, volume.planes.axial.axis);
+    expect(pose.normal[0]).toBeCloseTo(normal[0], 5);
+    expect(pose.normal[1]).toBeCloseTo(normal[1], 5);
+    expect(pose.normal[2]).toBeCloseTo(normal[2], 5);
+    const row = directionColumn(volume.direction, volume.planes.axial.row_axis);
+    expect(pose.v[0]).toBeCloseTo(-row[0], 5);
+    expect(pose.v[1]).toBeCloseTo(-row[1], 5);
+    expect(pose.v[2]).toBeCloseTo(-row[2], 5);
   });
 });

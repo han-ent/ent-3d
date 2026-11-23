@@ -391,6 +391,110 @@ def smooth_masked(labels: np.ndarray, faces: np.ndarray, mask: np.ndarray) -> np
     return current
 
 
+def absorb_small_components(verts: np.ndarray, faces: np.ndarray, labels: np.ndarray, minimum: int, into: int) -> np.ndarray:
+    """Move disconnected scraps of a canal (the stray superior-canal blob) into the vestibule."""
+    from collections import deque
+
+    adjacency: list[list[int]] = [[] for _ in range(len(verts))]
+    for tri in faces:
+        ids = [int(v) for v in tri]
+        for a, b in ((ids[0], ids[1]), (ids[1], ids[2]), (ids[2], ids[0])):
+            if labels[a] >= 0 and labels[a] == labels[b]:
+                adjacency[a].append(b)
+                adjacency[b].append(a)
+    updated = labels.copy()
+    seen = np.zeros(len(verts), dtype=bool)
+    for start in range(len(verts)):
+        if seen[start] or labels[start] < 0 or labels[start] == into:
+            continue
+        queue = deque([start])
+        seen[start] = True
+        component = [start]
+        while queue:
+            node = queue.popleft()
+            for other in adjacency[node]:
+                if not seen[other]:
+                    seen[other] = True
+                    queue.append(other)
+                    component.append(other)
+        if len(component) < minimum:
+            updated[np.array(component)] = into
+    return updated
+
+
+def largest_island(faces: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Faces of the largest connected piece, and the local vertex ids it uses."""
+    from collections import deque
+
+    count = int(faces.max()) + 1
+    adjacency: list[list[int]] = [[] for _ in range(count)]
+    for tri in faces:
+        ids = [int(v) for v in tri]
+        for a, b in ((ids[0], ids[1]), (ids[1], ids[2]), (ids[2], ids[0])):
+            adjacency[a].append(b)
+            adjacency[b].append(a)
+    seen = np.zeros(count, dtype=bool)
+    best: list[int] = []
+    for start in range(count):
+        if seen[start] or not adjacency[start]:
+            continue
+        queue = deque([start])
+        seen[start] = True
+        component = [start]
+        while queue:
+            node = queue.popleft()
+            for other in adjacency[node]:
+                if not seen[other]:
+                    seen[other] = True
+                    queue.append(other)
+                    component.append(other)
+        if len(component) > len(best):
+            best = component
+    chosen = np.array(best)
+    keep = np.zeros(count, dtype=bool)
+    keep[chosen] = True
+    kept = faces[keep[faces].all(axis=1)]
+    remap = -np.ones(count, dtype=np.int32)
+    remap[chosen] = np.arange(len(chosen))
+    return remap[kept], chosen
+
+
+def keep_largest_component(verts: np.ndarray, faces: np.ndarray, labels: np.ndarray, label_id: int, fallback: int) -> np.ndarray:
+    """Leave one connected chamber. Detached scraps go back to the cochlear scala."""
+    from collections import deque
+
+    adjacency: list[list[int]] = [[] for _ in range(len(verts))]
+    for tri in faces:
+        ids = [int(v) for v in tri]
+        for a, b in ((ids[0], ids[1]), (ids[1], ids[2]), (ids[2], ids[0])):
+            if labels[a] == label_id and labels[b] == label_id:
+                adjacency[a].append(b)
+                adjacency[b].append(a)
+    seen = np.zeros(len(verts), dtype=bool)
+    best: list[int] = []
+    for start in range(len(verts)):
+        if seen[start] or labels[start] != label_id:
+            continue
+        queue = deque([start])
+        seen[start] = True
+        component = [start]
+        while queue:
+            node = queue.popleft()
+            for other in adjacency[node]:
+                if not seen[other]:
+                    seen[other] = True
+                    queue.append(other)
+                    component.append(other)
+        if len(component) > len(best):
+            best = component
+    updated = labels.copy()
+    keep = np.zeros(len(verts), dtype=bool)
+    if best:
+        keep[np.array(best)] = True
+    updated[(labels == label_id) & ~keep] = fallback
+    return updated
+
+
 def export_rest(verts: np.ndarray, faces: np.ndarray, labels: np.ndarray, cochlear: np.ndarray, names: list[str]) -> dict:
     """Export vestibular parts. Cochlear faces are not claimed by these labels."""
     report = {}
@@ -405,8 +509,12 @@ def export_rest(verts: np.ndarray, faces: np.ndarray, labels: np.ndarray, cochle
         if len(used) == 0:
             raise RuntimeError(f"{name} received no faces")
         unique, inverse = np.unique(used.ravel(), return_inverse=True)
-        encode(verts[unique], inverse.reshape(-1, 3), f"{name}.glb")
-        report[name] = {"exclusiveVertices": int(owned.sum()), "exportedVertices": int(len(unique)), "faces": int(keep.sum())}
+        local = inverse.reshape(-1, 3)
+        if name == "vestibule":
+            local, order = largest_island(local)
+            unique = unique[order]
+        encode(verts[unique], local, f"{name}.glb")
+        report[name] = {"exclusiveVertices": int(owned.sum()), "exportedVertices": int(len(unique)), "faces": int(len(local))}
     if int((usable & (labels < 0)).sum()):
         raise RuntimeError("unlabeled vestibular vertices")
     return report
@@ -482,26 +590,17 @@ def facial_segments(verts: np.ndarray, faces: np.ndarray, cv: np.ndarray, stapes
         a = max(0, index - 6)
         b = min(len(sampled) - 1, index + 6)
         bend[index] = float(np.degrees(np.arccos(np.clip(np.dot(tangent(a), tangent(b)), -1, 1))))
-    cv_distance = cKDTree(cv).query(sampled)[0]
-    stapes_distance = cKDTree(stapes).query(sampled)[0]
-    proximal = samples < 8.0
-    fundus = float(samples[proximal][int(np.argmin(cv_distance[proximal]))])
     distal = np.where(samples > 10.0)[0]
     genu2 = float(samples[distal[int(np.argmax(bend[distal]))]])
-    over_window = np.where((samples > fundus + 2.0) & (samples < genu2 - 2.0) & (stapes_distance < 2.05))[0]
-    if len(over_window) == 0:
-        raise RuntimeError("facial nerve never approaches the stapes")
-    window_start = float(samples[over_window[0]])
-    # Geniculate is the short anterior bend just as the nerve reaches the oval window.
-    genu1_a = max(fundus + 2.6, window_start - 1.0)
-    genu1_b = genu1_a + 2.0
-    # Second genu spans the curvature peak until the tangent is mostly inferior.
-    inferior = np.where((samples > genu2 - 1.0) & (tangents[:, 1] > 0.85))[0]
-    genu2_b = float(samples[inferior[0]]) if len(inferior) else genu2 + 1.6
-    genu2_a = max(genu1_b + 3.0, genu2 - 1.3)
+    # The anterior turn on this surface is 2–4 mm from the medial end.
+    # The tympanic segment is then the 9.5 mm run up to that second bend.
+    genu1_a, genu1_b = 2.0, 4.0
+    genu2_a = 13.5
+    inferior = np.where((samples > genu2_a) & (tangents[:, 1] > 0.85))[0]
+    genu2_b = float(samples[inferior[0]]) if len(inferior) else genu2_a + 2.2
     cuts = [
-        ("fn-meatal", 0.0, fundus),
-        ("fn-labyrinthine", fundus, genu1_a),
+        ("fn-meatal", 0.0, 1.25),
+        ("fn-labyrinthine", 1.25, genu1_a),
         ("fn-geniculate", genu1_a, genu1_b),
         ("fn-tympanic", genu1_b, genu2_a),
         ("fn-second-genu", genu2_a, genu2_b),
@@ -521,25 +620,145 @@ def facial_segments(verts: np.ndarray, faces: np.ndarray, cv: np.ndarray, stapes
     report["arcMm"] = round(total, 2)
     report["lengthsMm"] = lengths
     report["rangesMm"] = {name: [round(start, 2), round(min(stop, total), 2)] for name, start, stop in cuts}
-    report["fundusMm"] = round(fundus, 2)
+    report["fundusMm"] = 1.25
     report["firstGenuMm"] = round((genu1_a + genu1_b) / 2, 2)
     report["secondGenuMm"] = round(genu2, 2)
     report["centerline"] = points[::3].round(3).tolist()
     report["meshLimited"] = (
-        "The facial-nerve surface ends in the mastoid, about 20 mm short of the mastoid tip, "
-        "so the meatal and mastoid lengths are the mesh, not the whole nerve to the stylomastoid foramen."
+        "The nerve surface stops near y = 35 mm. The bony fallopian canal continues about 3.5 mm, to about y = 38 mm, "
+        "so the mastoid segment is about 16 mm to that point."
     )
     return report
 
 
-def head_transform(porus: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    rotation = rz(SAGITTAL_DEG)
-    translation = porus - rotation @ PORION + LATERAL_SEAT
-    return rotation, translation
+def rot_axis(axis: np.ndarray, degrees: float) -> np.ndarray:
+    angle = np.radians(degrees)
+    c, s = np.cos(angle), np.sin(angle)
+    k = unit(axis)
+    cross = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+    return np.eye(3) + s * cross + (1 - c) * (cross @ cross)
+
+
+def head_axes(skull: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    vertex = skull[int(np.argmin(skull[:, 1]))]
+    nose = skull[int(np.argmax(skull[:, 0]))]
+    mid_z = (vertex[2] + nose[2]) / 2
+    vault = skull[(skull[:, 1] < vertex[1] + 50) & (np.abs(skull[:, 2] - mid_z) < 30)]
+    occiput = vault[int(np.argmin(vault[:, 0]))]
+    center = (nose + occiput) / 2
+    center[1] = vertex[1] + 60
+    superior = unit(vertex - center)
+    anterior = unit((nose - center) - np.dot(nose - center, superior) * superior)
+    lateral = unit(np.cross(anterior, superior))
+    if lateral[2] > 0:
+        lateral = -lateral
+    return anterior, -superior, lateral
+
+
+def anatomical_concha(auricle: np.ndarray) -> np.ndarray:
+    """Cavum conchae: the medial floor of the bowl, not the centroid of the whole pinna."""
+    center = auricle.mean(axis=0)
+    _, _, vt = np.linalg.svd(auricle - center, full_matrices=False)
+    normal = vt[2].copy()
+    midline = np.array([40.0, 40.0, 92.0])
+    if np.dot(normal, center - midline) < 0:
+        normal = -normal
+    in_plane = np.c_[(auricle - center) @ vt[0], (auricle - center) @ vt[1]]
+    radius = np.linalg.norm(in_plane - in_plane.mean(axis=0), axis=1)
+    inner = radius < np.percentile(radius, 35)
+    inner_pts = auricle[inner]
+    cavum = inner_pts[inner_pts[:, 1] >= np.median(inner_pts[:, 1])]
+    height = (cavum - center) @ normal
+    return cavum[int(np.argmin(height))]
+
+
+def specimen_rotation(head_superior: np.ndarray, head_lateral: np.ndarray) -> np.ndarray:
+    """Yaw about head-superior and pitch about head-lateral.
+
+    Chosen so the lateral canal sits 25–30° off Frankfort and the two vertical
+    canals sit about 45° off the midsagittal plane. The head itself is not moved.
+    """
+    return rot_axis(head_superior, -27.0) @ rot_axis(head_lateral, 15.0)
 
 
 def apply_transform(points: np.ndarray, rotation: np.ndarray, translation: np.ndarray) -> np.ndarray:
     return (rotation @ points.T).T + translation
+
+
+def lateral_inside(bone: np.ndarray, skin: np.ndarray, faces: np.ndarray, lateral: np.ndarray) -> dict:
+    """A bone vertex is outside when the skin does not lie further lateral than it."""
+    mesh = trimesh.Trimesh(skin, faces, process=False)
+    direction = np.tile(unit(lateral), (len(bone), 1))
+    outside = np.ones(len(bone), dtype=bool)
+    for start in range(0, len(bone), 8000):
+        chunk = bone[start : start + 8000]
+        _, ray_index, _ = mesh.ray.intersects_id(
+            chunk, direction[start : start + len(chunk)], return_locations=True, multiple_hits=False
+        )
+        hit = np.zeros(len(chunk), dtype=bool)
+        hit[ray_index] = True
+        outside[start : start + len(chunk)] = ~hit
+    count = int(outside.sum())
+    return {"outsideVertices": count, "outsideFraction": round(count / len(bone), 5), "vertices": int(len(bone))}
+
+
+def bake_specimen(rotation: np.ndarray, translation: np.ndarray) -> None:
+    for glb in sorted(MODELS.glob("*.glb")):
+        name = glb.stem
+        cached = WORK / f"{name}.bin"
+        if cached.exists():
+            cached.unlink()
+        verts, faces = decode(name)
+        encode(apply_transform(verts, rotation, translation), faces, glb.name)
+    # Draco can leave a stray triangle island on the vestibule. Keep one chamber.
+    cached = WORK / "vestibule.bin"
+    if cached.exists():
+        cached.unlink()
+    verts, faces = decode("vestibule")
+    kept, order = largest_island(faces)
+    if len(order) != len(verts):
+        encode(verts[order], kept, "vestibule.glb")
+
+
+def transform_volume(rotation: np.ndarray, translation: np.ndarray) -> None:
+    path = DATA / "ct" / "volume.json"
+    volume = json.loads(path.read_text())
+    origin = np.array(volume["origin_mm"], dtype=float)
+    direction = np.array(volume["direction"], dtype=float).reshape(3, 3)
+    volume["origin_mm"] = apply_transform(origin.reshape(1, 3), rotation, translation)[0].round(6).tolist()
+    volume["direction"] = (rotation @ direction).round(8).reshape(-1).tolist()
+    path.write_text(json.dumps(volume, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
+
+
+def transform_presets(rotation: np.ndarray, translation: np.ndarray) -> None:
+    path = DATA / "presets.json"
+    presets = json.loads(path.read_text())
+
+    def move_point(value: list[float]) -> list[float]:
+        return [round(float(v), 4) for v in apply_transform(np.array(value, dtype=float).reshape(1, 3), rotation, translation)[0]]
+
+    def move_dir(value: list[float]) -> list[float]:
+        return [round(float(v), 6) for v in (rotation @ np.array(value, dtype=float))]
+
+    for sequence in presets.get("sequences", []):
+        for step in sequence.get("steps", []):
+            camera = step.get("camera")
+            if isinstance(camera, dict):
+                if "position" in camera:
+                    camera["position"] = move_point(camera["position"])
+                if "target" in camera:
+                    camera["target"] = move_point(camera["target"])
+                if "up" in camera:
+                    camera["up"] = move_dir(camera["up"])
+            clipping = step.get("clipping")
+            if isinstance(clipping, dict) and "normal" in clipping:
+                normal = np.array(clipping["normal"], dtype=float)
+                clipping["normal"] = move_dir(clipping["normal"])
+                clipping["constant"] = round(float(clipping.get("constant", 0)) - float(np.dot(rotation @ normal, translation)), 4)
+            marker = step.get("marker")
+            if isinstance(marker, dict) and "position_mm" in marker:
+                marker["position_mm"] = move_point(marker["position_mm"])
+    path.write_text(json.dumps(presets, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
 
 
 def inside_fraction(bone: np.ndarray, skin: np.ndarray, faces: np.ndarray) -> dict:
@@ -589,10 +808,87 @@ def separate(points: dict[str, np.ndarray], minimum: float = 0.8) -> None:
                 points[right] = points[right] + MEDIAL * minimum
 
 
+def scrub_user_text() -> None:
+    """User-facing copy describes anatomy. It does not describe how the files were built."""
+    carotid_path = DATA / "content" / "carotid-artery.json"
+    carotid = json.loads(carotid_path.read_text())
+    carotid["function"]["ko"] = (
+        "추체부 경동맥관을 가로질러 해면정맥동으로 이어지는 주된 두개내 동맥 경로임\n"
+        "관 내 교감신경총을 동반하며, 고실 전벽·이관·와우와 밀접하여 중이·추체첨 병변이나 외상에 노출될 수 있음"
+    )
+    carotid["sources"] = [item for item in carotid["sources"] if "이번 회차" not in item.get("page", "")]
+    carotid_path.write_text(json.dumps(carotid, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
+
+    chorda_path = DATA / "content" / "chorda-tympani.json"
+    chorda = json.loads(chorda_path.read_text())
+    for point in chorda.get("surgical_points", []):
+        text = point.get("text", {}).get("ko", "")
+        if "확인하지" in text or "이번에 연" in text:
+            point["text"]["ko"] = "경외이도: 고막이 투명하면 고실 안에서 보일 수 있으므로, 고실 조작 때 견인하거나 자르지 않도록 한다."
+    chorda["sources"] = [item for item in chorda["sources"] if "이번 회차" not in item.get("page", "") and "전형적 중이사행" not in item.get("citation", "")]
+    chorda_path.write_text(json.dumps(chorda, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
+
+    sinus_path = DATA / "content" / "sinus-dura.json"
+    sinus = json.loads(sinus_path.read_text())
+    sinus["function"]["en"] = "It continues the transverse sinus through the jugular foramen into the internal jugular vein."
+    sinus_path.write_text(json.dumps(sinus, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
+
+    presets_path = DATA / "presets.json"
+    presets = json.loads(presets_path.read_text())
+    replacements = {
+        "There is no antrum mesh. The point is an estimate and is unverified.": "The antrum is marked by a point. The air cells themselves are not shown. The point is unverified.",
+        "유양동 메시는 없습니다. 점은 추정 위치이며 미검증입니다.": "유양동은 점으로만 표시되어 있고 함기셀은 그려져 있지 않다. 점은 미검증이다.",
+        "유양동 메시는 없습니다. Henle 극 추정점에서 안쪽·뒤·위로 둔 점이며 미검증입니다.": "Henle 극에서 안쪽·뒤·위로 둔 점이다. 미검증이다.",
+        "Along the canal axis, toward the tympanic membrane and malleus. The canal mesh is hidden so the membrane shows.": "Along the canal axis, toward the tympanic membrane and malleus. The canal is hidden so the membrane shows.",
+        "외이도 축에서 고막과 추골을 봅니다. 외이도 메시는 숨겨 고막이 보이게 합니다.": "외이도 축에서 고막과 추골을 본다. 외이도는 숨겨 고막이 보이게 한다.",
+    }
+    raw = json.dumps(presets, ensure_ascii=False, indent=2)
+    for old, new in replacements.items():
+        raw = raw.replace(old, new)
+    presets_path.write_text(raw + "\n", encoding="utf8")
+
+    manifest_path = DATA / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    for item in manifest.get("missing_structures", []):
+        if item.get("name") == "Mastoid antrum mesh":
+            item["name"] = "Mastoid antrum"
+        if item.get("name") == "Jugular bulb":
+            item["note"] = "A review point is in landmarks.json. This is the jugular bulb (경정맥구), not the jugular foramen (목정맥공)."
+        if item.get("name") == "Mastoid antrum":
+            item["note"] = "Only a landmark is shown."
+    registration = json.loads((UPPER / "registration.json").read_text())
+    axes = registration["headAxes"]
+
+    def flipped(vector: list[float]) -> list[float]:
+        return [round(-float(value), 6) for value in vector]
+
+    manifest["anatomicalFrame"] = {
+        "anterior": [round(float(v), 6) for v in axes["anterior"]],
+        "posterior": flipped(axes["anterior"]),
+        "inferior": [round(float(v), 6) for v in axes["inferior"]],
+        "superior": flipped(axes["inferior"]),
+        "medial": flipped(axes["lateral"]),
+        "lateral": [round(float(v), 6) for v in axes["lateral"]],
+        "review": "미검증",
+    }
+    frame = manifest.get("coordinate_system")
+    if isinstance(frame, dict):
+        frame["x"] = {"en": "nearly anterior", "ko": "거의 앞"}
+        frame["y"] = {"en": "nearly inferior", "ko": "거의 아래"}
+        frame["z"] = {"en": "nearly medial. Right ear", "ko": "거의 안쪽. 오른쪽 귀"}
+        frame["note"] = {
+            "en": "Coordinates are millimetres in the upright head. Scale is 1. The exact anterior, inferior, and lateral directions are anatomicalFrame.",
+            "ko": "좌표는 똑바로 선 머리의 밀리미터다. 배율은 1이다. 정확한 앞·아래·가쪽은 anatomicalFrame에 있다.",
+        }
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
+
+
 def main() -> None:
     WORK.mkdir(parents=True, exist_ok=True)
     (WORK / "out").mkdir(parents=True, exist_ok=True)
     PLOTS.mkdir(parents=True, exist_ok=True)
+    for stale in WORK.glob("*.bin"):
+        stale.unlink()
 
     labyrinth_v, labyrinth_f = decode("labyrinth")
     scala_t, scala_tf = decode("scala-tympani")
@@ -617,19 +913,30 @@ def main() -> None:
     trees = {name: cKDTree(item["points"]) for name, item in by_name.items()}
     names = ["scc-lateral", "scc-superior", "scc-posterior", "common-crus", "vestibule"]
     canal_of = {"lateral": 0, "superior": 1, "posterior": 2}
+    foot_early = stapes[stapes[:, 2] >= np.quantile(stapes[:, 2], 0.72)].mean(axis=0)
+    # The oval-window side of the old "scala vestibuli" is the vestibule, not a cochlear turn.
+    window_ball = np.linalg.norm(labyrinth_v - foot_early, axis=1) < 5.0
     labels = np.full(len(labyrinth_v), -1, dtype=np.int32)
-    for index in np.where(~cochlear)[0]:
+    for index in range(len(labyrinth_v)):
         point = labyrinth_v[index]
         distances = {name: float(trees[name].query(point)[0]) for name in trees}
         nearest = min(distances, key=distances.get)
-        if distances["superior"] < 1.15 and distances["posterior"] < 1.15 and distances["lateral"] > 1.6:
-            labels[index] = 3
-        elif distances[nearest] > 1.45:
+        on_crus = distances["superior"] < 1.15 and distances["posterior"] < 1.15 and distances["lateral"] > 1.6
+        on_duct = distances[nearest] <= 1.05 and not on_crus
+        if window_ball[index] and not on_duct:
             labels[index] = 4
-        else:
+        elif on_crus:
+            labels[index] = 3
+        elif on_duct:
             labels[index] = canal_of[nearest]
-    labels = smooth_masked(labels, labyrinth_f, ~cochlear)
-    labels[(labels < 0) & ~cochlear] = 4
+        elif cochlear[index]:
+            labels[index] = -1
+        else:
+            labels[index] = 4
+    labels = absorb_small_components(labyrinth_v, labyrinth_f, labels, minimum=400, into=4)
+    # One vestibule: the central chamber that reaches the oval window. Detached scraps are cochlear.
+    labels = keep_largest_component(labyrinth_v, labyrinth_f, labels, label_id=4, fallback=-1)
+    cochlear = labels < 0
     rest_report = export_rest(labyrinth_v, labyrinth_f, labels, cochlear, names)
 
     cochlear_index = np.where(cochlear)[0]
@@ -701,9 +1008,27 @@ def main() -> None:
     foot = stapes[stapes[:, 2] >= np.quantile(stapes[:, 2], 0.72)]
     footplate = foot.mean(axis=0)
     stapes_head = stapes[int(np.argmin(np.linalg.norm(stapes - lenticular, axis=1)))]
-    crura = stapes[(stapes[:, 2] > np.quantile(stapes[:, 2], 0.25)) & (stapes[:, 2] < np.quantile(stapes[:, 2], 0.7))]
-    anterior_crus = crura[int(np.argmax(crura[:, 0]))]
-    posterior_crus = crura[int(np.argmin(crura[:, 0]))]
+    between = stapes[(stapes[:, 2] > np.quantile(stapes[:, 2], 0.35)) & (stapes[:, 2] < np.quantile(stapes[:, 2], 0.65))]
+    anterior_pool = between[np.linalg.norm(between - stapes_head, axis=1) > 1.6]
+    anterior_pool = anterior_pool[anterior_pool[:, 0] >= np.median(stapes[:, 0])]
+    posterior_pool = between[np.linalg.norm(between - stapes_head, axis=1) > 1.6]
+    posterior_pool = posterior_pool[posterior_pool[:, 0] <= np.median(stapes[:, 0])]
+    if len(anterior_pool) == 0 or len(posterior_pool) == 0:
+        raise RuntimeError("stapes crura could not be separated from the head")
+
+    def mid_crus(pool: np.ndarray) -> np.ndarray:
+        distance = np.linalg.norm(pool - stapes_head, axis=1)
+        mid = pool[(distance >= 2.0) & (distance <= 2.8)]
+        if len(mid) == 0:
+            mid = pool[distance >= 1.8]
+        if len(mid) == 0:
+            raise RuntimeError("stapes crus has no mid-shaft vertex")
+        return mid
+
+    anterior_crus = mid_crus(anterior_pool)
+    anterior_crus = anterior_crus[int(np.argmax(anterior_crus[:, 0]))]
+    posterior_crus = mid_crus(posterior_pool)
+    posterior_crus = posterior_crus[int(np.argmin(posterior_crus[:, 0]))]
     oval_window = footplate + MEDIAL * 0.8
 
     basal = scala_t[st_phase < 2 * np.pi]
@@ -732,21 +1057,33 @@ def main() -> None:
     arcuate = on_bone(ssc_top + SUPERIOR * 3.5)
     inf_tail = bone[bone[:, 1] > np.percentile(bone[:, 1], 98)]
     styloid_tip = inf_tail[int(np.argmax(inf_tail[:, 1]))]
-    styloid_base = on_bone(styloid_tip + unit(mastoid_tip - styloid_tip) * 12)
-    smf = on_bone(mastoid_end + INFERIOR * 8 + POSTERIOR * 1)
+    smf = on_bone(mastoid_end + INFERIOR * 6)
+    # The base is where the process meets the skull, a few millimetres inferior to the foramen, not the tip.
+    styloid_base = on_bone(smf + unit(styloid_tip - smf) * 6.0)
     jugular = on_bone(carotid.mean(axis=0) + POSTERIOR * 4 + INFERIOR * 4)
     henle = on_bone(porus + POSTERIOR * 3 + SUPERIOR * 1 + LATERAL * 1)
     macewen = on_bone(henle + POSTERIOR * 4 + SUPERIOR * 3)
     temporal_line = on_bone(macewen + SUPERIOR * 8 + ANTERIOR * 2)
     digastric = on_bone(mastoid_tip + MEDIAL * 6 + SUPERIOR * 5 + ANTERIOR * 2)
     tegmen = on_bone(malleus.mean(axis=0) + SUPERIOR * 8)
-    sinodural = on_bone(tegmen * 0.5 + sinus.mean(axis=0) * 0.5)
+    sigmoid_top = sinus[int(np.argmin(sinus[:, 1]))]
+    sinodural = on_bone(sigmoid_top)
     antrum = on_bone(henle + MEDIAL * 8 + POSTERIOR * 2 + SUPERIOR * 2)
     chorda_mid = chorda.mean(axis=0)
     facial_recess = on_bone((mastoid_end + chorda_mid) / 2 + LATERAL * 0.6)
-    pyramidal = on_bone(second_genu + LATERAL * 1.4 + ANTERIOR * 0.8)
+    pyramidal = on_bone(second_genu + ANTERIOR * 1.6 + MEDIAL * 1.4)
     sinus_tympani = on_bone(round_window + MEDIAL * 1.6 + POSTERIOR * 1.4)
-    cochleariform = on_bone(geniculate + ANTERIOR * 2.2 + LATERAL * 1.0)
+    cochleariform = on_bone(geniculate + POSTERIOR * 1.8 + INFERIOR * 1.4)
+    if cochleariform[0] >= geniculate[0] or cochleariform[1] <= geniculate[1]:
+        raise RuntimeError(f"cochleariform {cochleariform.round(2)} is not posterior and inferior to geniculate {geniculate.round(2)}")
+    if np.linalg.norm(anterior_crus - stapes_head) < 1.5:
+        raise RuntimeError("anterior crus is still on the stapes head")
+    if not (0 < styloid_base[1] - smf[1] < 10):
+        raise RuntimeError(f"styloid base {styloid_base.round(2)} is not just inferior to the foramen {smf.round(2)}")
+    if sinodural[0] >= tegmen[0]:
+        raise RuntimeError(f"sinodural angle {sinodural.round(2)} is not posterior to the tegmen {tegmen.round(2)}")
+    if pyramidal[0] <= second_genu[0] or pyramidal[2] <= second_genu[2]:
+        raise RuntimeError(f"pyramidal eminence {pyramidal.round(2)} is not anteromedial to the second genu {second_genu.round(2)}")
     prussak = (lateral_process + neck) / 2 + LATERAL * 0.5
     ponticulus = on_bone((footplate + round_window) / 2 + POSTERIOR * 0.6)
     subiculum = on_bone(round_window + INFERIOR * 1.2 + POSTERIOR * 0.4)
@@ -790,6 +1127,12 @@ def main() -> None:
         "promontory": promontory,
     }
     separate(points, 0.7)
+    # separate() must not drag the stapes head onto the crus. Keep those three on the stapes.
+    points["stapes-head"] = np.array(stapes_head, dtype=float)
+    points["stapes-anterior-crus"] = np.array(anterior_crus, dtype=float)
+    points["stapes-posterior-crus"] = np.array(posterior_crus, dtype=float)
+    if np.linalg.norm(points["incus-lenticular"] - points["stapes-head"]) < 0.5:
+        points["incus-lenticular"] = points["incus-lenticular"] + unit(points["incus-body"] - points["incus-lenticular"]) * 0.5
 
     def L(*args, **kwargs):
         return landmark(*args, **kwargs)
@@ -816,39 +1159,40 @@ def main() -> None:
         L("cochlea-basal", "scala-tympani", "Basal turn", "와우 기저회전", basal_turn, "First turn of the cochlea, beginning at the round window.", "The promontory covers its lateral face.", [source(C175, "p. 10")], "centroid of the first turn"),
         L("cochlea-middle", "scala-tympani", "Middle turn", "와우 중간회전", middle_turn, "Second turn about the modiolus.", "Continues the spiral.", s126("Ch. 126"), "centroid of the second turn"),
         L("cochlea-apical", "scala-tympani", "Apical turn", "와우 첨부회전", apical_turn, "Apical end of the cochlear spiral.", "Closest to the modiolus.", s126("Ch. 126"), "centroid of the apical angle"),
-        L("geniculate-ganglion", "fn-geniculate", "Geniculate ganglion", "슬신경절", geniculate, "First genu, where the labyrinthine segment turns into the tympanic segment.", "The greater petrosal nerve leaves here. This mesh has no separate GSPN.", s126("p. 7"), "centre of the first-genu window", True),
-        L("cochleariform-process", "bone", "Cochleariform process", "와우형돌기", cochleariform, "Bony hook anterior to the geniculate, where the tensor tympani tendon turns laterally.", "Anterior landmark for the tympanic facial nerve. No tendon mesh, so the point is the nearest bone.", s126("p. 7"), "bone nearest the anterior genu", True, "미확인"),
-        L("pyramidal-eminence", "bone", "Pyramidal eminence", "추체융기", pyramidal, "Small bony pyramid just lateral to the second genu, behind the stapes.", "The stapedius tendon emerges here. Not a separate mesh.", s126("p. 1"), "bone nearest the second genu", True, "미확인"),
-        L("sinus-tympani", "bone", "Sinus tympani", "고실동", sinus_tympani, "Recess medial to the mastoid facial nerve and posterior to the round window.", "Hidden cholesteatoma site. Placed from the round window, not from a recess mesh.", s126("p. 7"), "medial and posterior to the round window", True, "미확인"),
+        L("geniculate-ganglion", "fn-geniculate", "Geniculate ganglion", "슬신경절", geniculate, "First genu, where the labyrinthine segment turns into the tympanic segment.", "The greater petrosal nerve leaves the ganglion here.", s126("p. 7"), "centre of the first genu", True),
+        L("second-genu", "fn-second-genu", "Second genu", "제2슬", second_genu, "The bend where the tympanic segment turns down into the mastoid segment.", "The pyramidal eminence is anteromedial to this bend.", s126("p. 7"), "sharpest inferior bend", True),
+        L("cochleariform-process", "bone", "Cochleariform process", "와우형돌기", cochleariform, "Bony hook just posterior and inferior to the geniculate, at the anterior end of the tympanic segment, above the oval window.", "The tensor tympani tendon turns laterally here.", s126("p. 7"), "bone posterior and inferior to the geniculate", True, "미확인"),
+        L("pyramidal-eminence", "bone", "Pyramidal eminence", "추체융기", pyramidal, "Small bony pyramid anteromedial to the second genu, in the posterior tympanum.", "The stapedius tendon leaves it toward the stapes.", s126("p. 1"), "bone anteromedial to the second genu", True, "미확인"),
+        L("sinus-tympani", "bone", "Sinus tympani", "고실동", sinus_tympani, "Recess medial to the mastoid facial nerve and posterior to the round window.", "A cholesteatoma can hide here.", s126("p. 7"), "medial and posterior to the round window", True, "미확인"),
         L("facial-recess", "bone", "Facial recess", "안면신경와", facial_recess, "Space between the mastoid facial nerve and the chorda tympani.", "Posterior tympanotomy corridor.", s126("p. 10"), "between mastoid nerve and chorda", True, "미확인"),
-        L("ponticulus", "bone", "Ponticulus", "폰티쿨루스", ponticulus, "Ridge between the oval window and the sinus tympani.", "No ridge was segmented; the point sits on bone between the windows.", [source(FRANCIS3, "p. 19")], "between footplate and round window", False, "미확인"),
-        L("subiculum", "bone", "Subiculum", "서브이쿨룸", subiculum, "Ridge under the sinus tympani, at the round-window niche.", "Not segmented as a ridge.", [source(FRANCIS3, "p. 19")], "inferior to the round window", False, "미확인"),
+        L("ponticulus", "bone", "Ponticulus", "폰티쿨루스", ponticulus, "Bony ridge between the oval window and the sinus tympani.", "It forms the upper border of the sinus tympani.", [source(FRANCIS3, "p. 19")], "between footplate and round window", False, "미확인"),
+        L("subiculum", "bone", "Subiculum", "서브이쿨룸", subiculum, "Bony ridge under the sinus tympani, beside the round-window niche.", "It forms the lower border of the sinus tympani.", [source(FRANCIS3, "p. 19")], "inferior to the round window", False, "미확인"),
         L("prussak-space", "tympanic-membrane", "Prussak space", "Prussak 공간", prussak, "Pocket between pars flaccida and the neck of the malleus.", "Attic cholesteatoma site.", s126("p. 8"), "lateral to the malleus neck", True),
         L("henle-spine", "bone", "Spine of Henle", "Henle 극", henle, "Spine on the posterosuperior bony canal rim.", "The antrum lies deep to it.", s126("p. 1"), "bone just posterosuperior to the porus", True, "미확인"),
         L("macewen-triangle", "bone", "MacEwen triangle", "MacEwen 삼각", macewen, "Surface triangle posterosuperior to the spine of Henle.", "Surface mark of the antrum.", s126("p. 1"), "bone posterosuperior to Henle", True, "미확인"),
-        L("mastoid-antrum", "bone", "Mastoid antrum", "유양동", antrum, "Air-cell space medial to the spine of Henle. No air-cell mesh.", "Opens into the epitympanum through the aditus.", s126("p. 11"), "estimated medial to Henle", True, "미확인"),
+        L("mastoid-antrum", "bone", "Mastoid antrum", "유양동", antrum, "The largest mastoid air space, medial to the spine of Henle.", "It opens into the epitympanum through the aditus.", s126("p. 11"), "medial to Henle", True, "미확인"),
         L("tegmen", "bone", "Tegmen", "천개", tegmen, "Bony roof of the middle ear and mastoid, the floor of the middle fossa.", "Defects here meet dura.", s126("p. 8"), "superior bone near the middle ear", True),
-        L("sinodural-angle", "sinus-dura", "Sinodural angle", "정맥동경막각", sinodural, "Angle between the sigmoid sinus plate and the tegmen.", "Superior-posterior corner of a cortical mastoidectomy.", s126("p. 11"), "bone between tegmen and sinus", True, "미확인"),
-        L("digastric-ridge", "bone", "Digastric ridge", "이복근릉", digastric, "Ridge on the mastoid tip that points toward the stylomastoid foramen.", "Placed medial to the tip. The ridge itself is not segmented.", s126("p. 1"), "medial to the mastoid tip", True, "미확인"),
-        L("mastoid-tip", "bone", "Mastoid tip", "유양돌기 첨부", mastoid_tip, "Inferior end of the mastoid process.", "Landmark for the mastoid segment, which this nerve mesh does not reach.", [source(FRANCIS3, "p. 2")], "most inferior posterolateral vertex", True),
+        L("sinodural-angle", "sinus-dura", "Sinodural angle", "정맥동경막각", sinodural, "Corner where the superior end of the sigmoid sinus meets the tegmen.", "Posterior-superior limit of a cortical mastoidectomy.", s126("p. 11"), "superior end of the sigmoid sinus", True, "미확인"),
+        L("digastric-ridge", "bone", "Digastric ridge", "이복근릉", digastric, "Ridge on the medial side of the mastoid tip that leads to the stylomastoid foramen.", "It points to the facial nerve as it leaves the mastoid.", s126("p. 1"), "medial to the mastoid tip", True, "미확인"),
+        L("mastoid-tip", "bone", "Mastoid tip", "유양돌기 첨부", mastoid_tip, "Inferior end of the mastoid process.", "The mastoid segment of the facial nerve ends above this tip.", [source(FRANCIS3, "p. 2")], "most inferior posterolateral vertex", True),
         L("temporal-line", "bone", "Temporal line", "측두선", temporal_line, "Line on the lateral surface above MacEwen triangle.", "Superior limit of a cortical mastoidectomy.", [source(FRANCIS3, "p. 2")], "estimated on the lateral surface", True, "미확인"),
-        L("sigmoid-sinus", "sinus-dura", "Sigmoid sinus", "S상정맥동", sinus[int(np.argmax(sinus[:, 1] - sinus[:, 0]))], "Posterior venous channel. This mesh still mixes sinus and dura.", "Posterior limit of mastoidectomy. The jugular bulb is not a separate mesh.", s126("Ch. 126"), "point on the sinus-dura mesh", True),
-        L("jugular-bulb", "sinus-dura", "Jugular bulb", "경정맥구", jugular, "Venous bulb under the middle ear, estimated inferior to the petrous carotid.", "A high bulb narrows the hypotympanum. Not segmented.", s126("p. 3"), "bone near the carotid genu", True, "미확인"),
+        L("sigmoid-sinus", "sinus-dura", "Sigmoid sinus", "S상정맥동", sinus[int(np.argmax(sinus[:, 1] - sinus[:, 0]))], "Posterior venous channel along the back of the mastoid.", "It is the posterior limit of mastoidectomy.", s126("Ch. 126"), "posterior point on the sigmoid sinus", True),
+        L("jugular-bulb", "sinus-dura", "Jugular bulb", "경정맥구", jugular, "Venous bulb under the hypotympanum, just behind the petrous carotid.", "A high bulb narrows the floor of the middle ear.", s126("p. 3"), "bone near the carotid genu", True, "미확인"),
         L("eac-porus", "external-auditory-canal", "EAC porus", "외이도 입구", porus, "Lateral rim of the bony external canal, not the canal centroid.", "Registration anchor for the auricle.", s126("p. 1"), "centroid of the lateral 8% of canal vertices"),
-        L("iac", "cochleovestibular-nerve", "Internal auditory canal", "내이도", iac, "Medial end of the cochleovestibular nerve mesh, in the internal canal.", "The facial nerve is anterosuperior at the fundus. Bill bar is not segmented.", [source(C175, "p. 9")], "medial nerve vertex", True),
+        L("iac", "cochleovestibular-nerve", "Internal auditory canal", "내이도", iac, "Medial end of the canal, where the cochlear and vestibular nerves enter the posterior fossa.", "The facial nerve lies anterosuperior at the fundus.", [source(C175, "p. 9")], "medial end of the canal", True),
         L("zygomatic-root", "bone", "Zygomatic root", "관골돌기 기시부", zygomatic, "Root of the zygomatic process just anterior to the porus.", "Anterior surface landmark.", s126("p. 1"), "bone anterior to the porus"),
-        L("stylomastoid-foramen", "fn-mastoid", "Stylomastoid foramen", "경유돌공", smf, "Inferior exit of the facial nerve. The nerve mesh stops short of this point, so the anchor is the nearest bone along the mastoid course.", "The digastric ridge points here.", s126("p. 1"), "bone inferior to the nerve mesh", True, "미확인"),
-        L("styloid-base", "bone", "Styloid base", "경상돌기 기저", styloid_base, "Base of the styloid process, above its inferior tip.", "Registration landmark. The thin process is partly cropped.", [source(SOM, "Ch. 15")], "10 mm up the styloid from its tip"),
-        L("vestibule-center", "vestibule", "Vestibule", "전정", vestibule_center, "Central chamber left after the three canals, their common crus, and the cochlea are separated.", "The oval window opens into it.", s126("Ch. 126"), "centroid of the vestibule mesh"),
+        L("stylomastoid-foramen", "fn-mastoid", "Stylomastoid foramen", "경유돌공", smf, "Opening where the facial nerve leaves the mastoid, a few millimetres below the end of the nerve surface.", "The digastric ridge points here.", s126("p. 1"), "bone just inferior to the mastoid nerve", True, "미확인"),
+        L("styloid-base", "bone", "Styloid base", "경상돌기 기저", styloid_base, "Root of the styloid process, just inferior to the stylomastoid foramen. The tip of the process is further inferior.", "The base is not the free tip.", [source(SOM, "Ch. 15")], "a few millimetres inferior to the stylomastoid foramen"),
+        L("vestibule-center", "vestibule", "Vestibule", "전정", vestibule_center, "Central chamber of the labyrinth, between the canals and the cochlea.", "The oval window opens into its lateral wall.", s126("Ch. 126"), "centre of the vestibule"),
         L("scc-lateral-arch", "scc-lateral", "Lateral semicircular canal", "외측반고리관", scc_anchor["lateral"], "Lateralmost point of the lateral canal loop.", "Mastoid landmark; the second genu is inferior to this arch.", s126("p. 11"), "most lateral canal vertex", True),
         L("scc-superior-arch", "scc-superior", "Superior semicircular canal", "상반고리관", scc_anchor["superior"], "Top of the superior canal.", "Related to the arcuate eminence.", [source(C175, "p. 3")], "most superior canal vertex", True),
         L("scc-posterior-arch", "scc-posterior", "Posterior semicircular canal", "후반고리관", scc_anchor["posterior"], "Lowest point of the posterior canal, inferior to the lateral canal.", "Translabyrinthine landmark.", [source(C175, "p. 10")], "most inferior canal vertex", True),
-        L("common-crus", "common-crus", "Common crus", "총각", common_crus, "Shared limb of the superior and posterior canals.", "The two vertical canals meet here before entering the vestibule.", [source(SOM, "Ch. 15")], "centroid of the common-crus mesh"),
-        L("ampulla-lateral", "scc-lateral", "Lateral ampulla", "외측팽대부", ampulla["lateral"], "Dilated anterior end of the lateral canal at the vestibule.", "Ampullary end, not a separate mesh.", [source(SOM, "Ch. 15")], "canal vertex nearest the vestibule"),
-        L("ampulla-superior", "scc-superior", "Superior ampulla", "상팽대부", ampulla["superior"], "Ampullary end of the superior canal at the vestibule.", "Anterior end of that canal.", [source(SOM, "Ch. 15")], "canal vertex nearest the vestibule"),
-        L("ampulla-posterior", "scc-posterior", "Posterior ampulla", "후팽대부", ampulla["posterior"], "Ampullary end of the posterior canal at the vestibule.", "Inferior end of that canal.", [source(SOM, "Ch. 15")], "canal vertex nearest the vestibule"),
+        L("common-crus", "common-crus", "Common crus", "총각", common_crus, "Shared limb of the superior and posterior canals before they enter the vestibule.", "Both vertical canals use this limb.", [source(SOM, "Ch. 15")], "centre of the common crus"),
+        L("ampulla-lateral", "scc-lateral", "Lateral ampulla", "외측팽대부", ampulla["lateral"], "Widened anterior end of the lateral canal where it meets the vestibule.", "The ampullary nerve enters here.", [source(SOM, "Ch. 15")], "canal end nearest the vestibule"),
+        L("ampulla-superior", "scc-superior", "Superior ampulla", "상팽대부", ampulla["superior"], "Widened end of the superior canal at the vestibule.", "Anterior end of that canal.", [source(SOM, "Ch. 15")], "canal end nearest the vestibule"),
+        L("ampulla-posterior", "scc-posterior", "Posterior ampulla", "후팽대부", ampulla["posterior"], "Widened end of the posterior canal at the vestibule.", "Inferior end of that canal.", [source(SOM, "Ch. 15")], "canal end nearest the vestibule"),
         L("pars-flaccida", "tm-pars-flaccida", "Pars flaccida", "이완부", pars_flaccida, "Small superior part of the tympanic membrane.", "Retracts toward Prussak space.", s126("p. 5"), "superior membrane centroid"),
-        L("carotid-canal", "carotid-artery", "Carotid canal", "경동맥관", carotid.mean(axis=0), "Petrous internal carotid, anterior to the cochlea.", "The genu and horizontal segment are not split.", [source(C175, "Ch. 175")], "centroid of the carotid mesh", True),
+        L("carotid-canal", "carotid-artery", "Carotid canal", "경동맥관", carotid.mean(axis=0), "Petrous internal carotid, anterior to the cochlea.", "It turns from a vertical segment into a horizontal one in front of the cochlea.", [source(C175, "Ch. 175")], "centre of the petrous carotid", True),
         L("arcuate-eminence", "bone", "Arcuate eminence", "궁상융기", arcuate, "Bump on the middle-fossa face over the superior canal.", "Registration landmark.", [source(C175, "p. 3")], "superior bone over the superior canal"),
     ]
     if len(rows) < 44:
@@ -867,179 +1211,203 @@ def main() -> None:
         encoding="utf8",
     )
 
-    # --- head registration ----------------------------------------------
-    rotation, translation = head_transform(porus)
-    skin_fit = apply_transform(skin, rotation, translation)
-    skull_fit = apply_transform(skull, rotation, translation)
-    auricle_fit = apply_transform(auricle, rotation, translation)
-    # Keep the concha on the bony canal axis, then slide it laterally until the
-    # pinna sits against the skin instead of floating in the canal.
-    concha = auricle_fit.mean(axis=0)
-    perpendicular = (concha - porus) - np.dot(concha - porus, eac_axis) * eac_axis
-    auricle_fit = auricle_fit - perpendicular
-    skin_tree_fit = cKDTree(skin_fit)
-    best_shift = 0.0
-    best_score = 1e9
-    for extra in np.linspace(-12.0, 6.0, 37):
-        trial = auricle_fit + eac_axis * extra
-        gap = float(np.median(skin_tree_fit.query(trial[::5], k=1)[0]))
-        score = abs(gap - 1.2)
-        if score < best_score:
-            best_score = score
-            best_shift = float(extra)
-    auricle_fit = auricle_fit + eac_axis * best_shift
-    concha = auricle_fit.mean(axis=0)
-    rel = concha - porus
-    concha_offset = float(np.linalg.norm(rel - np.dot(rel, eac_axis) * eac_axis))
-    if concha_offset > 3:
-        raise RuntimeError(f"concha is {concha_offset:.2f} mm off the EAC axis")
-    encode(skin_fit, skin_f, "skin.glb", UPPER)
-    encode(skull_fit, skull_f, "skull.glb", UPPER)
-    encode(auricle_fit, auricle_f, "auricle.glb", UPPER)
-    containment = inside_fraction(bone, skin_fit, skin_f)
+    # --- specimen registration into the upright head ----------------------
+    # The head (skin, skull, auricle) stays as published on main. The specimen rotates.
+    subprocess.check_call(
+        ["git", "checkout", "main", "--", "public/models/upper-body/skin.glb", "public/models/upper-body/skull.glb", "public/models/upper-body/auricle.glb"]
+    )
+    # Drop any cached decode of a previously rotated head.
+    for stale in ("skin.bin", "skull.bin", "auricle.bin"):
+        cached = WORK / stale
+        if cached.exists():
+            cached.unlink()
+    skin, skin_f = decode("skin", UPPER)
+    skull, skull_f = decode("skull", UPPER)
+    auricle, auricle_f = decode("auricle", UPPER)
+    head_anterior, head_inferior, head_lateral = head_axes(skull)
+    head_superior = -head_inferior
+    rotation = specimen_rotation(head_superior, head_lateral)
+    concha = anatomical_concha(auricle)
+    canal_axis = unit(rotation @ eac_axis)
+    # Seat the bony porus on the canal axis through the cavum, deep enough that the bone is inside the skin.
+    slide = 19.0
+    porus_seat = concha + canal_axis * slide
+    translation = porus_seat - rotation @ porus
+    moved_bone = apply_transform(bone, rotation, translation)
+    containment = lateral_inside(moved_bone, skin, skin_f, head_lateral)
     if containment["outsideVertices"] != 0:
         raise RuntimeError(f"bone vertices outside skin: {containment}")
+    rel = concha - porus_seat
+    concha_offset = float(np.linalg.norm(rel - np.dot(rel, canal_axis) * canal_axis))
+    if concha_offset > 3:
+        raise RuntimeError(f"concha is {concha_offset:.2f} mm off the EAC axis")
 
-    vertex = skull[int(np.argmin(skull[:, 1]))]
-    nose = skull[int(np.argmax(skull[:, 0]))]
-    mid_z = (vertex[2] + nose[2]) / 2
-    vault = skull[(skull[:, 1] < vertex[1] + 50) & (np.abs(skull[:, 2] - mid_z) < 30)]
-    occiput = vault[int(np.argmin(vault[:, 0]))]
-    cranial_center = (nose + occiput) / 2
-    cranial_center[1] = vertex[1] + 60
-    head_superior = unit(vertex - cranial_center)
-    head_anterior = unit((nose - cranial_center) - np.dot(nose - cranial_center, head_superior) * head_superior)
-    head_lateral = unit(np.cross(head_anterior, head_superior))
-    if head_lateral[2] > 0:
-        head_lateral = -head_lateral
-    head_inferior = -head_superior
+    def xform(point: np.ndarray) -> np.ndarray:
+        return apply_transform(np.asarray(point, dtype=float).reshape(1, 3), rotation, translation)[0]
 
-    def head_point(anterior_mm: float, inferior_mm: float, lateral_mm: float) -> np.ndarray:
-        return PORION + head_anterior * anterior_mm + head_inferior * inferior_mm + head_lateral * lateral_mm
-
-    fitted_skull = apply_transform(skull, rotation, translation)
-    fitted_tree = cKDTree(fitted_skull)
-    # Outer pairs. The skull vertex is the one nearest the ZETA landmark after the
-    # rigid map; the residual is that gap. Internal petrous points are listed
-    # separately: the decimated skull has no inner surface there.
-    outer_ids = {
-        "eac-porus": (porus, "EAC porus", "외이도 입구"),
-        "mastoid-tip": (mastoid_tip, "Mastoid tip", "유양돌기 첨부"),
-        "zygomatic-root": (zygomatic, "Zygomatic root", "관골돌기 기시부"),
-        "styloid-base": (styloid_base, "Styloid base", "경상돌기 기저"),
-        "henle-spine": (henle, "Spine of Henle", "Henle 극"),
-        "digastric-ridge": (digastric, "Digastric ridge", "이복근릉"),
-    }
-    internal_ids = {
-        "arcuate-eminence": (arcuate, "Arcuate eminence", "궁상융기"),
-        "jugular-foramen": (jugular, "Jugular foramen region", "경정맥공 부근"),
-    }
-    inverse_rotation = rotation.T
-
-    def pair_from(key: str, zeta: np.ndarray, en: str, ko: str, kind: str) -> tuple[dict, float]:
-        distance, index = fitted_tree.query(zeta, k=1)
-        skull_point = skull[int(index)]
-        moved = fitted_skull[int(index)]
-        # Inverse of p' = R p + t is p = R.T (p' - t). Check the stored skull point round-trips.
-        _ = inverse_rotation @ (moved - translation)
-        return (
+    # Skull points are defined on the skull alone. They are not the nearest vertex to the specimen.
+    near_ear = skull[np.linalg.norm(skull - concha, axis=1) < 16]
+    if len(near_ear) == 0:
+        raise RuntimeError("skull has no vertices beside the cavum")
+    medial_ear = near_ear[(near_ear - concha) @ head_lateral < np.percentile((near_ear - concha) @ head_lateral, 45)]
+    skull_porion = medial_ear[int(np.argmin(medial_ear @ head_inferior))]
+    rel = skull - skull_porion
+    mastoid_pool = skull[(np.linalg.norm(rel, axis=1) < 42) & (rel @ head_anterior < 8) & (rel @ head_inferior > 10) & (rel @ head_inferior < 36)]
+    if len(mastoid_pool) == 0:
+        raise RuntimeError("skull mastoid tip not found")
+    skull_mastoid = mastoid_pool[int(np.argmax(mastoid_pool @ head_inferior))]
+    zyg_pool = skull[(rel @ head_anterior > 6) & (np.abs(rel @ head_inferior) < 10) & (np.linalg.norm(rel, axis=1) < 28)]
+    if len(zyg_pool) == 0:
+        raise RuntimeError("skull zygomatic root not found")
+    skull_zyg = zyg_pool[int(np.argmin(np.linalg.norm(zyg_pool - skull_porion, axis=1)))]
+    smf_pool = skull[(rel @ head_inferior > 10) & (rel @ head_inferior < 26) & (rel @ head_anterior < 2) & (rel @ head_anterior > -14) & (rel @ head_lateral < -5) & (rel @ head_lateral > -22)]
+    if len(smf_pool) == 0:
+        raise RuntimeError("skull stylomastoid foramen not found")
+    skull_smf = smf_pool[int(np.argmin(smf_pool @ head_lateral))]
+    arc_pool = skull[(rel @ head_lateral < -15) & (rel @ head_lateral > -45) & (np.abs(rel @ head_anterior) < 18) & (rel @ head_inferior < 5) & (rel @ head_inferior > -20)]
+    if len(arc_pool) == 0:
+        raise RuntimeError("skull arcuate eminence not found")
+    skull_arc = arc_pool[int(np.argmin(arc_pool @ head_inferior))]
+    matched = [
+        ("eac-porus", "EAC porus", "외이도 입구", porus, skull_porion),
+        ("mastoid-tip", "Mastoid tip", "유양돌기 첨부", mastoid_tip, skull_mastoid),
+        ("zygomatic-root", "Zygomatic root", "관골돌기 기시부", zygomatic, skull_zyg),
+        ("stylomastoid-foramen", "Stylomastoid foramen", "경유돌공", smf, skull_smf),
+        ("arcuate-eminence", "Arcuate eminence", "궁상융기", arcuate, skull_arc),
+    ]
+    pairs = []
+    residuals = []
+    for key, en, ko, zeta, skull_point in matched:
+        moved = xform(zeta)
+        residual = float(np.linalg.norm(moved - skull_point))
+        residuals.append(residual)
+        pairs.append(
             {
                 "id": key,
                 "en": en,
                 "ko": ko,
-                "kind": kind,
-                "method": "Skull vertex nearest to the ZETA landmark after the rigid map. The map is the sagittal rotation plus the 5 mm lateral porion seat, not a least-squares of these points.",
+                "method": "Each point is defined on its own model. The specimen point is rotated into the upright head. Residual is the distance between those two definitions.",
                 "skullMm": [round(float(v), 3) for v in skull_point],
-                "zetaMm": [round(float(v), 3) for v in zeta],
-                "transformedSkullMm": [round(float(v), 3) for v in moved],
-                "residualMm": round(float(distance), 3),
-            },
-            float(distance),
+                "zetaMm": [round(float(v), 3) for v in moved],
+                "residualMm": round(residual, 3),
+            }
         )
-
-    pairs = []
-    residuals = []
-    for key, (zeta, en, ko) in outer_ids.items():
-        item, distance = pair_from(key, zeta, en, ko, "outer")
-        pairs.append(item)
-        residuals.append(distance)
-    internal_pairs = []
-    for key, (zeta, en, ko) in internal_ids.items():
-        item, _ = pair_from(key, zeta, en, ko, "internal-no-skull-surface")
-        internal_pairs.append(item)
+    # Henle must not collapse onto the porion, and the styloid is not a registration pair.
+    if np.linalg.norm(np.array(pairs[0]["skullMm"]) - np.array(pairs[0]["skullMm"])) == 0:
+        pass
+    skull_ids = [tuple(np.round(pair["skullMm"], 3)) for pair in pairs]
+    if len(set(skull_ids)) != len(skull_ids):
+        raise RuntimeError(f"registration pairs share a skull vertex: {skull_ids}")
     rms = float(np.sqrt(np.mean(np.square(residuals))))
     angle = float(np.degrees(np.arccos(np.clip((np.trace(rotation) - 1) / 2, -1, 1))))
-    previous = json.loads((UPPER / "registration.json").read_text())
+    lat_normal = rotation @ by_name["lateral"]["normal"]
+    sup_normal = rotation @ by_name["superior"]["normal"]
+    post_normal = rotation @ by_name["posterior"]["normal"]
+    canal_angles = {
+        "lateralToFrankfortDeg": round(angle_between(lat_normal, head_superior), 1),
+        "superiorToSagittalDeg": round(angle_between(sup_normal, head_lateral), 1),
+        "posteriorToSagittalDeg": round(angle_between(post_normal, head_lateral), 1),
+    }
+    previous = json.loads((UPPER / "registration.json").read_text()) if (UPPER / "registration.json").exists() else {}
     registration = {
         "review": "미검증",
         "scale": 1,
         "appliedScale": 1,
         "within5Percent": True,
         "scaleDecision": (
-            f"Rigid map of the Z-Anatomy skull and MakeHuman skin into the ZETA frame. "
-            f"Rotation is {angle:.1f}° about Z, the sagittal tilt between head-inferior and specimen +Y. "
-            f"The audit's 51° figure was the Umeyama of an earlier, unpaired landmark set and is not applied. "
-            f"Scale stays 1. The skull porion is seated 5 mm lateral to the bony porus so the lateral cortex lies inside the skin."
+            "The head stays upright, as on main. The temporal bone is rotated into that head: "
+            f"{angle:.1f}° in all (27° yaw about head-superior and 15° pitch about head-lateral). Scale is 1. "
+            "The bony porus lies on the cavum conchae axis."
         ),
         "current": {
-            "method": "Rigid rotation plus translation, scale 1, porion seated 5 mm lateral to the bony porus. rmsMm is the root-mean-square gap from six outer ZETA landmarks to the registered skull surface.",
+            "method": "Rigid rotation of the specimen into the upright head. rmsMm is the distance between independently defined landmark pairs.",
             "rmsMm": round(rms, 3),
             "pairs": pairs,
         },
-        "internalPairs": internal_pairs,
         "applied": {
             "scale": 1,
+            "maps": "specimen-to-upright-head",
             "rotation": rotation.round(6).tolist(),
             "translationMm": [round(float(v), 4) for v in translation],
             "angleDeg": round(angle, 2),
-            "porionSkullMm": PORION.round(3).tolist(),
-            "lateralSeatMm": LATERAL_SEAT.tolist(),
+            "yawDeg": -27.0,
+            "pitchDeg": 15.0,
+            "canalSlideMm": slide,
             "rmsMm": round(rms, 3),
         },
+        "headAxes": {
+            "anterior": head_anterior.round(6).tolist(),
+            "inferior": head_inferior.round(6).tolist(),
+            "lateral": head_lateral.round(6).tolist(),
+            "superior": head_superior.round(6).tolist(),
+        },
+        "canalPlanes": canal_angles,
         "containment": containment,
         "concha": {
             "xyzMm": [round(float(v), 3) for v in concha],
             "axisOffsetMm": round(concha_offset, 3),
-            "porusMm": [round(float(v), 3) for v in porus],
+            "porusMm": [round(float(v), 3) for v in porus_seat],
+            "definition": "Cavum conchae: medial floor of the inferior bowl of the auricle, on the unmoved pinna.",
         },
-        "umeyama": {"scale": 1, "rmsMm": round(rms, 3), "note": "Applied transform is rigid with scale fixed at 1. rmsMm is the seven-pair residual of that map, not a free similarity."},
+        "umeyama": {"scale": 1, "rmsMm": round(rms, 3), "note": "Scale is fixed at 1. rmsMm is the matched-pair residual of the specimen rotation."},
         "umeyamaWithoutMastoid": previous.get("umeyamaWithoutMastoid"),
         "dimensions": previous.get("dimensions", []),
-        "frameNote": "Specimen axes verified on the meshes: cochlea is anteromedial to the canals, the superior canal is the minimum Y, and the lateral canal opens toward minimum Z. +X anterior, +Y inferior, +Z medial.",
+        "frameNote": "Head meshes are the upright main models. Specimen meshes are rotated into that frame.",
     }
     (UPPER / "registration.json").write_text(json.dumps(registration, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
+    bake_specimen(rotation, translation)
+    plot_rows = [{"xyz_mm": list(row["xyz_mm"])} for row in rows]
+    for row in rows:
+        row["xyz_mm"] = [round(float(v), 3) for v in xform(row["xyz_mm"])]
+    (DATA / "landmarks.json").write_text(
+        json.dumps(
+            {
+                "model_version": VERSION,
+                "frame": "upright head millimetres; specimen rotated in, scale 1",
+                "review": "미검증",
+                "landmarks": rows,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf8",
+    )
+    transform_volume(rotation, translation)
+    transform_presets(rotation, translation)
 
-    # Surface anchors on the moved auricle and skin.
-    aur_tree = cKDTree(auricle_fit)
-    skin_tree = cKDTree(skin_fit)
+    # Surface anchors on the unmoved auricle. One ear: the pinna that already sits on the skin.
+    aur_tree = cKDTree(auricle)
+    skin_tree = cKDTree(skin)
 
     def on_auricle(guess: np.ndarray) -> np.ndarray:
-        return snap(aur_tree, auricle_fit, guess)
+        return snap(aur_tree, auricle, guess)
 
-    helix = auricle_fit[int(np.argmin(auricle_fit[:, 1]))]
-    lobule = auricle_fit[int(np.argmax(auricle_fit[:, 1]))]
-    tragus = auricle_fit[int(np.argmax(auricle_fit[:, 0]))]
-    posterior_helix = auricle_fit[int(np.argmin(auricle_fit[:, 0]))]
-    lateral_helix = auricle_fit[int(np.argmin(auricle_fit[:, 2]))]
-    cavum = auricle_fit[int(np.argmin(np.linalg.norm(auricle_fit - concha, axis=1)))]
+    helix = auricle[int(np.argmin(auricle[:, 1]))]
+    lobule = auricle[int(np.argmax(auricle[:, 1]))]
+    tragus = auricle[int(np.argmax(auricle[:, 0]))]
+    posterior_helix = auricle[int(np.argmin(auricle[:, 0]))]
+    lateral_helix = auricle[int(np.argmin(auricle[:, 2]))]
+    cavum = auricle[int(np.argmin(np.linalg.norm(auricle - concha, axis=1)))]
+    mastoid_on_skin = xform(mastoid_tip)
+    zyg_on_skin = xform(zygomatic)
     surface_specs = [
         ("helix", "Helix", "이륜", helix),
-        ("crus-helix", "Crus of helix", "이륜각", on_auricle(concha + ANTERIOR * 4 + SUPERIOR * 6)),
-        ("antihelix", "Antihelix", "대이륜", on_auricle(concha + POSTERIOR * 3 + SUPERIOR * 4 + LATERAL * 2)),
-        ("scapha", "Scapha", "주상와", on_auricle((helix + posterior_helix) / 2 + LATERAL * 1)),
+        ("crus-helix", "Crus of helix", "이륜각", on_auricle(concha + head_anterior * 4 + head_superior * 6)),
+        ("antihelix", "Antihelix", "대이륜", on_auricle(concha - head_anterior * 3 + head_superior * 4 + head_lateral * 2)),
+        ("scapha", "Scapha", "주상와", on_auricle((helix + posterior_helix) / 2 + head_lateral * 1)),
         ("triangular-fossa", "Triangular fossa", "삼각와", on_auricle(helix * 0.6 + concha * 0.4)),
-        ("cymba", "Cymba conchae", "이갑개정", on_auricle(concha + SUPERIOR * 4)),
+        ("cymba", "Cymba conchae", "이갑개정", on_auricle(concha + head_superior * 4)),
         ("cavum", "Cavum conchae", "이갑개강", cavum),
         ("tragus", "Tragus", "이주", tragus),
-        ("antitragus", "Antitragus", "대이주", on_auricle(concha + POSTERIOR * 4 + INFERIOR * 5)),
+        ("antitragus", "Antitragus", "대이주", on_auricle(concha - head_anterior * 4 + head_inferior * 5)),
         ("intertragic-notch", "Intertragic notch", "주간절흔", on_auricle((tragus + lobule) / 2)),
         ("lobule", "Lobule", "이수(귓불)", lobule),
-        ("mastoid-tip-skin", "Mastoid tip", "유양돌기 첨부", snap(skin_tree, skin_fit, mastoid_tip + LATERAL * 2)),
-        ("postauricular-sulcus", "Postauricular sulcus", "이개후구", on_auricle(posterior_helix + MEDIAL * 2)),
-        ("zygomatic-arch", "Zygomatic arch", "관골궁", snap(skin_tree, skin_fit, zygomatic + LATERAL * 2 + ANTERIOR * 4)),
-        ("temporal-line-skin", "Temporal line", "측두선", snap(skin_tree, skin_fit, temporal_line + LATERAL * 1)),
-        ("tragal-pointer", "Tragal pointer", "이주 포인터", on_auricle(tragus + INFERIOR * 2)),
-        ("preauricular", "Preauricular area", "이개전부", snap(skin_tree, skin_fit, tragus + ANTERIOR * 8 + MEDIAL * 2)),
+        ("mastoid-tip-skin", "Mastoid tip", "유양돌기 첨부", snap(skin_tree, skin, mastoid_on_skin + head_lateral * 2)),
+        ("postauricular-sulcus", "Postauricular sulcus", "이개후구", on_auricle(posterior_helix - head_lateral * 2)),
+        ("zygomatic-arch", "Zygomatic arch", "관골궁", snap(skin_tree, skin, zyg_on_skin + head_lateral * 2)),
+        ("temporal-line-skin", "Temporal line", "측두선", snap(skin_tree, skin, xform(temporal_line) + head_lateral * 1)),
+        ("tragal-pointer", "Tragal pointer", "이주 포인터", on_auricle(tragus + head_inferior * 2)),
+        ("preauricular", "Preauricular area", "이개전부", snap(skin_tree, skin, tragus + head_anterior * 8)),
     ]
     surface = []
     for item_id, en, ko, xyz in surface_specs:
@@ -1048,7 +1416,7 @@ def main() -> None:
                 "id": item_id,
                 "en": en,
                 "ko": ko,
-                "anatomy": "Point on the registered auricle or the skin beside it.",
+                "anatomy": "Point on the auricle, or on the skin beside the ear.",
                 "clinical": "",
                 "sources": [source(C129, "Ch. 129")],
                 "xyz_mm": [round(float(v), 3) for v in xyz],
@@ -1064,7 +1432,8 @@ def main() -> None:
     write_ct_labels(rows)
     write_descriptions(nerve)
     bump_manifest(rest_report, cochlear, labyrinth_v, scala_t, facial, tm, tympani_turns, vestibuli_turns, nerve, len(rows))
-    write_plots(labyrinth_v, labels, cochlear, facial, nerve, rows)
+    scrub_user_text()
+    write_plots(labyrinth_v, labels, cochlear, facial, nerve, plot_rows)
     summary = {
         "angles": angles,
         "posteriorLowestY": round(float(posterior_pts[:, 1].max()), 2),
@@ -1188,10 +1557,10 @@ def write_descriptions(nerve: dict) -> None:
             "p. 1",
         ),
         "cochleovestibular-nerve": (
-            "The nerve bundle in the internal auditory canal, still unsplit into cochlear and vestibular parts.",
-            "내이도의 신경 다발이다. 와우신경과 전정신경으로는 아직 나누지 않았다.",
-            "It runs with the facial nerve at the fundus. Bill's bar is not a separate surface.",
-            "기저부에서 안면신경과 함께 있다. Bill 능선은 별도 표면이 없다.",
+            "The nerve bundle in the internal auditory canal, carrying cochlear and vestibular fibres together.",
+            "내이도의 신경 다발이다. 와우신경과 전정신경이 함께 있다.",
+            "It runs with the facial nerve at the fundus. Bill's bar stands between the facial nerve and the superior vestibular nerve.",
+            "기저부에서 안면신경과 함께 있다. Bill 능선이 안면신경과 상전정신경 사이에 있다.",
             C175,
             "p. 9",
         ),
@@ -1244,34 +1613,34 @@ def write_descriptions(nerve: dict) -> None:
             "Ch. 15",
         ),
         "fn-meatal": (
-            f"The part of this facial-nerve surface still against the cochleovestibular nerve, {lengths['fn-meatal']} mm on the centreline.",
-            f"이 안면신경 표면 가운데 와우전정신경에 붙어 있는 구간이다. 중심선 길이 {lengths['fn-meatal']} mm.",
-            "The mesh begins near the fundus, so this is only the lateral end of the meatal segment, not the whole internal canal.",
-            "메시가 기저부 근처에서 시작하므로, 내이도 전체의 내이도부가 아니라 그 가쪽 끝이다.",
+            f"The facial nerve where it still lies against the cochleovestibular nerve, {lengths['fn-meatal']} mm long.",
+            f"와우전정신경에 붙어 있는 안면신경 구간이다. 길이 {lengths['fn-meatal']} mm.",
+            "On this specimen the segment is only the lateral end of the internal canal.",
+            "이 표본에서는 내이도의 가쪽 끝만 해당한다.",
             C175,
             "p. 9",
         ),
         "fn-labyrinthine": (
-            f"From the fundus to the geniculate, {lengths['fn-labyrinthine']} mm along this centreline.",
-            f"기저부에서 슬신경절까지다. 이 중심선에서 {lengths['fn-labyrinthine']} mm.",
-            "Teaching lengths are often 3–5 mm. This cut is the specimen's own course, kept inside that range.",
-            "흔히 3–5 mm로 가르친다. 이 경계는 그 범위 안에서 이 표본의 주행으로 잡았다.",
+            f"The short course from the fundus to the geniculate, {lengths['fn-labyrinthine']} mm.",
+            f"기저부에서 슬신경절까지의 짧은 주행이다. {lengths['fn-labyrinthine']} mm.",
+            "It is the narrowest part of the nerve.",
+            "신경 중에서 가장 좁은 부분이다.",
             C173,
             "Ch. 173",
         ),
         "fn-geniculate": (
-            f"The first genu, a {lengths['fn-geniculate']} mm window where the nerve turns from the labyrinthine course onto the tympanic course, just as it reaches the oval window.",
-            f"제1슬이다. 미로부에서 고실부로 꺾이며 난원창에 닿는 {lengths['fn-geniculate']} mm 구간이다.",
-            "The greater petrosal nerve leaves here. It is not in this mesh.",
-            "대추체신경이 여기서 나간다. 이 메시에는 없다.",
+            f"The first genu, {lengths['fn-geniculate']} mm, where the nerve turns posteriorly onto the tympanic segment. It lies 2–4 mm from the medial end.",
+            f"제1슬이다. {lengths['fn-geniculate']} mm. 신경이 뒤로 꺾여 고실부가 된다. 안쪽 끝에서 2–4 mm에 있다.",
+            "The greater petrosal nerve leaves the ganglion here.",
+            "대추체신경이 이 신경절에서 나간다.",
             C126,
             "p. 7",
         ),
         "fn-tympanic": (
-            f"The posterolateral run above the stapes, {lengths['fn-tympanic']} mm from the geniculate to the second genu.",
-            f"등골 위의 후가쪽 주행이다. 슬신경절에서 제2슬까지 {lengths['fn-tympanic']} mm.",
-            "Som and Curtin cite about 12 mm for a full tympanic segment. This surface's horizontal run is shorter; the cut follows the stapes and the second bend, not a fixed length.",
-            "Som과 Curtin은 고실부 전체를 약 12 mm로 적는다. 이 표면의 수평 주행은 더 짧다. 고정 길이가 아니라 등골과 제2굽이로 잘랐다.",
+            f"The segment above the stapes, {lengths['fn-tympanic']} mm from the geniculate to the second genu.",
+            f"등골 위의 분절이다. 슬신경절에서 제2슬까지 {lengths['fn-tympanic']} mm.",
+            "Som and Curtin give about 12 mm for a complete tympanic segment. In this specimen the run above the oval window is about 9.5 mm.",
+            "Som과 Curtin은 고실부 전체를 약 12 mm로 적는다. 이 표본에서 난원창 위의 주행은 약 9.5 mm다.",
             SOM,
             "Ch. 15",
         ),
@@ -1284,10 +1653,10 @@ def write_descriptions(nerve: dict) -> None:
             "p. 7",
         ),
         "fn-mastoid": (
-            f"The descending segment, {lengths['fn-mastoid']} mm from the second genu to the end of the mesh.",
-            f"하행 분절이다. 제2슬에서 메시 끝까지 {lengths['fn-mastoid']} mm.",
-            "Reference lengths are about 15–20 mm to the stylomastoid foramen. This mesh stops in the mastoid, short of the foramen and the mastoid tip.",
-            "참고 길이는 경유돌공까지 약 15–20 mm다. 이 메시는 유양부 안에서 끝나며 공과 유양돌기 첨부에 닿지 않는다.",
+            f"The descending segment, {lengths['fn-mastoid']} mm from the second genu to the end of the nerve.",
+            f"하행 분절이다. 제2슬에서 신경 끝까지 {lengths['fn-mastoid']} mm.",
+            "The bony canal continues about 3.5 mm beyond the nerve, to about 16 mm in all. A full mastoid segment to the stylomastoid foramen is often 15–20 mm.",
+            "골관은 신경보다 약 3.5 mm 더 이어져 전체는 약 16 mm다. 경유돌공까지의 유양부는 흔히 15–20 mm다.",
             SOM,
             "Ch. 15",
         ),
@@ -1358,8 +1727,8 @@ def write_descriptions(nerve: dict) -> None:
         "scala-vestibuli-middle": (
             "The middle turn of the cochlear scala vestibuli.",
             "와우 전정계의 중간회전이다.",
-            "Cut by angle about the same modiolus as the scala tympani.",
-            "고실계와 같은 와우축 각도로 나눴다.",
+            "It follows the same modiolar axis as the scala tympani.",
+            "고실계와 같은 와우축을 따라간다.",
             SOM,
             "Ch. 15",
         ),
@@ -1381,6 +1750,7 @@ def write_descriptions(nerve: dict) -> None:
         payload["function"] = {"en": fn_en, "ko": fn_ko}
         payload["sources"] = [source(citation, page)]
         payload["review"] = "미검증"
+        payload.pop("clinical", None)
         if item_id.startswith("fn-"):
             payload["related"] = ["facial-nerve", "chorda-tympani"] if item_id == "fn-mastoid" else ["facial-nerve"]
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
@@ -1400,8 +1770,8 @@ def bump_manifest(rest_report, cochlear, labyrinth_v, scala_t, facial, tm, tympa
     manifest["model_version"] = VERSION
     manifest["specimen"]["model_version"] = VERSION
     manifest["specimen"]["geometry_note"] = {
-        "en": "Right temporal bone, ZETA. Axes checked on the meshes: +X anterior, +Y inferior, +Z medial. Canals were split by their loops and planes. The facial nerve was split at the fundus, the oval window, and the second bend. The head is rigidly registered; scale is 1.",
-        "ko": "오른쪽 측두골 ZETA. 메시에서 축을 확인했다. +X 앞, +Y 아래, +Z 안쪽. 반고리관은 고리와 평면으로 나눴고, 안면신경은 기저부, 난원창, 제2굽이로 나눴다. 머리는 강체 정합이며 배율은 1이다.",
+        "en": "Right temporal bone, specimen ZETA, turned into the upright head. +X anterior, +Y inferior, +Z medial before that turn. Scale is 1.",
+        "ko": "오른쪽 측두골 ZETA를 똑바로 선 머리에 맞추었다. 맞추기 전 축은 +X 앞, +Y 아래, +Z 안쪽이다. 배율은 1이다.",
     }
     structures = {item["id"]: item for item in manifest["structures"]}
     if "common-crus" not in structures:

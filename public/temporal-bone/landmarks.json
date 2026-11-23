@@ -1,6 +1,6 @@
 {
   "model_version": "openear-zeta-frame-3",
-  "frame": "zeta-mm; +X anterior, +Y inferior, +Z medial",
+  "frame": "upright head millimetres; specimen rotated in, scale 1",
   "review": "미검증",
   "landmarks": [
     {
@@ -18,9 +18,9 @@
         }
       ],
       "xyz_mm": [
-        26.663,
-        16.958,
-        31.194
+        37.043,
+        38.975,
+        55.188
       ],
       "method": "superior vertex",
       "review": "미검증",
@@ -42,9 +42,9 @@
         }
       ],
       "xyz_mm": [
-        26.561,
-        18.629,
-        30.356
+        37.019,
+        40.705,
+        54.475
       ],
       "method": "between head and lateral process",
       "review": "미검증",
@@ -66,9 +66,9 @@
         }
       ],
       "xyz_mm": [
-        26.134,
-        23.185,
-        32.189
+        38.635,
+        45.003,
+        56.268
       ],
       "method": "mid-handle vertex",
       "review": "미검증",
@@ -90,9 +90,9 @@
         }
       ],
       "xyz_mm": [
-        26.939,
-        21.052,
-        30.885
+        38.203,
+        42.899,
+        54.757
       ],
       "method": "superior contact with the membrane",
       "review": "미검증",
@@ -114,9 +114,9 @@
         }
       ],
       "xyz_mm": [
-        28.134,
-        18.138,
-        31.367
+        38.689,
+        39.752,
+        54.667
       ],
       "method": "most anterior vertex",
       "review": "미검증",
@@ -138,9 +138,9 @@
         }
       ],
       "xyz_mm": [
-        24.816,
-        25.134,
-        33.198
+        38.449,
+        47.082,
+        57.75
       ],
       "method": "inferior tip",
       "review": "미검증",
@@ -162,9 +162,9 @@
         }
       ],
       "xyz_mm": [
-        24.575,
-        17.683,
-        29.714
+        34.784,
+        40.327,
+        54.809
       ],
       "method": "superior-half centroid",
       "review": "미검증",
@@ -186,9 +186,9 @@
         }
       ],
       "xyz_mm": [
-        23.307,
-        18.684,
-        27.394
+        32.932,
+        41.847,
+        53.309
       ],
       "method": "most lateral incus vertex",
       "review": "미검증",
@@ -210,9 +210,9 @@
         }
       ],
       "xyz_mm": [
-        23.917,
-        20.164,
-        31.023
+        35.434,
+        42.732,
+        56.256
       ],
       "method": "mid long process",
       "review": "미검증",
@@ -234,9 +234,9 @@
         }
       ],
       "xyz_mm": [
-        23.026,
-        22.297,
-        32.014
+        35.574,
+        44.468,
+        57.274
       ],
       "method": "vertex nearest the stapes",
       "review": "미검증",
@@ -258,9 +258,9 @@
         }
       ],
       "xyz_mm": [
-        22.972,
-        22.323,
-        32.687
+        35.603,
+        44.932,
+        57.527
       ],
       "method": "vertex nearest the lenticular process",
       "review": "미검증",
@@ -282,9 +282,9 @@
         }
       ],
       "xyz_mm": [
-        22.847,
-        22.232,
-        33.443
+        35.938,
+        44.349,
+        59.527
       ],
       "method": "anterior crus vertex",
       "review": "미검증",
@@ -306,9 +306,9 @@
         }
       ],
       "xyz_mm": [
-        19.701,
-        20.897,
-        34.066
+        33.335,
+        44.089,
+        60.874
       ],
       "method": "posterior crus vertex",
       "review": "미검증",
@@ -330,9 +330,9 @@
         }
       ],
       "xyz_mm": [
-        21.546,
-        21.04,
-        35.094
+        35.41,
+        43.682,
+        60.953
       ],
       "method": "medial cluster centroid",
       "review": "미검증",
@@ -354,9 +354,9 @@
         }
       ],
       "xyz_mm": [
-        21.546,
-        21.04,
-        35.894
+        35.762,
+        43.593,
+        61.666
       ],
       "method": "medial to the footplate centroid",
       "review": "미검증",
@@ -378,9 +378,9 @@
         }
       ],
       "xyz_mm": [
-        20.567,
-        23.038,
-        34.449
+        34.801,
+        45.912,
+        60.807
       ],
       "method": "most lateral scala tympani vertex",
       "review": "미검증",
@@ -402,9 +402,9 @@
         }
       ],
       "xyz_mm": [
-        21.353,
-        23.919,
-        34.616
+        35.779,
+        46.561,
+        60.593
       ],
       "method": "lateral basal-turn vertex, off the round window",
       "review": "미검증",
@@ -426,9 +426,9 @@
         }
       ],
       "xyz_mm": [
-        21.549,
-        22.508,
-        38.961
+        37.492,
+        44.671,
+        64.387
       ],
       "method": "centroid of the first turn",
       "review": "미검증",
@@ -450,9 +450,9 @@
         }
       ],
       "xyz_mm": [
-        22.051,
-        22.877,
-        39.279
+        38.159,
+        44.875,
+        64.441
       ],
       "method": "centroid of the second turn",
       "review": "미검증",
@@ -474,9 +474,9 @@
         }
       ],
       "xyz_mm": [
-        22.631,
-        23.213,
-        39.175
+        38.699,
+        45.075,
+        64.083
       ],
       "method": "centroid of the apical angle",
       "review": "미검증",
@@ -489,7 +489,7 @@
       "en": "Geniculate ganglion",
       "ko": "슬신경절",
       "anatomy": "First genu, where the labyrinthine segment turns into the tympanic segment.",
-      "clinical": "The greater petrosal nerve leaves here. This mesh has no separate GSPN.",
+      "clinical": "The greater petrosal nerve leaves the ganglion here.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -498,11 +498,35 @@
         }
       ],
       "xyz_mm": [
-        23.832,
-        19.471,
-        35.442
+        38.753,
+        40.462,
+        62.089
       ],
-      "method": "centre of the first-genu window",
+      "method": "centre of the first genu",
+      "review": "미검증",
+      "confidence": "placed",
+      "surgical": true
+    },
+    {
+      "id": "second-genu",
+      "parent": "fn-second-genu",
+      "en": "Second genu",
+      "ko": "제2슬",
+      "anatomy": "The bend where the tympanic segment turns down into the mastoid segment.",
+      "clinical": "The pyramidal eminence is anteromedial to this bend.",
+      "sources": [
+        {
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
+          "page": "p. 7",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        30.445,
+        46.414,
+        55.834
+      ],
+      "method": "sharpest inferior bend",
       "review": "미검증",
       "confidence": "placed",
       "surgical": true
@@ -512,8 +536,8 @@
       "parent": "bone",
       "en": "Cochleariform process",
       "ko": "와우형돌기",
-      "anatomy": "Bony hook anterior to the geniculate, where the tensor tympani tendon turns laterally.",
-      "clinical": "Anterior landmark for the tympanic facial nerve. No tendon mesh, so the point is the nearest bone.",
+      "anatomy": "Bony hook just posterior and inferior to the geniculate, at the anterior end of the tympanic segment, above the oval window.",
+      "clinical": "The tensor tympani tendon turns laterally here.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -522,11 +546,11 @@
         }
       ],
       "xyz_mm": [
-        25.715,
-        19.503,
-        34.666
+        37.225,
+        42.372,
+        62.662
       ],
-      "method": "bone nearest the anterior genu",
+      "method": "bone posterior and inferior to the geniculate",
       "review": "미검증",
       "confidence": "미확인",
       "surgical": true
@@ -536,8 +560,8 @@
       "parent": "bone",
       "en": "Pyramidal eminence",
       "ko": "추체융기",
-      "anatomy": "Small bony pyramid just lateral to the second genu, behind the stapes.",
-      "clinical": "The stapedius tendon emerges here. Not a separate mesh.",
+      "anatomy": "Small bony pyramid anteromedial to the second genu, in the posterior tympanum.",
+      "clinical": "The stapedius tendon leaves it toward the stapes.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -546,11 +570,11 @@
         }
       ],
       "xyz_mm": [
-        19.252,
-        22.25,
-        27.26
+        32.858,
+        45.197,
+        56.408
       ],
-      "method": "bone nearest the second genu",
+      "method": "bone anteromedial to the second genu",
       "review": "미검증",
       "confidence": "미확인",
       "surgical": true
@@ -561,7 +585,7 @@
       "en": "Sinus tympani",
       "ko": "고실동",
       "anatomy": "Recess medial to the mastoid facial nerve and posterior to the round window.",
-      "clinical": "Hidden cholesteatoma site. Placed from the round window, not from a recess mesh.",
+      "clinical": "A cholesteatoma can hide here.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -570,9 +594,9 @@
         }
       ],
       "xyz_mm": [
-        19.55,
-        22.803,
-        35.546
+        34.348,
+        45.801,
+        62.247
       ],
       "method": "medial and posterior to the round window",
       "review": "미검증",
@@ -594,9 +618,9 @@
         }
       ],
       "xyz_mm": [
-        20.733,
-        30.267,
-        26.423
+        33.286,
+        53.745,
+        53.523
       ],
       "method": "between mastoid nerve and chorda",
       "review": "미검증",
@@ -608,8 +632,8 @@
       "parent": "bone",
       "en": "Ponticulus",
       "ko": "폰티쿨루스",
-      "anatomy": "Ridge between the oval window and the sinus tympani.",
-      "clinical": "No ridge was segmented; the point sits on bone between the windows.",
+      "anatomy": "Bony ridge between the oval window and the sinus tympani.",
+      "clinical": "It forms the upper border of the sinus tympani.",
       "sources": [
         {
           "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed., Ch. 3",
@@ -618,9 +642,9 @@
         }
       ],
       "xyz_mm": [
-        20.616,
-        22.03,
-        34.123
+        34.44,
+        44.963,
+        60.501
       ],
       "method": "between footplate and round window",
       "review": "미검증",
@@ -632,8 +656,8 @@
       "parent": "bone",
       "en": "Subiculum",
       "ko": "서브이쿨룸",
-      "anatomy": "Ridge under the sinus tympani, at the round-window niche.",
-      "clinical": "Not segmented as a ridge.",
+      "anatomy": "Bony ridge under the sinus tympani, beside the round-window niche.",
+      "clinical": "It forms the lower border of the sinus tympani.",
       "sources": [
         {
           "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed., Ch. 3",
@@ -642,9 +666,9 @@
         }
       ],
       "xyz_mm": [
-        20.294,
-        24.372,
-        34.509
+        34.938,
+        47.258,
+        60.974
       ],
       "method": "inferior to the round window",
       "review": "미검증",
@@ -666,9 +690,9 @@
         }
       ],
       "xyz_mm": [
-        26.75,
-        19.84,
-        30.121
+        37.391,
+        41.857,
+        54.17
       ],
       "method": "lateral to the malleus neck",
       "review": "미검증",
@@ -690,9 +714,9 @@
         }
       ],
       "xyz_mm": [
-        24.81,
-        22.5,
-        13.405
+        29.063,
+        46.731,
+        40.129
       ],
       "method": "bone just posterosuperior to the porus",
       "review": "미검증",
@@ -714,9 +738,9 @@
         }
       ],
       "xyz_mm": [
-        20.753,
-        19.792,
-        13.571
+        24.946,
+        45.045,
+        42.136
       ],
       "method": "bone posterosuperior to Henle",
       "review": "미검증",
@@ -728,8 +752,8 @@
       "parent": "bone",
       "en": "Mastoid antrum",
       "ko": "유양동",
-      "anatomy": "Air-cell space medial to the spine of Henle. No air-cell mesh.",
-      "clinical": "Opens into the epitympanum through the aditus.",
+      "anatomy": "The largest mastoid air space, medial to the spine of Henle.",
+      "clinical": "It opens into the epitympanum through the aditus.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -738,11 +762,11 @@
         }
       ],
       "xyz_mm": [
-        22.777,
-        20.856,
-        21.589
+        30.486,
+        44.712,
+        48.358
       ],
-      "method": "estimated medial to Henle",
+      "method": "medial to Henle",
       "review": "미검증",
       "confidence": "미확인",
       "surgical": true
@@ -762,9 +786,9 @@
         }
       ],
       "xyz_mm": [
-        26.243,
-        12.425,
-        31.22
+        35.521,
+        34.691,
+        55.435
       ],
       "method": "superior bone near the middle ear",
       "review": "미검증",
@@ -776,8 +800,8 @@
       "parent": "sinus-dura",
       "en": "Sinodural angle",
       "ko": "정맥동경막각",
-      "anatomy": "Angle between the sigmoid sinus plate and the tegmen.",
-      "clinical": "Superior-posterior corner of a cortical mastoidectomy.",
+      "anatomy": "Corner where the superior end of the sigmoid sinus meets the tegmen.",
+      "clinical": "Posterior-superior limit of a cortical mastoidectomy.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -786,11 +810,11 @@
         }
       ],
       "xyz_mm": [
-        22.89,
-        13.196,
-        30.51
+        -1.122,
+        24.899,
+        49.74
       ],
-      "method": "bone between tegmen and sinus",
+      "method": "superior end of the sigmoid sinus",
       "review": "미검증",
       "confidence": "미확인",
       "surgical": true
@@ -800,8 +824,8 @@
       "parent": "bone",
       "en": "Digastric ridge",
       "ko": "이복근릉",
-      "anatomy": "Ridge on the mastoid tip that points toward the stylomastoid foramen.",
-      "clinical": "Placed medial to the tip. The ridge itself is not segmented.",
+      "anatomy": "Ridge on the medial side of the mastoid tip that leads to the stylomastoid foramen.",
+      "clinical": "It points to the facial nerve as it leaves the mastoid.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -810,9 +834,9 @@
         }
       ],
       "xyz_mm": [
-        16.773,
-        51.87,
-        19.497
+        32.42,
+        76.306,
+        48.983
       ],
       "method": "medial to the mastoid tip",
       "review": "미검증",
@@ -825,7 +849,7 @@
       "en": "Mastoid tip",
       "ko": "유양돌기 첨부",
       "anatomy": "Inferior end of the mastoid process.",
-      "clinical": "Landmark for the mastoid segment, which this nerve mesh does not reach.",
+      "clinical": "The mastoid segment of the facial nerve ends above this tip.",
       "sources": [
         {
           "citation": "Francis HW, Niparko JK. Temporal Bone Dissection Guide, 2nd ed., Ch. 3",
@@ -834,9 +858,9 @@
         }
       ],
       "xyz_mm": [
-        15.165,
-        57.246,
-        14.114
+        30.061,
+        82.471,
+        44.873
       ],
       "method": "most inferior posterolateral vertex",
       "review": "미검증",
@@ -858,9 +882,9 @@
         }
       ],
       "xyz_mm": [
-        23.066,
-        11.862,
-        13.675
+        24.931,
+        36.833,
+        41.24
       ],
       "method": "estimated on the lateral surface",
       "review": "미검증",
@@ -872,8 +896,8 @@
       "parent": "sinus-dura",
       "en": "Sigmoid sinus",
       "ko": "S상정맥동",
-      "anatomy": "Posterior venous channel. This mesh still mixes sinus and dura.",
-      "clinical": "Posterior limit of mastoidectomy. The jugular bulb is not a separate mesh.",
+      "anatomy": "Posterior venous channel along the back of the mastoid.",
+      "clinical": "It is the posterior limit of mastoidectomy.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -882,11 +906,11 @@
         }
       ],
       "xyz_mm": [
-        4.302,
-        35.772,
-        26.089
+        20.428,
+        62.94,
+        60.631
       ],
-      "method": "point on the sinus-dura mesh",
+      "method": "posterior point on the sigmoid sinus",
       "review": "미검증",
       "confidence": "placed",
       "surgical": true
@@ -896,8 +920,8 @@
       "parent": "sinus-dura",
       "en": "Jugular bulb",
       "ko": "경정맥구",
-      "anatomy": "Venous bulb under the middle ear, estimated inferior to the petrous carotid.",
-      "clinical": "A high bulb narrows the hypotympanum. Not segmented.",
+      "anatomy": "Venous bulb under the hypotympanum, just behind the petrous carotid.",
+      "clinical": "A high bulb narrows the floor of the middle ear.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -906,9 +930,9 @@
         }
       ],
       "xyz_mm": [
-        20.401,
-        36.182,
-        46.657
+        43.422,
+        57.296,
+        71.666
       ],
       "method": "bone near the carotid genu",
       "review": "미검증",
@@ -930,9 +954,9 @@
         }
       ],
       "xyz_mm": [
-        28.515,
-        23.638,
-        14.464
+        33.01,
+        46.847,
+        39.386
       ],
       "method": "centroid of the lateral 8% of canal vertices",
       "review": "미검증",
@@ -944,8 +968,8 @@
       "parent": "cochleovestibular-nerve",
       "en": "Internal auditory canal",
       "ko": "내이도",
-      "anatomy": "Medial end of the cochleovestibular nerve mesh, in the internal canal.",
-      "clinical": "The facial nerve is anterosuperior at the fundus. Bill bar is not segmented.",
+      "anatomy": "Medial end of the canal, where the cochlear and vestibular nerves enter the posterior fossa.",
+      "clinical": "The facial nerve lies anterosuperior at the fundus.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 175 Surgical Anatomy of the Lateral Skull Base",
@@ -954,11 +978,11 @@
         }
       ],
       "xyz_mm": [
-        14.942,
-        20.72,
-        53.257
+        37.63,
+        42.905,
+        80.138
       ],
-      "method": "medial nerve vertex",
+      "method": "medial end of the canal",
       "review": "미검증",
       "confidence": "placed",
       "surgical": true
@@ -978,9 +1002,9 @@
         }
       ],
       "xyz_mm": [
-        34.612,
-        21.663,
-        16.833
+        38.785,
+        43.252,
+        38.749
       ],
       "method": "bone anterior to the porus",
       "review": "미검증",
@@ -992,7 +1016,7 @@
       "parent": "fn-mastoid",
       "en": "Stylomastoid foramen",
       "ko": "경유돌공",
-      "anatomy": "Inferior exit of the facial nerve. The nerve mesh stops short of this point, so the anchor is the nearest bone along the mastoid course.",
+      "anatomy": "Opening where the facial nerve leaves the mastoid, a few millimetres below the end of the nerve surface.",
       "clinical": "The digastric ridge points here.",
       "sources": [
         {
@@ -1002,11 +1026,11 @@
         }
       ],
       "xyz_mm": [
-        15.351,
-        41.326,
-        29.6
+        35.994,
+        63.152,
+        56.11
       ],
-      "method": "bone inferior to the nerve mesh",
+      "method": "bone just inferior to the mastoid nerve",
       "review": "미검증",
       "confidence": "미확인",
       "surgical": true
@@ -1016,8 +1040,8 @@
       "parent": "bone",
       "en": "Styloid base",
       "ko": "경상돌기 기저",
-      "anatomy": "Base of the styloid process, above its inferior tip.",
-      "clinical": "Registration landmark. The thin process is partly cropped.",
+      "anatomy": "Root of the styloid process, just inferior to the stylomastoid foramen. The tip of the process is further inferior.",
+      "clinical": "The base is not the free tip.",
       "sources": [
         {
           "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
@@ -1026,11 +1050,11 @@
         }
       ],
       "xyz_mm": [
-        30.843,
-        58.963,
-        35.526
+        41.352,
+        67.332,
+        56.411
       ],
-      "method": "10 mm up the styloid from its tip",
+      "method": "a few millimetres inferior to the stylomastoid foramen",
       "review": "미검증",
       "confidence": "placed",
       "surgical": false
@@ -1040,8 +1064,8 @@
       "parent": "vestibule",
       "en": "Vestibule",
       "ko": "전정",
-      "anatomy": "Central chamber left after the three canals, their common crus, and the cochlea are separated.",
-      "clinical": "The oval window opens into it.",
+      "anatomy": "Central chamber of the labyrinth, between the canals and the cochlea.",
+      "clinical": "The oval window opens into its lateral wall.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -1050,11 +1074,11 @@
         }
       ],
       "xyz_mm": [
-        20.021,
-        19.836,
-        35.344
+        34.555,
+        44.047,
+        61.847
       ],
-      "method": "centroid of the vestibule mesh",
+      "method": "centre of the vestibule",
       "review": "미검증",
       "confidence": "placed",
       "surgical": false
@@ -1074,9 +1098,9 @@
         }
       ],
       "xyz_mm": [
-        19.236,
-        18.4,
-        28.317
+        29.762,
+        42.422,
+        55.978
       ],
       "method": "most lateral canal vertex",
       "review": "미검증",
@@ -1098,9 +1122,9 @@
         }
       ],
       "xyz_mm": [
-        18.877,
-        11.672,
-        34.254
+        30.323,
+        35.349,
+        61.483
       ],
       "method": "most superior canal vertex",
       "review": "미검증",
@@ -1122,9 +1146,9 @@
         }
       ],
       "xyz_mm": [
-        16.555,
-        23.577,
-        33.34
+        31.002,
+        47.493,
+        61.632
       ],
       "method": "most inferior canal vertex",
       "review": "미검증",
@@ -1136,8 +1160,8 @@
       "parent": "common-crus",
       "en": "Common crus",
       "ko": "총각",
-      "anatomy": "Shared limb of the superior and posterior canals.",
-      "clinical": "The two vertical canals meet here before entering the vestibule.",
+      "anatomy": "Shared limb of the superior and posterior canals before they enter the vestibule.",
+      "clinical": "Both vertical canals use this limb.",
       "sources": [
         {
           "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
@@ -1146,11 +1170,11 @@
         }
       ],
       "xyz_mm": [
-        15.715,
-        18.332,
-        35.161
+        29.548,
+        42.34,
+        63.673
       ],
-      "method": "centroid of the common-crus mesh",
+      "method": "centre of the common crus",
       "review": "미검증",
       "confidence": "placed",
       "surgical": false
@@ -1160,8 +1184,8 @@
       "parent": "scc-lateral",
       "en": "Lateral ampulla",
       "ko": "외측팽대부",
-      "anatomy": "Dilated anterior end of the lateral canal at the vestibule.",
-      "clinical": "Ampullary end, not a separate mesh.",
+      "anatomy": "Widened anterior end of the lateral canal where it meets the vestibule.",
+      "clinical": "The ampullary nerve enters here.",
       "sources": [
         {
           "citation": "Som PM, Curtin HD. Head and Neck Imaging, 5th ed., Ch. 15 Temporal bone",
@@ -1170,11 +1194,11 @@
         }
       ],
       "xyz_mm": [
-        20.377,
-        20.486,
-        34.566
+        34.304,
+        42.348,
+        60.038
       ],
-      "method": "canal vertex nearest the vestibule",
+      "method": "canal end nearest the vestibule",
       "review": "미검증",
       "confidence": "placed",
       "surgical": false
@@ -1184,7 +1208,7 @@
       "parent": "scc-superior",
       "en": "Superior ampulla",
       "ko": "상팽대부",
-      "anatomy": "Ampullary end of the superior canal at the vestibule.",
+      "anatomy": "Widened end of the superior canal at the vestibule.",
       "clinical": "Anterior end of that canal.",
       "sources": [
         {
@@ -1194,11 +1218,11 @@
         }
       ],
       "xyz_mm": [
-        21.489,
-        18.629,
-        35.887
+        35.097,
+        40.984,
+        61.114
       ],
-      "method": "canal vertex nearest the vestibule",
+      "method": "canal end nearest the vestibule",
       "review": "미검증",
       "confidence": "placed",
       "surgical": false
@@ -1208,7 +1232,7 @@
       "parent": "scc-posterior",
       "en": "Posterior ampulla",
       "ko": "후팽대부",
-      "anatomy": "Ampullary end of the posterior canal at the vestibule.",
+      "anatomy": "Widened end of the posterior canal at the vestibule.",
       "clinical": "Inferior end of that canal.",
       "sources": [
         {
@@ -1218,11 +1242,11 @@
         }
       ],
       "xyz_mm": [
-        18.27,
-        20.895,
-        36.472
+        32.999,
+        45.401,
+        62.723
       ],
-      "method": "canal vertex nearest the vestibule",
+      "method": "canal end nearest the vestibule",
       "review": "미검증",
       "confidence": "placed",
       "surgical": false
@@ -1242,9 +1266,9 @@
         }
       ],
       "xyz_mm": [
-        27.274,
-        21.517,
-        29.657
+        38.072,
+        43.406,
+        53.507
       ],
       "method": "superior membrane centroid",
       "review": "미검증",
@@ -1257,7 +1281,7 @@
       "en": "Carotid canal",
       "ko": "경동맥관",
       "anatomy": "Petrous internal carotid, anterior to the cochlea.",
-      "clinical": "The genu and horizontal segment are not split.",
+      "clinical": "It turns from a vertical segment into a horizontal one in front of the cochlea.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 175 Surgical Anatomy of the Lateral Skull Base",
@@ -1266,11 +1290,11 @@
         }
       ],
       "xyz_mm": [
-        25.133,
-        32.355,
-        46.653
+        46.502,
+        52.493,
+        69.546
       ],
-      "method": "centroid of the carotid mesh",
+      "method": "centre of the petrous carotid",
       "review": "미검증",
       "confidence": "placed",
       "surgical": true
@@ -1290,9 +1314,9 @@
         }
       ],
       "xyz_mm": [
-        18.739,
-        8.587,
-        33.243
+        28.963,
+        32.514,
+        60.668
       ],
       "method": "superior bone over the superior canal",
       "review": "미검증",

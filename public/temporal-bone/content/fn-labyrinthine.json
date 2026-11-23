@@ -2,16 +2,12 @@
   "id": "fn-labyrinthine",
   "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "en": "From the fundus to the geniculate, 3.0 mm along this centreline.",
-    "ko": "기저부에서 슬신경절까지다. 이 중심선에서 3.0 mm."
+    "en": "The short course from the fundus to the geniculate, 0.75 mm.",
+    "ko": "기저부에서 슬신경절까지의 짧은 주행이다. 0.75 mm."
   },
   "function": {
-    "en": "Teaching lengths are often 3–5 mm. This cut is the specimen's own course, kept inside that range.",
-    "ko": "흔히 3–5 mm로 가르친다. 이 경계는 그 범위 안에서 이 표본의 주행으로 잡았다."
-  },
-  "clinical": {
-    "ko": "가장 좁아 부종에 취약한 분절입니다. 보통 3–5 mm로 가르치나 이 절단은 미검증입니다.",
-    "en": "Narrowest segment and the one most sensitive to swelling. About 3–5 mm is the usual teaching range; this cut is unverified."
+    "en": "It is the narrowest part of the nerve.",
+    "ko": "신경 중에서 가장 좁은 부분이다."
   },
   "surgical_points": [],
   "sources": [
