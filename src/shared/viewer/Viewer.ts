@@ -9,7 +9,7 @@ import type { SlicePose } from '../ct';
 import { chooseScaleMm, distanceMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
-import { estimateLabelSize, placeLabels, type Placement, type StudyLabel } from '../labels';
+import { columnPlacements, estimateLabelSize, focusPartList, PEEL_LABELS, placeLabels, type Placement, type StudyLabel } from '../labels';
 import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM, verticalSpanMm } from '../view-pose';
 import {
   ATLAS_BACKGROUND,
@@ -164,6 +164,8 @@ export class EntViewer {
   private registrationGroup: THREE.Group | null = null;
   private lastCutRadius = 0;
   private lastSkinOpacity = 1;
+  private distanceRadius = 0;
+  private focusRadius = 0;
   private earHotspot: THREE.Mesh | null = null;
   private cutCenter = new THREE.Vector3();
   private cutRadius = { value: 0 };
@@ -379,7 +381,7 @@ export class EntViewer {
     const meshes: THREE.Mesh[] = [];
     const outlines: THREE.Mesh[] = [];
     const hulls: THREE.Mesh[] = [];
-    const side = id === 'tympanic-membrane' || id === 'bone' ? THREE.DoubleSide : THREE.FrontSide;
+    const side = id === 'bone' || id === 'tympanic-membrane' || id.startsWith('tm-') ? THREE.DoubleSide : THREE.FrontSide;
     const found: THREE.Mesh[] = [];
     root.traverse((obj) => {
       if (isMesh(obj)) found.push(obj);
@@ -478,6 +480,7 @@ export class EntViewer {
     this.selected = id;
     this.dimOthers = id !== null;
     this.linked.clear();
+    this.focusCut(id);
     this.refreshLook();
     if (id && frame) this.frameStructure(id);
     else this.syncCallouts();
@@ -488,6 +491,7 @@ export class EntViewer {
     this.selected = id;
     this.dimOthers = dimOthers && id !== null;
     this.linked.clear();
+    this.focusCut(id);
     this.refreshLook();
     if (id && frame) this.frameStructure(id, spanMm, fit);
   }
@@ -512,6 +516,7 @@ export class EntViewer {
     this.boneTransparent = false;
     this.labelsHidden = this.mode === 'quiz';
     this.setMarker(null, '');
+    this.focusCut(null);
     this.refreshLook();
     this.moveCamera(this.worldPoint(DEFAULT_CAMERA.position), this.worldPoint(DEFAULT_CAMERA.target), DEFAULT_CAMERA.up, DEFAULT_CAMERA.fov, immediate);
     this.setClipping(null);
@@ -827,8 +832,10 @@ export class EntViewer {
     // Selection framing sits near 60–80 mm so the scale bar reads about 10 mm.
     // Neighbours stay coloured through that range. Presets leave dimOthers off.
     const close = this.dimOthers && this.selected !== null && this.selected !== 'bone' && this.cameraDistance() < 160;
+    const family = this.focusFamily(this.selected);
+    const neighbour = close && !inSelection && family !== null && this.isNeighbour(record.id, family);
     const envelope = record.id === 'bone' || record.id === 'sinus-dura' || record.id === 'external-auditory-canal';
-    const dimmed = this.dimOthers && this.selected !== null && !inSelection && !close;
+    const dimmed = close && !inSelection && !neighbour;
     const defaultGhost = !this.presetVis && record.id === 'sinus-dura';
     let opacity = displayOpacity({
       id: record.id,
@@ -839,8 +846,14 @@ export class EntViewer {
       boneTransparent: this.boneTransparent,
     });
     if (record.id === 'bone' && !this.boneTransparent) opacity = 1;
-    else if (close && envelope) opacity = Math.min(opacity, 0.04);
-    else if (close && !inSelection) opacity = Math.max(opacity, 0.62);
+    else if (close && envelope) opacity = Math.min(opacity, 0.08);
+    else if (close && (record.id === 'tympanic-membrane' || record.id.startsWith('tm-')) && (family === 'malleus' || family === 'incus' || family === 'stapes')) opacity = 0.34;
+    else if (close && neighbour) opacity = 0.82;
+    else if (close && !inSelection) opacity = Math.min(opacity, 0.16);
+    if (onTop && opacity > 0.9) opacity = 0.995;
+    const peel = !this.selected && this.cutRadius.value > 8 && this.cameraDistance() < 150;
+    if (peel && (record.layer === 'vessel' || record.layer === 'sinus' || record.layer === 'nerve' || record.layer === 'inner-ear')) opacity = 0.14;
+    if (peel && record.layer === 'membrane') opacity = 0.62;
     const atlas = this.style === 'atlas';
     const ramp = dimmed
       ? { lit: DIM_GRAY, shadow: '#bdbbb6', highlight: '#f7f5f2' }
@@ -861,8 +874,46 @@ export class EntViewer {
     }
     for (const mesh of record.meshes) mesh.renderOrder = onTop ? 30 : 0;
     const flashing = this.flashId === record.id && performance.now() < this.flashUntil;
+    const viewClip = record.id === 'bone' && (this.focusRadius > 0 || this.cutRadius.value > 8) ? 1 : 0;
+    for (const material of record.materials) this.paintViewClip(material, viewClip);
+    for (const hull of record.hulls) this.paintViewClip(hull.material, viewClip);
     for (const outline of record.outlines) outline.visible = !atlas && (onTop || flashing);
-    for (const hull of record.hulls) hull.visible = atlas && visible && opacity > 0.2;
+    for (const hull of record.hulls) hull.visible = atlas && visible && opacity > 0.2 && record.layer !== 'membrane';
+  }
+
+  private paintViewClip(material: THREE.Material | THREE.Material[], viewClip: number): void {
+    const list = Array.isArray(material) ? material : [material];
+    for (const item of list) {
+      if (!(item instanceof THREE.ShaderMaterial) || !item.uniforms.uViewClip) continue;
+      item.uniforms.uViewClip.value = viewClip;
+      item.uniforms.uViewRadius.value = viewClip > 0 ? (this.focusRadius > 0 ? Math.min(this.focusRadius, 24) : 18) : 0;
+    }
+  }
+
+  /** Parent the selection belongs to when a part, not the whole bone, is picked. */
+  private focusFamily(id: string | null): string | null {
+    if (!id) return null;
+    const parent = this.parentOf.get(id) ?? null;
+    if (id === 'facial-nerve' || parent === 'facial-nerve' || id.startsWith('fn-')) return 'facial-nerve';
+    if (id === 'incus' || parent === 'incus') return 'incus';
+    if (id === 'stapes' || parent === 'stapes') return 'stapes';
+    if (id === 'tympanic-membrane' || parent === 'tympanic-membrane' || id.startsWith('tm-')) return 'tympanic-membrane';
+    if (id === 'malleus' || parent === 'malleus') return 'malleus';
+    return id;
+  }
+
+  private isNeighbour(id: string, family: string): boolean {
+    const groups: Record<string, string[]> = {
+      malleus: ['incus', 'stapes', 'tympanic-membrane', 'tm-pars-tensa', 'tm-pars-flaccida', 'chorda-tympani'],
+      incus: ['malleus', 'stapes', 'tympanic-membrane', 'tm-pars-tensa', 'tm-pars-flaccida'],
+      stapes: ['malleus', 'incus', 'tympanic-membrane', 'tm-pars-tensa', 'tm-pars-flaccida'],
+      'tympanic-membrane': ['malleus', 'incus', 'stapes', 'chorda-tympani'],
+      'facial-nerve': [],
+    };
+    const list = groups[family] ?? [];
+    if (list.includes(id)) return true;
+    const parent = this.parentOf.get(id);
+    return parent !== undefined && list.includes(parent);
   }
 
   private setClipping(clip: { normal: Vec3; constant: number } | null): void {
@@ -1137,16 +1188,47 @@ export class EntViewer {
   }
 
   setCutaway(radiusMm: number, _skinOpacity = 1): void {
+    this.distanceRadius = radiusMm;
     this.lastCutRadius = radiusMm;
     this.lastSkinOpacity = 1;
-    this.cutRadius.value = radiusMm;
-    for (const mesh of [this.skinMesh, this.upperBody, this.skullLayer]) {
-      if (!mesh) continue;
-      this.paintEntry(mesh, 1);
-      mesh.visible = true;
+    this.cutRadius.value = Math.max(radiusMm, this.focusRadius);
+    this.applyShellVisibility();
+    if (this.earHotspot) this.earHotspot.visible = this.cutRadius.value < 8;
+  }
+
+  /** Open the bone around a selected structure, in world space. */
+  private focusCut(id: string | null): void {
+    if (!id || id === 'bone') {
+      this.focusRadius = 0;
+      if (this.eacMm) {
+        this.cutCenter.set(this.eacMm[0] + this.offset[0], this.eacMm[1] + this.offset[1], this.eacMm[2] + this.offset[2]);
+      }
+    } else {
+      const box = new THREE.Box3();
+      for (const itemId of [id, ...this.descendantIds(id)]) {
+        const record = this.records.get(itemId);
+        if (!record || record.aggregate) continue;
+        const visible = record.object.visible;
+        record.object.visible = true;
+        box.expandByObject(record.object);
+        record.object.visible = visible;
+      }
+      if (!box.isEmpty()) {
+        box.getCenter(this.cutCenter);
+        const radius = box.getBoundingSphere(new THREE.Sphere()).radius;
+        this.focusRadius = Math.min(38, Math.max(18, radius * 2.2));
+      }
     }
-    this.paintAuricle(radiusMm > 12);
-    if (this.earHotspot) this.earHotspot.visible = radiusMm < 8;
+    this.cutRadius.value = Math.max(this.distanceRadius, this.focusRadius);
+    this.applyShellVisibility();
+  }
+
+  private applyShellVisibility(): void {
+    const open = this.cutRadius.value > 8;
+    if (this.skinMesh) this.skinMesh.visible = !open;
+    if (this.upperBody) this.upperBody.visible = !open;
+    if (this.skullLayer) this.skullLayer.visible = !open;
+    this.paintAuricle(open);
   }
 
   renderStyle(): RenderStyle {
@@ -1377,11 +1459,14 @@ export class EntViewer {
       if (item.mode === 'label' && source) {
         const anchor = this.projectSpecimen(source.position, width, height);
         if (anchor) {
+          const size = estimateLabelSize(source.en || source.text, Boolean(source.ko));
+          const nearX = anchor.x < item.x + size.width / 2 ? item.x : item.x + size.width;
+          const nearY = Math.max(item.y + 6, Math.min(item.y + size.height - 4, anchor.y));
           const line = document.createElementNS(SVG_NS, 'line');
           line.setAttribute('x1', String(anchor.x));
           line.setAttribute('y1', String(anchor.y));
-          line.setAttribute('x2', String(item.x));
-          line.setAttribute('y2', String(item.y + 8));
+          line.setAttribute('x2', String(nearX));
+          line.setAttribute('y2', String(nearY));
           line.setAttribute('stroke', '#222');
           line.setAttribute('stroke-width', '1');
           svg.append(line);
@@ -1392,6 +1477,31 @@ export class EntViewer {
 
   private layoutStudyLabels(width: number, height: number): Placement[] {
     const distance = this.cameraDistance();
+    const inset = { top: 58, right: 16, bottom: 108, left: 16 };
+    const parts = focusPartList(this.selected);
+    if (parts && distance < 160) {
+      const column = [];
+      for (const label of this.studyLabels) {
+        if (!parts.includes(label.id)) continue;
+        if (this.labelMode !== 'all' && !label.modes.includes(this.labelMode)) continue;
+        const anchor = this.projectSpecimen(label.position, width, height);
+        if (!anchor || anchor.behind) continue;
+        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        column.push({ id: label.id, anchorX: anchor.x, anchorY: anchor.y, width: size.width, height: size.height });
+      }
+      if (column.length) return columnPlacements(column, width, height, inset);
+    }
+    if (!this.selected && this.cutRadius.value > 8 && distance < 160) {
+      const column = [];
+      for (const label of this.studyLabels) {
+        if (!PEEL_LABELS.includes(label.id as (typeof PEEL_LABELS)[number])) continue;
+        const anchor = this.projectSpecimen(label.position, width, height);
+        if (!anchor || anchor.behind) continue;
+        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        column.push({ id: label.id, anchorX: anchor.x, anchorY: anchor.y, width: size.width, height: size.height });
+      }
+      if (column.length) return columnPlacements(column, width, height, inset);
+    }
     const inputs = [];
     for (const label of this.studyLabels) {
       const tiers = distance > 140 ? ['region', 'surface'] : ['region', 'surface', 'structure', 'subpart'];
@@ -1426,7 +1536,7 @@ export class EntViewer {
         occluded,
       });
     }
-    return placeLabels(inputs, width, height, { top: 58, right: 8, bottom: 108, left: 8 });
+    return placeLabels(inputs, width, height, inset);
   }
 
   private projectSpecimen(position: Vec3, width: number, height: number): { x: number; y: number; behind: boolean } | null {

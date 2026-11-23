@@ -73,6 +73,12 @@ export function illustrationRamp(id: string, baseHex: string): Ramp {
     return { lit: '#E7B2A8', shadow: '#C47E78', highlight: '#F8E0DA' };
   }
   if (id === 'external-auditory-canal') return { lit: '#E4C8BC', shadow: '#C49A8C', highlight: '#F6E6DE' };
+  if (id === 'fn-meatal') return { lit: '#FFE7A3', shadow: '#C4A24A', highlight: '#FFF6D4' };
+  if (id === 'fn-labyrinthine') return { lit: '#F0C21A', shadow: '#8A6A08', highlight: '#FFE992' };
+  if (id === 'fn-geniculate') return { lit: '#F6A21A', shadow: '#A85E08', highlight: '#FFD08A' };
+  if (id === 'fn-tympanic') return { lit: '#FFF05A', shadow: '#C9A000', highlight: '#FFF8B8' };
+  if (id === 'fn-second-genu') return { lit: '#E6B422', shadow: '#8A6408', highlight: '#FFE08A' };
+  if (id === 'fn-mastoid') return { lit: '#D2C06A', shadow: '#7A6A28', highlight: '#F3E7B0' };
   if (FLUID_RAMPS[id]) return FLUID_RAMPS[id];
   return { lit: baseHex, shadow: scale(baseHex, 0.62), highlight: mix(baseHex, '#fff6d8', 0.42) };
 }
@@ -114,6 +120,8 @@ uniform vec3 uCutCenter;
 uniform float uCutRadius;
 uniform float uCutScale;
 uniform float uReveal;
+uniform float uViewClip;
+uniform float uViewRadius;
 uniform vec3 uKey;
 uniform vec3 uFill;
 
@@ -148,6 +156,17 @@ void main() {
   col = mix(col, uHighlight, smoothstep(0.7, 1.0, wrap) * 0.28);
   float rim = pow(1.0 - clamp(abs(dot(n, viewDir)), 0.0, 1.0), 5.5);
   col = mix(col, uInk, rim * 0.75);
+  if (uViewClip > 0.5 && uViewRadius > 1.0) {
+    vec3 axis = uCutCenter - cameraPosition;
+    float axisLen = length(axis);
+    if (axisLen > 1.0) {
+      axis /= axisLen;
+      vec3 rel = vWorld - cameraPosition;
+      float along = dot(rel, axis);
+      float radial = length(rel - axis * along);
+      if (along > 0.5 && along < axisLen + uViewRadius * 0.45 && radial < uViewRadius) discard;
+    }
+  }
   float dist = distance(vWorld, uCutCenter);
   if (uReveal > 0.5) {
     if (uCutRadius < 1.0 || dist > uCutRadius * max(uCutScale, 0.01)) discard;
@@ -191,9 +210,22 @@ uniform vec3 uInk;
 uniform vec3 uCutCenter;
 uniform float uCutRadius;
 uniform float uCutScale;
+uniform float uViewClip;
+uniform float uViewRadius;
 varying vec3 vHullWorld;
 void main() {
   #include <clipping_planes_fragment>
+  if (uViewClip > 0.5 && uViewRadius > 1.0) {
+    vec3 axis = uCutCenter - cameraPosition;
+    float axisLen = length(axis);
+    if (axisLen > 1.0) {
+      axis /= axisLen;
+      vec3 rel = vHullWorld - cameraPosition;
+      float along = dot(rel, axis);
+      float radial = length(rel - axis * along);
+      if (along > 0.5 && along < axisLen + uViewRadius * 0.45 && radial < uViewRadius) discard;
+    }
+  }
   if (uCutScale > 0.0 && uCutRadius > 0.0 && distance(vHullWorld, uCutCenter) < uCutRadius * uCutScale) discard;
   gl_FragColor = vec4(uInk, 1.0);
 }
@@ -223,6 +255,8 @@ export function createAtlasMaterial(options: {
       uCutRadius: options.cut.radius,
       uCutScale: { value: options.cutScale },
       uReveal: { value: options.reveal ? 1 : 0 },
+      uViewClip: { value: 0 },
+      uViewRadius: { value: 0 },
       uKey: { value: new THREE.Vector3(0.45, -0.78, -0.42) },
       uFill: { value: new THREE.Vector3(-0.55, 0.25, 0.55) },
     },
@@ -248,6 +282,8 @@ export function createHullMaterial(clippingPlanes: THREE.Plane[], cut: CutUnifor
       uCutCenter: cut.center,
       uCutRadius: cut.radius,
       uCutScale: { value: 1 },
+      uViewClip: { value: 0 },
+      uViewRadius: { value: 0 },
     },
     side: THREE.BackSide,
     clipping: true,
@@ -283,6 +319,6 @@ export function cutScaleFor(id: string): number {
   if (id === 'skin') return 1;
   if (id === 'skull-layer') return 0.98;
   if (id === 'upper-body' || id === 'auricle') return 0.22;
-  if (id === 'bone') return 0.62;
+  if (id === 'bone') return 0.85;
   return 0;
 }

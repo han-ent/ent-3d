@@ -27,7 +27,42 @@ const SHORT_EN: Record<string, string> = {
   'Middle turn (scala vestibuli)': 'Middle turn',
   'Apical turn (scala vestibuli)': 'Apical turn',
   'Tympanic membrane': 'Eardrum',
+  'Head of malleus': 'Head',
+  'Neck of malleus': 'Neck',
+  'Meatal segment': 'Meatal',
+  'Labyrinthine segment': 'Labyrinthine',
+  'Tympanic segment': 'Tympanic',
+  'Mastoid segment': 'Mastoid',
+  'Geniculate ganglion': 'Geniculate',
 };
+
+/**
+ * Parts that must stay labelled when that structure is selected.
+ * Order is superior to inferior, which is top to bottom with the viewer's up axis.
+ */
+export const FOCUS_PARTS: Record<string, readonly string[]> = {
+  malleus: [
+    'malleus-head',
+    'malleus-neck',
+    'malleus-manubrium',
+    'malleus-lateral-process',
+    'malleus-anterior-process',
+    'umbo',
+  ],
+  'facial-nerve': ['fn-meatal', 'fn-labyrinthine', 'fn-geniculate', 'fn-tympanic', 'fn-second-genu', 'fn-mastoid'],
+};
+
+/** Named along the peel so the canal, drum, and ossicles stay labelled together. */
+export const PEEL_LABELS = ['external-auditory-canal', 'tympanic-membrane', 'malleus', 'incus', 'stapes'] as const;
+
+export function focusPartList(selected: string | null): readonly string[] | null {
+  if (!selected) return null;
+  if (FOCUS_PARTS[selected]) return FOCUS_PARTS[selected];
+  for (const parts of Object.values(FOCUS_PARTS)) {
+    if (parts.includes(selected)) return parts;
+  }
+  return null;
+}
 
 export function displayEnglish(en: string): string {
   const trimmed = en.trim();
@@ -152,6 +187,45 @@ export function placeLabels(
     result.push(chosen);
   }
   return result;
+}
+
+export type ColumnInput = {
+  id: string;
+  anchorX: number;
+  anchorY: number;
+  width: number;
+  height: number;
+};
+
+/**
+ * Stack selected sub-part labels in a column beside the structure.
+ * Sorted by anchor so the top label belongs to the superior part.
+ */
+export function columnPlacements(
+  items: readonly ColumnInput[],
+  width: number,
+  height: number,
+  inset: { top: number; right: number; bottom: number; left: number } = { top: 0, right: 0, bottom: 0, left: 0 },
+): Placement[] {
+  if (!items.length) return [];
+  const meanX = items.reduce((sum, item) => sum + item.anchorX, 0) / items.length;
+  const meanY = items.reduce((sum, item) => sum + item.anchorY, 0) / items.length;
+  const labelW = Math.max(...items.map((item) => item.width));
+  const gap = 8;
+  const totalH = items.reduce((sum, item) => sum + item.height, 0) + gap * (items.length - 1);
+  const placeRight = meanX < width * 0.62;
+  const x = placeRight
+    ? Math.min(width - inset.right - labelW, Math.max(inset.left, meanX + 56))
+    : Math.max(inset.left, Math.min(meanX - 56 - labelW, width - inset.right - labelW));
+  let y = Math.max(inset.top, Math.min(height - inset.bottom - totalH, meanY - totalH / 2));
+  return items
+    .slice()
+    .sort((a, b) => a.anchorY - b.anchorY || a.id.localeCompare(b.id))
+    .map((item) => {
+      const placement: Placement = { id: item.id, mode: 'label', x, y, dimmed: false };
+      y += item.height + gap;
+      return placement;
+    });
 }
 
 export function estimateLabelSize(text: string, twoLines = false): { width: number; height: number } {

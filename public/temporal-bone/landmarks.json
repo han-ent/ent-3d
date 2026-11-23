@@ -70,7 +70,7 @@
       ],
       "method": "computed",
       "review": "미검증",
-      "surgical": false
+      "surgical": true
     },
     {
       "id": "malleus-anterior-process",

@@ -1016,7 +1016,8 @@ function applyStage(distance: number): void {
     const deep = structure.layer === 'inner-ear' || (structure.layer === 'nerve' && structure.id !== 'chorda-tympani');
     const middle = structure.layer === 'ossicles' || structure.layer === 'membrane' || structure.id === 'chorda-tympani';
     if (distance > 170) hidden.push(structure.id);
-    else if (distance > 125 && (deep || middle)) hidden.push(structure.id);
+    else if (distance > 160 && (deep || middle)) hidden.push(structure.id);
+    else if (distance > 125 && deep) hidden.push(structure.id);
   }
   // A selected structure is framed with its neighbours, so the distance
   // stages must not hide the ossicles or the inner ear around it.
