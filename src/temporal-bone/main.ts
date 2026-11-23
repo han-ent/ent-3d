@@ -1002,10 +1002,15 @@ function flyStage(stage: string): void {
   }
 }
 
+let stageBucket = '';
+
 function applyStage(distance: number): void {
   if (!viewer || !manifest) return;
   const next = distance > 160 ? 'body' : distance > 70 ? 'ear' : distance > 28 ? 'bone' : 'inner';
   const radius = distance > 230 ? 0 : Math.max(0, Math.min(52, (200 - distance) * 0.42));
+  const bucket = `${next}:${selected ?? ''}:${radius.toFixed(1)}`;
+  if (bucket === stageBucket) return;
+  stageBucket = bucket;
   document.body.dataset.distance = distance.toFixed(0);
   viewer.setCutaway(radius, 1);
   const key = `${next}:${selected ?? ''}`;

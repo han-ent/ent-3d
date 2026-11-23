@@ -57,7 +57,7 @@ function mix(a: string, b: string, t: number): string {
 /** Atlas colour for one structure. Facial-nerve segments keep their own yellows. */
 export function illustrationRamp(id: string, baseHex: string): Ramp {
   if (id === 'bone' || id === 'skull-layer') {
-    return { lit: '#F6D9A4', shadow: '#8C5A30', highlight: '#FFF3D4' };
+    return { lit: '#F6E2C4', shadow: '#C4895A', highlight: '#FFF8EC' };
   }
   if (id === 'malleus' || id === 'incus' || id === 'stapes') {
     return { lit: '#E8942A', shadow: '#7A3E10', highlight: '#FFD48A' };
@@ -73,12 +73,12 @@ export function illustrationRamp(id: string, baseHex: string): Ramp {
     return { lit: '#E7B2A8', shadow: '#C47E78', highlight: '#F8E0DA' };
   }
   if (id === 'external-auditory-canal') return { lit: '#E4C8BC', shadow: '#C49A8C', highlight: '#F6E6DE' };
-  if (id === 'fn-meatal') return { lit: '#FFE7A3', shadow: '#C4A24A', highlight: '#FFF6D4' };
-  if (id === 'fn-labyrinthine') return { lit: '#F0C21A', shadow: '#8A6A08', highlight: '#FFE992' };
-  if (id === 'fn-geniculate') return { lit: '#F6A21A', shadow: '#A85E08', highlight: '#FFD08A' };
-  if (id === 'fn-tympanic') return { lit: '#FFF05A', shadow: '#C9A000', highlight: '#FFF8B8' };
-  if (id === 'fn-second-genu') return { lit: '#E6B422', shadow: '#8A6408', highlight: '#FFE08A' };
-  if (id === 'fn-mastoid') return { lit: '#D2C06A', shadow: '#7A6A28', highlight: '#F3E7B0' };
+  if (id === 'fn-meatal') return { lit: '#FFF1A8', shadow: '#C4A24A', highlight: '#FFF8DC' };
+  if (id === 'fn-labyrinthine') return { lit: '#E6A20E', shadow: '#8A5A08', highlight: '#FFD56A' };
+  if (id === 'fn-geniculate') return { lit: '#D47812', shadow: '#7A3E08', highlight: '#F0B060' };
+  if (id === 'fn-tympanic') return { lit: '#FFE14A', shadow: '#B48A00', highlight: '#FFF3A8' };
+  if (id === 'fn-second-genu') return { lit: '#C46E10', shadow: '#6A3808', highlight: '#E8A050' };
+  if (id === 'fn-mastoid') return { lit: '#A68428', shadow: '#5C4810', highlight: '#D8C070' };
   if (FLUID_RAMPS[id]) return FLUID_RAMPS[id];
   return { lit: baseHex, shadow: scale(baseHex, 0.62), highlight: mix(baseHex, '#fff6d8', 0.42) };
 }
@@ -122,6 +122,10 @@ uniform float uCutScale;
 uniform float uReveal;
 uniform float uViewClip;
 uniform float uViewRadius;
+uniform vec3 uEndA;
+uniform vec3 uEndB;
+uniform float uEndBand;
+uniform float uRim;
 uniform vec3 uKey;
 uniform vec3 uFill;
 
@@ -134,28 +138,36 @@ float paper(vec3 p) {
 
 void main() {
   #include <clipping_planes_fragment>
-  vec3 n = normalize(vNormal);
-  if (uDetail > 0.0) {
-    vec3 p = vWorld * 0.85;
-    float e = 0.65;
-    float dx = paper(p + vec3(e, 0.0, 0.0)) - paper(p - vec3(e, 0.0, 0.0));
-    float dy = paper(p + vec3(0.0, e, 0.0)) - paper(p - vec3(0.0, e, 0.0));
-    float dz = paper(p + vec3(0.0, 0.0, e)) - paper(p - vec3(0.0, 0.0, e));
-    n = normalize(n + uDetail * vec3(dx, dy, dz));
-  }
+  float nlen = length(vNormal);
+  vec3 n = nlen > 0.05 ? vNormal / nlen : vec3(0.0, -0.2, 0.9);
   if (!gl_FrontFacing) n = -n;
-  vec3 lit = gl_FrontFacing ? uLit : mix(uLit, vec3(0.97, 0.91, 0.80), 0.55);
+  vec3 lit = gl_FrontFacing ? uLit : mix(uLit, vec3(0.97, 0.92, 0.82), 0.45);
   vec3 key = normalize(uKey);
   vec3 viewDir = normalize(cameraPosition - vWorld);
-  float wrap = clamp(dot(n, key) * 0.55 + 0.45, 0.0, 1.0);
-  float shade = smoothstep(0.05, 0.75, wrap);
-  vec3 cool = mix(uShadow, vec3(0.55, 0.62, 0.72), 0.28);
+  float wrap = clamp(dot(n, key) * 0.62 + 0.38, 0.0, 1.0);
+  float shade = smoothstep(0.02, 0.82, wrap);
+  float warmShadow = step(uShadow.b, uShadow.r);
+  vec3 cool = mix(uShadow, vec3(0.40, 0.50, 0.64), mix(0.34, 0.08, warmShadow));
+  vec3 warm = mix(uHighlight, vec3(1.0, 0.94, 0.78), 0.5);
   vec3 col = mix(cool, lit, shade);
-  float facing = clamp(dot(n, viewDir) * 0.65 + 0.35, 0.0, 1.0);
-  col = mix(col, lit, facing * 0.55);
-  col = mix(col, uHighlight, smoothstep(0.7, 1.0, wrap) * 0.28);
-  float rim = pow(1.0 - clamp(abs(dot(n, viewDir)), 0.0, 1.0), 5.5);
-  col = mix(col, uInk, rim * 0.75);
+  col = mix(col, warm, smoothstep(0.42, 0.92, wrap) * 0.55);
+  float facing = clamp(dot(n, viewDir) * 0.5 + 0.5, 0.0, 1.0);
+  col = mix(col, lit, facing * 0.28);
+  float grain = paper(vWorld * 0.18);
+  col *= 0.93 + 0.07 * (0.5 + 0.5 * grain);
+  float rim = pow(1.0 - clamp(abs(dot(n, viewDir)), 0.0, 1.0), 6.0);
+  col = mix(col, uInk, rim * uRim);
+  float luma = dot(col, vec3(0.25, 0.55, 0.2));
+  col = mix(col, lit, smoothstep(0.18, 0.0, luma) * (1.0 - uRim));
+  if (uEndBand > 0.0) {
+    vec3 axis = uEndB - uEndA;
+    float span = length(axis);
+    if (span > 0.5) {
+      float along = dot(vWorld - uEndA, axis / span);
+      float endDist = min(along, span - along);
+      col = mix(uInk, col, smoothstep(0.0, uEndBand, endDist));
+    }
+  }
   if (uViewClip > 0.5 && uViewRadius > 1.0) {
     vec3 axis = uCutCenter - cameraPosition;
     float axisLen = length(axis);
@@ -257,6 +269,10 @@ export function createAtlasMaterial(options: {
       uReveal: { value: options.reveal ? 1 : 0 },
       uViewClip: { value: 0 },
       uViewRadius: { value: 0 },
+      uEndA: { value: new THREE.Vector3() },
+      uEndB: { value: new THREE.Vector3() },
+      uEndBand: { value: 0 },
+      uRim: { value: 0.15 },
       uKey: { value: new THREE.Vector3(0.45, -0.78, -0.42) },
       uFill: { value: new THREE.Vector3(-0.55, 0.25, 0.55) },
     },
@@ -309,8 +325,7 @@ export function paintAtlas(material: THREE.ShaderMaterial, ramp: Ramp, opacity: 
   material.polygonOffsetUnits = 1;
 }
 
-export function atlasDetail(id: string): number {
-  if (id === 'bone' || id === 'skull-layer') return 0.04;
+export function atlasDetail(_id: string): number {
   return 0;
 }
 

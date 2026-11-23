@@ -190,10 +190,13 @@ for (const face of bodyFaces) {
 
 let flattened = 0;
 for (const point of source) {
-  const pinna = point[1] > 6.05 && point[1] < 7.05 && point[2] < 0.55 && point[2] > -0.4 && Math.abs(point[0]) > 0.9;
+  // Only the pinna, which sticks out beside the face. The occiput is further
+  // back (negative z) and must stay on the head surface or it cracks.
+  const pinna = point[1] > 6.2 && point[1] < 6.92 && point[2] > 0.02 && point[2] < 0.48 && Math.abs(point[0]) > 1.02;
   if (!pinna) continue;
   const sign = Math.sign(point[0]) || 1;
-  point[0] = sign * 0.9;
+  const excess = Math.abs(point[0]) - 1.02;
+  point[0] = sign * (1.02 + excess * 0.15);
   flattened += 1;
 }
 console.log('ear verts flattened onto the head', flattened, 'body verts', source.length, 'tris', tris.length);
@@ -239,7 +242,7 @@ const headCenter = [(skullVertex[0] + skullChin[0]) / 2, (skullVertex[1] + skull
 const shell = 1.14;
 let positions = source.map((point) => {
   const placed = place(point);
-  if (point[1] < 6.15) return placed;
+  // One shell for the whole crop. A head-only inflate left a kink across the occiput.
   return [
     headCenter[0] + (placed[0] - headCenter[0]) * shell + 14,
     headCenter[1] + (placed[1] - headCenter[1]) * shell,
@@ -261,6 +264,85 @@ for (const eye of [leftEye, rightEye]) {
   for (const face of ball.faces) tris.push(face.map((index) => base + index));
 }
 console.log('eyeballs', eyeRadiusMm.toFixed(1), 'mm');
+
+// Pull posterior boundary vertices together. The MakeHuman midline and the
+// old ear flatten left a crack on the occiput; the face and mouth stay open.
+{
+  const edgeCount = new Map();
+  const edgeKey = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+  for (const face of tris) {
+    for (const pair of [
+      [face[0], face[1]],
+      [face[1], face[2]],
+      [face[2], face[0]],
+    ]) {
+      const key = edgeKey(pair[0], pair[1]);
+      edgeCount.set(key, (edgeCount.get(key) ?? 0) + 1);
+    }
+  }
+  const boundary = new Set();
+  for (const [key, count] of edgeCount) {
+    if (count !== 1) continue;
+    for (const id of key.split('|')) boundary.add(Number(id));
+  }
+  const ids = [...boundary].filter((id) => positions[id][0] < headCenter[0] - 15);
+  const parent = ids.map((_, index) => index);
+  const find = (index) => {
+    let cursor = index;
+    while (parent[cursor] !== cursor) cursor = parent[cursor];
+    return cursor;
+  };
+  for (let i = 0; i < ids.length; i += 1) {
+    const p = positions[ids[i]];
+    for (let j = i + 1; j < ids.length; j += 1) {
+      const q = positions[ids[j]];
+      if (Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 1.8) parent[find(j)] = find(i);
+    }
+  }
+  const groups = new Map();
+  ids.forEach((id, index) => {
+    const root = find(index);
+    const list = groups.get(root) ?? [];
+    list.push(id);
+    groups.set(root, list);
+  });
+  let closed = 0;
+  for (const list of groups.values()) {
+    if (list.length < 2) continue;
+    const mean = [0, 0, 0];
+    for (const id of list) {
+      mean[0] += positions[id][0];
+      mean[1] += positions[id][1];
+      mean[2] += positions[id][2];
+    }
+    mean[0] /= list.length;
+    mean[1] /= list.length;
+    mean[2] /= list.length;
+    for (const id of list) positions[id] = mean.slice();
+    closed += list.length;
+  }
+  console.log('occipital seam verts closed', closed);
+}
+
+let flipped = 0;
+for (const face of tris) {
+  const a = positions[face[0]];
+  const b = positions[face[1]];
+  const c = positions[face[2]];
+  const nx = (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]);
+  const ny = (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]);
+  const nz = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const cx = (a[0] + b[0] + c[0]) / 3 - headCenter[0];
+  const cy = (a[1] + b[1] + c[1]) / 3 - headCenter[1];
+  const cz = (a[2] + b[2] + c[2]) / 3 - headCenter[2];
+  if (nx * cx + ny * cy + nz * cz < 0) {
+    const swap = face[1];
+    face[1] = face[2];
+    face[2] = swap;
+    flipped += 1;
+  }
+}
+console.log('faces flipped outward', flipped);
 
 const weld = new Map();
 const compact = [];
