@@ -5,16 +5,18 @@
   "sourceFile": "makehuman/data/3dobjs/base.obj",
   "sourceUrl": "https://github.com/makehumancommunity/makehuman/blob/master/makehuman/data/3dobjs/base.obj",
   "meshName": "hm08",
+  "group": "body",
+  "dropped": "helper and joint groups (hair, eyebrows, eyelashes, eyes, teeth, tongue, tights, skirt, joint cubes)",
   "copyrightHolders": [
     "Data Collection AB",
     "Joel Palmius",
     "Jonas Hauquier"
   ],
   "released": "2020-09",
-  "note": "The base.obj header says the asset was explicitly released as CC0 in September 2020. Cropped to the head, neck, and shoulders, fitted by scale and translation in the ZETA millimetre frame, with a local ear warp onto the right auricle and a small push off the skull. Unverified.",
-  "triangles": 11738,
-  "vertices": 6301,
-  "fitScale": 0.9030132436987439,
-  "earToHelixMm": 16.84,
+  "note": "Only the body group is kept. The base-mesh ears are flattened so the Z-Anatomy auricle is the ear. Orbits are closed with spheres. Vertices along split edges are welded so the midline normal is smooth. Unverified.",
+  "triangles": 9598,
+  "vertices": 6398,
+  "fitScale": 0.9025858990710657,
+  "earToHelixMm": 0,
   "review": "미검증"
 }

@@ -57,17 +57,17 @@ function mix(a: string, b: string, t: number): string {
 /** Atlas colour for one structure. Facial-nerve segments keep their own yellows. */
 export function illustrationRamp(id: string, baseHex: string): Ramp {
   if (id === 'bone' || id === 'skull-layer') {
-    return { lit: '#F4E4C8', shadow: '#C4A06A', highlight: '#FFF6E8' };
+    return { lit: '#F6D9A4', shadow: '#8C5A30', highlight: '#FFF3D4' };
   }
   if (id === 'malleus' || id === 'incus' || id === 'stapes') {
-    return { lit: '#E2A24C', shadow: '#8C5A22', highlight: '#F8D7A4' };
+    return { lit: '#E8942A', shadow: '#7A3E10', highlight: '#FFD48A' };
   }
-  if (id === 'carotid-artery') return { lit: '#D6453D', shadow: '#8E2424', highlight: '#F4B2A8' };
-  if (id === 'sinus-dura') return { lit: '#3A6CB5', shadow: '#1C3E78', highlight: '#A9C6EA' };
+  if (id === 'carotid-artery') return { lit: '#E23B32', shadow: '#7A1418', highlight: '#FFB0A4' };
+  if (id === 'sinus-dura') return { lit: '#2F6FD6', shadow: '#16356E', highlight: '#B7D4FF' };
   if (id === 'upper-body' || id === 'auricle') {
-    return { lit: '#C5D0D4', shadow: '#7E949E', highlight: '#EEF3F5' };
+    return { lit: '#B7C9D4', shadow: '#5E7C8C', highlight: '#E7F1F6' };
   }
-  if (id === 'skin') return { lit: '#E8B89A', shadow: '#C48468', highlight: '#F8DCC8' };
+  if (id === 'skin') return { lit: '#E7A888', shadow: '#A85A48', highlight: '#FFD2BC' };
   if (id === 'muscle') return { lit: '#8E4034', shadow: '#5C241C', highlight: '#C47868' };
   if (id === 'tympanic-membrane' || id === 'tm-pars-tensa' || id === 'tm-pars-flaccida') {
     return { lit: '#E7B2A8', shadow: '#C47E78', highlight: '#F8E0DA' };
@@ -135,27 +135,23 @@ void main() {
     n = normalize(n + uDetail * vec3(dx, dy, dz));
   }
   vec3 key = normalize(uKey);
-  float wrap = clamp(dot(n, key) * 0.55 + 0.5, 0.0, 1.0);
-  float shade = smoothstep(0.02, 0.78, wrap);
-  vec3 col = mix(uShadow, uLit, 0.42 + 0.58 * shade);
-  col = mix(col, uHighlight, smoothstep(0.58, 1.0, wrap) * 0.62);
-  float fill = clamp(dot(n, normalize(uFill)) * 0.5 + 0.5, 0.0, 1.0);
-  col = mix(col, mix(uShadow, uLit, 0.5), fill * 0.16);
-  float blot = paper(vWorld * 0.04);
-  col *= mix(0.97, 1.035, blot * 0.5 + 0.5);
-  float crease = length(fwidth(normalize(vNormal)));
-  col *= clamp(1.0 - crease * 0.35, 0.84, 1.0);
+  float wrap = clamp(dot(n, key) * 0.72 + 0.28, 0.0, 1.0);
+  float shade = smoothstep(0.08, 0.62, wrap);
+  vec3 cool = mix(uShadow, vec3(0.42, 0.5, 0.62), 0.38);
+  vec3 col = mix(cool, uLit, shade);
+  col = mix(col, uHighlight, smoothstep(0.62, 1.0, wrap) * 0.45);
+  float blot = paper(vWorld * 0.025);
+  col *= mix(0.99, 1.012, blot * 0.5 + 0.5);
   vec3 viewDir = normalize(cameraPosition - vWorld);
-  float rim = pow(1.0 - clamp(abs(dot(normalize(vNormal), viewDir)), 0.0, 1.0), 2.6);
-  col = mix(col, uInk, rim * 0.38);
-  float alpha = uOpacity;
+  float rim = pow(1.0 - clamp(abs(dot(normalize(vNormal), viewDir)), 0.0, 1.0), 1.85);
+  col = mix(col, uInk, smoothstep(0.28, 0.92, rim));
   if (uCutScale > 0.0 && uCutRadius > 0.0) {
     float dist = distance(vWorld, uCutCenter);
     float limit = uCutRadius * uCutScale;
     if (dist < limit) discard;
-    alpha *= smoothstep(limit, limit + 8.0, dist);
+    col = mix(col, uInk, smoothstep(limit + 2.2, limit, dist));
   }
-  gl_FragColor = vec4(col, alpha);
+  gl_FragColor = vec4(col, uOpacity);
 }
 `;
 
@@ -232,7 +228,7 @@ export function createHullMaterial(clippingPlanes: THREE.Plane[]): THREE.ShaderM
     vertexShader: HULL_VERTEX,
     fragmentShader: HULL_FRAGMENT,
     uniforms: {
-      uPixels: { value: 1.7 },
+      uPixels: { value: 2.4 },
       uResolution: { value: new THREE.Vector2(1, 1) },
       uInk: { value: new THREE.Color(ATLAS_INK) },
     },
@@ -261,8 +257,15 @@ export function paintAtlas(material: THREE.ShaderMaterial, ramp: Ramp, opacity: 
 }
 
 export function atlasDetail(id: string): number {
-  if (id === 'bone' || id === 'skull-layer') return 0.16;
-  if (id === 'skin') return 0.08;
-  if (id === 'malleus' || id === 'incus' || id === 'stapes') return 0.12;
-  return 0.05;
+  if (id === 'bone' || id === 'skull-layer') return 0.04;
+  return 0;
+}
+
+/** How wide the ear-centred window is, relative to the skin opening. 0 leaves the mesh whole. */
+export function cutScaleFor(id: string): number {
+  if (id === 'skin') return 1;
+  if (id === 'skull-layer') return 0.72;
+  if (id === 'upper-body' || id === 'auricle') return 0.28;
+  if (id === 'bone') return 0.46;
+  return 0;
 }

@@ -1005,14 +1005,9 @@ function flyStage(stage: string): void {
 function applyStage(distance: number): void {
   if (!viewer || !manifest) return;
   const next = distance > 160 ? 'body' : distance > 70 ? 'ear' : distance > 28 ? 'bone' : 'inner';
-  let radius = Math.max(0, Math.min(72, (150 - distance) * 0.7));
-  let skinOpacity = distance > 120 ? 1 : distance < 22 ? 0 : (distance - 22) / 98;
-  if (selected && distance < 160) {
-    radius = Math.max(radius, 30);
-    skinOpacity = Math.min(skinOpacity, 0.2);
-  }
+  const radius = distance > 230 ? 0 : Math.max(0, Math.min(52, (200 - distance) * 0.42));
   document.body.dataset.distance = distance.toFixed(0);
-  viewer.setCutaway(radius, skinOpacity);
+  viewer.setCutaway(radius, 1);
   const key = `${next}:${selected ?? ''}`;
   if (key === stageName) return;
   stageName = key;
@@ -1290,6 +1285,10 @@ async function boot(): Promise<void> {
       },
       distance: () => viewer?.cameraDistance() ?? 0,
       eac: () => eacMm,
+      labels(mode: 'basic' | 'surgical' | 'all') {
+        labelMode = mode;
+        viewer?.setLabelMode(mode);
+      },
     };
     (window as unknown as { __ent?: typeof hook }).__ent = hook;
   }

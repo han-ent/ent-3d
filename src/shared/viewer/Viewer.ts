@@ -17,6 +17,7 @@ import {
   atlasDetail,
   createAtlasMaterial,
   createHullMaterial,
+  cutScaleFor,
   illustrationRamp,
   outlinesAllowed,
   paintAtlas,
@@ -508,7 +509,7 @@ export class EntViewer {
     this.linked.clear();
     this.isolateId = null;
     this.userHidden = new Set(['external-auditory-canal']);
-    this.boneTransparent = true;
+    this.boneTransparent = false;
     this.labelsHidden = this.mode === 'quiz';
     this.setMarker(null, '');
     this.refreshLook();
@@ -835,9 +836,10 @@ export class EntViewer {
       selectedId: inSelection ? record.id : this.selected,
       dimOthers: this.dimOthers && !inSelection && !close,
       ghost: this.presetVis?.ghosted.has(record.id) === true || defaultGhost,
-      boneTransparent: this.boneTransparent || close,
+      boneTransparent: this.boneTransparent,
     });
-    if (close && envelope) opacity = Math.min(opacity, 0.04);
+    if (record.id === 'bone' && !this.boneTransparent) opacity = 1;
+    else if (close && envelope) opacity = Math.min(opacity, 0.04);
     else if (close && !inSelection) opacity = Math.max(opacity, 0.62);
     const atlas = this.style === 'atlas';
     const ramp = dimmed
@@ -1103,7 +1105,7 @@ export class EntViewer {
       this.pickables.push(mesh);
       this.world.add(mesh);
       const triangles = mesh.geometry.index ? mesh.geometry.index.count / 3 : (mesh.geometry.getAttribute('position')?.count ?? 0) / 3;
-      if (kind !== 'skin' && this.hullsOn && triangles > 0 && triangles < 40000) {
+      if (this.hullsOn && triangles > 0 && triangles < 40000) {
         const hull = new THREE.Mesh(mesh.geometry, this.hullMaterial);
         hull.userData.kind = 'hull';
         hull.renderOrder = 4;
@@ -1122,7 +1124,7 @@ export class EntViewer {
       if (skin) adopt(skin, 'skin');
       const hotspot = new THREE.Mesh(
         new THREE.SphereGeometry(14, 16, 12),
-        new THREE.MeshBasicMaterial({ color: '#8C2F1B', transparent: true, opacity: 0.01, depthWrite: false }),
+        new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, opacity: 0 }),
       );
       hotspot.position.set(eacMm[0], eacMm[1], eacMm[2]);
       hotspot.userData.structureId = 'ear-hotspot';
@@ -1134,27 +1136,14 @@ export class EntViewer {
     });
   }
 
-  setCutaway(radiusMm: number, skinOpacity: number): void {
+  setCutaway(radiusMm: number, _skinOpacity = 1): void {
     this.lastCutRadius = radiusMm;
-    this.lastSkinOpacity = skinOpacity;
+    this.lastSkinOpacity = 1;
     this.cutRadius.value = radiusMm;
-    if (this.skinMesh) {
-      const shown = Math.min(skinOpacity, 0.97);
-      this.paintEntry(this.skinMesh, shown);
-      this.skinMesh.visible = shown > 0.02;
-      if (this.upperBody) {
-        const auricleOpacity = skinOpacity > 0.78 ? (1 - skinOpacity) * 3.4 : skinOpacity < 0.16 ? 0 : 0.92;
-        this.paintEntry(this.upperBody, auricleOpacity);
-        this.upperBody.visible = auricleOpacity > 0.02;
-      }
-    } else if (this.upperBody) {
-      this.paintEntry(this.upperBody, skinOpacity);
-      this.upperBody.visible = skinOpacity > 0.02;
-    }
-    if (this.skullLayer) {
-      const skullOpacity = skinOpacity < 0.55 ? Math.min(0.16, skinOpacity + 0.05) : 1;
-      this.paintEntry(this.skullLayer, skullOpacity);
-      this.skullLayer.visible = skullOpacity > 0.02;
+    for (const mesh of [this.skinMesh, this.upperBody, this.skullLayer]) {
+      if (!mesh) continue;
+      this.paintEntry(mesh, 1);
+      mesh.visible = true;
     }
     if (this.earHotspot) this.earHotspot.visible = radiusMm < 8;
   }
@@ -1227,7 +1216,7 @@ export class EntViewer {
         ramp: illustrationRamp(id, color),
         opacity,
         cut: { center: { value: this.cutCenter }, radius: this.cutRadius },
-        cutScale: 0,
+        cutScale: cutScaleFor(id),
         clippingPlanes: this.clipping,
         side,
         detail: atlasDetail(id),
@@ -1248,7 +1237,7 @@ export class EntViewer {
     if (this.style === 'atlas') {
       return createAtlasMaterial({
         ramp: illustrationRamp(id, color),
-        opacity: id === 'skin' ? 0.97 : 1,
+        opacity: 1,
         cut: { center: { value: this.cutCenter }, radius: this.cutRadius },
         cutScale,
         clippingPlanes: this.clipping,
@@ -1260,7 +1249,7 @@ export class EntViewer {
       color,
       roughness: id === 'skin' ? 0.62 : 0.58,
       metalness: 0.02,
-      transparent: true,
+      transparent: false,
       side: THREE.FrontSide,
     });
     const radius = this.cutRadius;
@@ -1279,7 +1268,6 @@ export class EntViewer {
             float dist = distance(vEntWorld, uCutCenter);
             float limit = uCutRadius * uCutScale;
             if (dist < limit) discard;
-            gl_FragColor.a *= smoothstep(limit, limit + 8.0, dist);
           }
           #include <dithering_fragment>`,
         );
@@ -1372,7 +1360,7 @@ export class EntViewer {
     const distance = this.cameraDistance();
     const inputs = [];
     for (const label of this.studyLabels) {
-      const tiers = distance > 60 ? ['region', 'surface'] : distance > 20 ? ['structure'] : ['structure', 'subpart'];
+      const tiers = distance > 140 ? ['region', 'surface'] : ['region', 'surface', 'structure', 'subpart'];
       if (!tiers.includes(label.tier)) continue;
       if (this.labelMode !== 'all' && !label.modes.includes(this.labelMode)) continue;
       if (label.tier === 'subpart' && label.parentId !== this.selected && label.id !== this.selected) continue;
