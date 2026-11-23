@@ -18,9 +18,9 @@
         }
       ],
       "xyz_mm": [
-        37.043,
-        38.975,
-        55.188
+        31.648,
+        25.884,
+        65.164
       ],
       "method": "superior vertex",
       "review": "미검증",
@@ -42,9 +42,9 @@
         }
       ],
       "xyz_mm": [
-        37.019,
-        40.705,
-        54.475
+        31.624,
+        27.615,
+        64.451
       ],
       "method": "between head and lateral process",
       "review": "미검증",
@@ -66,9 +66,9 @@
         }
       ],
       "xyz_mm": [
-        38.635,
-        45.003,
-        56.268
+        33.24,
+        31.913,
+        66.244
       ],
       "method": "mid-handle vertex",
       "review": "미검증",
@@ -90,9 +90,9 @@
         }
       ],
       "xyz_mm": [
-        38.203,
-        42.899,
-        54.757
+        32.808,
+        29.808,
+        64.733
       ],
       "method": "superior contact with the membrane",
       "review": "미검증",
@@ -114,9 +114,9 @@
         }
       ],
       "xyz_mm": [
-        38.689,
-        39.752,
-        54.667
+        33.294,
+        26.661,
+        64.643
       ],
       "method": "most anterior vertex",
       "review": "미검증",
@@ -138,9 +138,9 @@
         }
       ],
       "xyz_mm": [
-        38.449,
-        47.082,
-        57.75
+        33.053,
+        33.992,
+        67.727
       ],
       "method": "inferior tip",
       "review": "미검증",
@@ -162,9 +162,9 @@
         }
       ],
       "xyz_mm": [
-        34.784,
-        40.327,
-        54.809
+        29.389,
+        27.236,
+        64.786
       ],
       "method": "superior-half centroid",
       "review": "미검증",
@@ -186,9 +186,9 @@
         }
       ],
       "xyz_mm": [
-        32.932,
-        41.847,
-        53.309
+        27.537,
+        28.756,
+        63.285
       ],
       "method": "most lateral incus vertex",
       "review": "미검증",
@@ -210,9 +210,9 @@
         }
       ],
       "xyz_mm": [
-        35.434,
-        42.732,
-        56.256
+        30.039,
+        29.642,
+        66.232
       ],
       "method": "mid long process",
       "review": "미검증",
@@ -234,9 +234,9 @@
         }
       ],
       "xyz_mm": [
-        35.574,
-        44.468,
-        57.274
+        30.179,
+        31.377,
+        67.251
       ],
       "method": "vertex nearest the stapes",
       "review": "미검증",
@@ -258,9 +258,9 @@
         }
       ],
       "xyz_mm": [
-        35.603,
-        44.932,
-        57.527
+        30.208,
+        31.841,
+        67.504
       ],
       "method": "vertex nearest the lenticular process",
       "review": "미검증",
@@ -282,9 +282,9 @@
         }
       ],
       "xyz_mm": [
-        35.938,
-        44.349,
-        59.527
+        30.543,
+        31.258,
+        69.503
       ],
       "method": "anterior crus vertex",
       "review": "미검증",
@@ -306,9 +306,9 @@
         }
       ],
       "xyz_mm": [
-        33.335,
-        44.089,
-        60.874
+        27.94,
+        30.998,
+        70.85
       ],
       "method": "posterior crus vertex",
       "review": "미검증",
@@ -330,9 +330,9 @@
         }
       ],
       "xyz_mm": [
-        35.41,
-        43.682,
-        60.953
+        30.015,
+        30.591,
+        70.929
       ],
       "method": "medial cluster centroid",
       "review": "미검증",
@@ -354,9 +354,9 @@
         }
       ],
       "xyz_mm": [
-        35.762,
-        43.593,
-        61.666
+        30.367,
+        30.503,
+        71.642
       ],
       "method": "medial to the footplate centroid",
       "review": "미검증",
@@ -378,9 +378,9 @@
         }
       ],
       "xyz_mm": [
-        34.801,
-        45.912,
-        60.807
+        29.406,
+        32.821,
+        70.783
       ],
       "method": "most lateral scala tympani vertex",
       "review": "미검증",
@@ -402,9 +402,9 @@
         }
       ],
       "xyz_mm": [
-        35.779,
-        46.561,
-        60.593
+        30.384,
+        33.47,
+        70.569
       ],
       "method": "lateral basal-turn vertex, off the round window",
       "review": "미검증",
@@ -426,9 +426,9 @@
         }
       ],
       "xyz_mm": [
-        37.492,
-        44.671,
-        64.387
+        32.097,
+        31.58,
+        74.364
       ],
       "method": "centroid of the first turn",
       "review": "미검증",
@@ -450,9 +450,9 @@
         }
       ],
       "xyz_mm": [
-        38.159,
-        44.875,
-        64.441
+        32.764,
+        31.784,
+        74.417
       ],
       "method": "centroid of the second turn",
       "review": "미검증",
@@ -474,9 +474,9 @@
         }
       ],
       "xyz_mm": [
-        38.699,
-        45.075,
-        64.083
+        33.304,
+        31.985,
+        74.059
       ],
       "method": "centroid of the apical angle",
       "review": "미검증",
@@ -488,7 +488,7 @@
       "parent": "fn-geniculate",
       "en": "Geniculate ganglion",
       "ko": "슬신경절",
-      "anatomy": "First genu, where the labyrinthine segment turns into the tympanic segment.",
+      "anatomy": "First genu at the anterior turn, where the labyrinthine segment turns into the tympanic segment.",
       "clinical": "The greater petrosal nerve leaves the ganglion here.",
       "sources": [
         {
@@ -498,14 +498,38 @@
         }
       ],
       "xyz_mm": [
-        38.753,
-        40.462,
-        62.089
+        34.54,
+        26.857,
+        73.858
       ],
-      "method": "centre of the first genu",
+      "method": "anterior tip of the facial-nerve surface",
       "review": "미검증",
       "confidence": "placed",
       "surgical": true
+    },
+    {
+      "id": "meatal-segment",
+      "parent": "cochleovestibular-nerve",
+      "en": "Meatal segment",
+      "ko": "안면신경 내이도부",
+      "anatomy": "The facial nerve in the internal auditory canal. It travels in the cochleovestibular bundle; the separate facial-nerve surface begins at the fundus.",
+      "clinical": "Bill's bar stands between the facial nerve and the superior vestibular nerve.",
+      "sources": [
+        {
+          "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 175 Surgical Anatomy of the Lateral Skull Base",
+          "page": "p. 9",
+          "verified": false
+        }
+      ],
+      "xyz_mm": [
+        31.774,
+        26.444,
+        73.652
+      ],
+      "method": "contact of the facial nerve with the cochleovestibular bundle",
+      "review": "미검증",
+      "confidence": "placed",
+      "surgical": false
     },
     {
       "id": "second-genu",
@@ -522,9 +546,9 @@
         }
       ],
       "xyz_mm": [
-        30.445,
-        46.414,
-        55.834
+        25.05,
+        33.324,
+        65.81
       ],
       "method": "sharpest inferior bend",
       "review": "미검증",
@@ -546,9 +570,9 @@
         }
       ],
       "xyz_mm": [
-        37.225,
-        42.372,
-        62.662
+        33.279,
+        27.954,
+        74.841
       ],
       "method": "bone posterior and inferior to the geniculate",
       "review": "미검증",
@@ -570,9 +594,9 @@
         }
       ],
       "xyz_mm": [
-        32.858,
-        45.197,
-        56.408
+        27.463,
+        32.107,
+        66.384
       ],
       "method": "bone anteromedial to the second genu",
       "review": "미검증",
@@ -594,9 +618,9 @@
         }
       ],
       "xyz_mm": [
-        34.348,
-        45.801,
-        62.247
+        28.953,
+        32.711,
+        72.223
       ],
       "method": "medial and posterior to the round window",
       "review": "미검증",
@@ -618,9 +642,9 @@
         }
       ],
       "xyz_mm": [
-        33.286,
-        53.745,
-        53.523
+        27.891,
+        40.655,
+        63.5
       ],
       "method": "between mastoid nerve and chorda",
       "review": "미검증",
@@ -642,9 +666,9 @@
         }
       ],
       "xyz_mm": [
-        34.44,
-        44.963,
-        60.501
+        29.045,
+        31.872,
+        70.478
       ],
       "method": "between footplate and round window",
       "review": "미검증",
@@ -666,9 +690,9 @@
         }
       ],
       "xyz_mm": [
-        34.938,
-        47.258,
-        60.974
+        29.543,
+        34.167,
+        70.95
       ],
       "method": "inferior to the round window",
       "review": "미검증",
@@ -690,9 +714,9 @@
         }
       ],
       "xyz_mm": [
-        37.391,
-        41.857,
-        54.17
+        31.996,
+        28.766,
+        64.147
       ],
       "method": "lateral to the malleus neck",
       "review": "미검증",
@@ -714,9 +738,9 @@
         }
       ],
       "xyz_mm": [
-        29.063,
-        46.731,
-        40.129
+        23.668,
+        33.641,
+        50.106
       ],
       "method": "bone just posterosuperior to the porus",
       "review": "미검증",
@@ -738,9 +762,9 @@
         }
       ],
       "xyz_mm": [
-        24.946,
-        45.045,
-        42.136
+        19.551,
+        31.955,
+        52.113
       ],
       "method": "bone posterosuperior to Henle",
       "review": "미검증",
@@ -762,9 +786,9 @@
         }
       ],
       "xyz_mm": [
-        30.486,
-        44.712,
-        48.358
+        25.091,
+        31.621,
+        58.334
       ],
       "method": "medial to Henle",
       "review": "미검증",
@@ -786,9 +810,9 @@
         }
       ],
       "xyz_mm": [
-        35.521,
-        34.691,
-        55.435
+        30.126,
+        21.6,
+        65.411
       ],
       "method": "superior bone near the middle ear",
       "review": "미검증",
@@ -800,7 +824,7 @@
       "parent": "sinus-dura",
       "en": "Sinodural angle",
       "ko": "정맥동경막각",
-      "anatomy": "Corner where the superior end of the sigmoid sinus meets the tegmen.",
+      "anatomy": "Corner where the sigmoid sinus plate meets the middle-fossa plate, at the level of the tegmen and posterior to the antrum.",
       "clinical": "Posterior-superior limit of a cortical mastoidectomy.",
       "sources": [
         {
@@ -810,11 +834,11 @@
         }
       ],
       "xyz_mm": [
-        -1.122,
-        24.899,
-        49.74
+        19.278,
+        21.17,
+        65.398
       ],
-      "method": "superior end of the sigmoid sinus",
+      "method": "sigmoid at tegmen level, posterior to the antrum",
       "review": "미검증",
       "confidence": "미확인",
       "surgical": true
@@ -834,9 +858,9 @@
         }
       ],
       "xyz_mm": [
-        32.42,
-        76.306,
-        48.983
+        27.025,
+        63.215,
+        58.959
       ],
       "method": "medial to the mastoid tip",
       "review": "미검증",
@@ -858,9 +882,9 @@
         }
       ],
       "xyz_mm": [
-        30.061,
-        82.471,
-        44.873
+        24.666,
+        69.38,
+        54.85
       ],
       "method": "most inferior posterolateral vertex",
       "review": "미검증",
@@ -882,9 +906,9 @@
         }
       ],
       "xyz_mm": [
-        24.931,
-        36.833,
-        41.24
+        19.536,
+        23.742,
+        51.216
       ],
       "method": "estimated on the lateral surface",
       "review": "미검증",
@@ -906,9 +930,9 @@
         }
       ],
       "xyz_mm": [
-        20.428,
-        62.94,
-        60.631
+        15.033,
+        49.85,
+        70.607
       ],
       "method": "posterior point on the sigmoid sinus",
       "review": "미검증",
@@ -930,9 +954,9 @@
         }
       ],
       "xyz_mm": [
-        43.422,
-        57.296,
-        71.666
+        38.027,
+        44.205,
+        81.642
       ],
       "method": "bone near the carotid genu",
       "review": "미검증",
@@ -944,8 +968,8 @@
       "parent": "external-auditory-canal",
       "en": "EAC porus",
       "ko": "외이도 입구",
-      "anatomy": "Lateral rim of the bony external canal, not the canal centroid.",
-      "clinical": "Registration anchor for the auricle.",
+      "anatomy": "Lateral rim of the bony external canal, just deep to the concha.",
+      "clinical": "The bony opening sits behind the cavum conchae.",
       "sources": [
         {
           "citation": "Cummings Otolaryngology–Head and Neck Surgery, 7th ed., Ch. 126 Anatomy of the Temporal Bone, External Ear, and Middle Ear",
@@ -954,9 +978,9 @@
         }
       ],
       "xyz_mm": [
-        33.01,
-        46.847,
-        39.386
+        27.615,
+        33.757,
+        49.362
       ],
       "method": "centroid of the lateral 8% of canal vertices",
       "review": "미검증",
@@ -978,9 +1002,9 @@
         }
       ],
       "xyz_mm": [
-        37.63,
-        42.905,
-        80.138
+        32.235,
+        29.814,
+        90.114
       ],
       "method": "medial end of the canal",
       "review": "미검증",
@@ -1002,9 +1026,9 @@
         }
       ],
       "xyz_mm": [
-        38.785,
-        43.252,
-        38.749
+        33.39,
+        30.161,
+        48.725
       ],
       "method": "bone anterior to the porus",
       "review": "미검증",
@@ -1026,9 +1050,9 @@
         }
       ],
       "xyz_mm": [
-        35.994,
-        63.152,
-        56.11
+        30.599,
+        50.062,
+        66.087
       ],
       "method": "bone just inferior to the mastoid nerve",
       "review": "미검증",
@@ -1050,9 +1074,9 @@
         }
       ],
       "xyz_mm": [
-        41.352,
-        67.332,
-        56.411
+        35.957,
+        54.241,
+        66.387
       ],
       "method": "a few millimetres inferior to the stylomastoid foramen",
       "review": "미검증",
@@ -1074,9 +1098,9 @@
         }
       ],
       "xyz_mm": [
-        34.555,
-        44.047,
-        61.847
+        29.16,
+        30.956,
+        71.824
       ],
       "method": "centre of the vestibule",
       "review": "미검증",
@@ -1098,9 +1122,9 @@
         }
       ],
       "xyz_mm": [
-        29.762,
-        42.422,
-        55.978
+        24.367,
+        29.331,
+        65.955
       ],
       "method": "most lateral canal vertex",
       "review": "미검증",
@@ -1122,9 +1146,9 @@
         }
       ],
       "xyz_mm": [
-        30.323,
-        35.349,
-        61.483
+        24.928,
+        22.259,
+        71.46
       ],
       "method": "most superior canal vertex",
       "review": "미검증",
@@ -1146,9 +1170,9 @@
         }
       ],
       "xyz_mm": [
-        31.002,
-        47.493,
-        61.632
+        25.607,
+        34.403,
+        71.609
       ],
       "method": "most inferior canal vertex",
       "review": "미검증",
@@ -1170,9 +1194,9 @@
         }
       ],
       "xyz_mm": [
-        29.548,
-        42.34,
-        63.673
+        24.153,
+        29.249,
+        73.649
       ],
       "method": "centre of the common crus",
       "review": "미검증",
@@ -1194,9 +1218,9 @@
         }
       ],
       "xyz_mm": [
-        34.304,
-        42.348,
-        60.038
+        28.909,
+        29.257,
+        70.014
       ],
       "method": "canal end nearest the vestibule",
       "review": "미검증",
@@ -1218,9 +1242,9 @@
         }
       ],
       "xyz_mm": [
-        35.097,
-        40.984,
-        61.114
+        29.702,
+        27.894,
+        71.09
       ],
       "method": "canal end nearest the vestibule",
       "review": "미검증",
@@ -1242,9 +1266,9 @@
         }
       ],
       "xyz_mm": [
-        32.999,
-        45.401,
-        62.723
+        27.604,
+        32.31,
+        72.7
       ],
       "method": "canal end nearest the vestibule",
       "review": "미검증",
@@ -1266,9 +1290,9 @@
         }
       ],
       "xyz_mm": [
-        38.072,
-        43.406,
-        53.507
+        32.676,
+        30.315,
+        63.483
       ],
       "method": "superior membrane centroid",
       "review": "미검증",
@@ -1290,9 +1314,9 @@
         }
       ],
       "xyz_mm": [
-        46.502,
-        52.493,
-        69.546
+        41.107,
+        39.403,
+        79.523
       ],
       "method": "centre of the petrous carotid",
       "review": "미검증",
@@ -1314,9 +1338,9 @@
         }
       ],
       "xyz_mm": [
-        28.963,
-        32.514,
-        60.668
+        23.568,
+        19.423,
+        70.644
       ],
       "method": "superior bone over the superior canal",
       "review": "미검증",

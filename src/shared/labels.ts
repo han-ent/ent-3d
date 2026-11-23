@@ -49,7 +49,7 @@ export const FOCUS_PARTS: Record<string, readonly string[]> = {
     'malleus-anterior-process',
     'umbo',
   ],
-  'facial-nerve': ['fn-meatal', 'fn-labyrinthine', 'fn-geniculate', 'fn-tympanic', 'fn-second-genu', 'fn-mastoid'],
+  'facial-nerve': ['fn-labyrinthine', 'fn-geniculate', 'fn-tympanic', 'fn-second-genu', 'fn-mastoid'],
 };
 
 /** Named along the peel so the canal, drum, and ossicles stay labelled together. */

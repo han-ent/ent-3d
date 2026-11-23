@@ -11,7 +11,7 @@ function channel(hex: string, index: number): number {
 
 describe('atlas palette', () => {
   it('keeps facial-nerve segments on distinct yellows', () => {
-    const ids = ['fn-meatal', 'fn-labyrinthine', 'fn-geniculate', 'fn-tympanic', 'fn-second-genu', 'fn-mastoid'];
+    const ids = ['fn-labyrinthine', 'fn-geniculate', 'fn-tympanic', 'fn-second-genu', 'fn-mastoid'];
     const lits = ids.map((id) => illustrationRamp(id, STRUCTURE_COLOR[id]).lit);
     expect(new Set(lits).size).toBe(lits.length);
     for (const lit of lits) {

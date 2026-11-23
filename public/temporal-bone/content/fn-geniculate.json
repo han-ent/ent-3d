@@ -2,12 +2,12 @@
   "id": "fn-geniculate",
   "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "en": "The first genu, 2.0 mm, where the nerve turns posteriorly onto the tympanic segment. It lies 2–4 mm from the medial end.",
-    "ko": "제1슬이다. 2.0 mm. 신경이 뒤로 꺾여 고실부가 된다. 안쪽 끝에서 2–4 mm에 있다."
+    "en": "The first genu, the anterior turn of the nerve, about 1.2 mm at the tip of this surface.",
+    "ko": "제1슬이다. 이 표면의 앞쪽 끝에서 신경이 뒤로 꺾인다. 약 1.2 mm."
   },
   "function": {
-    "en": "The greater petrosal nerve leaves the ganglion here.",
-    "ko": "대추체신경이 이 신경절에서 나간다."
+    "en": "The greater petrosal nerve leaves the ganglion here. The turn is the anterior tip, not a point further along the tympanic segment.",
+    "ko": "대추체신경이 이 신경절에서 나간다. 꺾임은 고실부 도중이 아니라 앞쪽 끝이다."
   },
   "surgical_points": [],
   "sources": [

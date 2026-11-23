@@ -2,12 +2,12 @@
   "id": "fn-labyrinthine",
   "model_version": "openear-zeta-frame-3",
   "anatomy": {
-    "en": "The short course from the fundus to the geniculate, 0.75 mm.",
-    "ko": "기저부에서 슬신경절까지의 짧은 주행이다. 0.75 mm."
+    "en": "From the fundus, where the nerve meets the cochleovestibular bundle, to the first genu. The span on this surface is 3.7 mm.",
+    "ko": "기저부에서 제1슬까지다. 신경이 와우전정신경다발과 만나는 곳에서 시작한다. 이 표면에서 3.7 mm."
   },
   "function": {
-    "en": "It is the narrowest part of the nerve.",
-    "ko": "신경 중에서 가장 좁은 부분이다."
+    "en": "It is the narrow course just lateral to the fundus. The internal auditory part is in the nerve bundle, not on this surface.",
+    "ko": "기저부 바로 가쪽의 좁은 주행이다. 내이도 부분은 이 표면이 아니라 신경다발 안에 있다."
   },
   "surgical_points": [],
   "sources": [

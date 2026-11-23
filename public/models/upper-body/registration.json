@@ -3,10 +3,10 @@
   "scale": 1,
   "appliedScale": 1,
   "within5Percent": true,
-  "scaleDecision": "The head stays upright, as on main. The temporal bone is rotated into that head: 30.8° in all (27° yaw about head-superior and 15° pitch about head-lateral). Scale is 1. The bony porus lies on the cavum conchae axis.",
+  "scaleDecision": "The head stays upright, as on main. The temporal bone is rotated into that head: 30.8° in all (27° yaw about head-superior and 15° pitch about head-lateral). Scale stays 1. A uniform scale cannot match the mastoid, because the porion-to-mastoid lateral offset differs by about 20 mm between these two specimens, and shrinking the bone would shrink the ossicles. The translation is a concha slide plus 14 mm superior, 10 mm medial, and 2 mm posterior, so the mastoid sits closer to the skull mastoid while the bony canal stays behind the concha.",
   "current": {
     "method": "Rigid rotation of the specimen into the upright head. rmsMm is the distance between independently defined landmark pairs.",
-    "rmsMm": 15.175,
+    "rmsMm": 15.643,
     "pairs": [
       {
         "id": "eac-porus",
@@ -19,11 +19,11 @@
           34.286
         ],
         "zetaMm": [
-          33.01,
-          46.847,
-          39.386
+          27.615,
+          33.756,
+          49.363
         ],
-        "residualMm": 13.782
+        "residualMm": 15.533
       },
       {
         "id": "mastoid-tip",
@@ -36,11 +36,11 @@
           60.731
         ],
         "zetaMm": [
-          30.061,
-          82.471,
-          44.874
+          24.666,
+          69.381,
+          54.85
         ],
-        "residualMm": 22.258
+        "residualMm": 7.26
       },
       {
         "id": "zygomatic-root",
@@ -53,11 +53,11 @@
           37.029
         ],
         "zetaMm": [
-          38.785,
-          43.253,
-          38.749
+          33.39,
+          30.162,
+          48.725
         ],
-        "residualMm": 7.588
+        "residualMm": 15.061
       },
       {
         "id": "stylomastoid-foramen",
@@ -70,11 +70,11 @@
           55.361
         ],
         "zetaMm": [
-          35.994,
-          63.152,
-          56.11
+          30.599,
+          50.062,
+          66.087
         ],
-        "residualMm": 16.388
+        "residualMm": 11.013
       },
       {
         "id": "arcuate-eminence",
@@ -87,11 +87,11 @@
           49.45
         ],
         "zetaMm": [
-          28.963,
-          32.513,
-          60.668
+          23.568,
+          19.423,
+          70.644
         ],
-        "residualMm": 11.829
+        "residualMm": 24.112
       }
     ]
   },
@@ -116,15 +116,15 @@
       ]
     ],
     "translationMm": [
-      -3.9878,
-      32.2804,
-      39.592
+      -9.3829,
+      19.1897,
+      49.5684
     ],
     "angleDeg": 30.82,
     "yawDeg": -27.0,
     "pitchDeg": 15.0,
     "canalSlideMm": 19.0,
-    "rmsMm": 15.175
+    "rmsMm": 15.643
   },
   "headAxes": {
     "anterior": [
@@ -158,23 +158,32 @@
     "outsideFraction": 0.0,
     "vertices": 45476
   },
+  "skullFit": {
+    "outsideOver3mm": 480,
+    "outsideOver3mmFraction": 0.0106,
+    "insideFraction": 0.9868,
+    "insideDepthMedianMm": 23.68,
+    "vertices": 45476
+  },
+  "mastoidTipGapMm": 7.26,
   "concha": {
     "xyzMm": [
       24.763,
       45.342,
       22.336
     ],
-    "axisOffsetMm": 0.0,
+    "axisOffsetMm": 16.399,
     "porusMm": [
-      33.01,
-      46.847,
-      39.386
+      27.615,
+      33.756,
+      49.363
     ],
+    "porusBehindConchaMm": -26.92,
     "definition": "Cavum conchae: medial floor of the inferior bowl of the auricle, on the unmoved pinna."
   },
   "umeyama": {
     "scale": 1,
-    "rmsMm": 15.175,
+    "rmsMm": 15.643,
     "note": "Scale is fixed at 1. rmsMm is the matched-pair residual of the specimen rotation."
   },
   "umeyamaWithoutMastoid": {

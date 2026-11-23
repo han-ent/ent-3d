@@ -30,8 +30,8 @@
       },
       "vestibule": {
         "exclusiveVertices": 2013,
-        "exportedVertices": 2144,
-        "faces": 4028
+        "exportedVertices": 2147,
+        "faces": 4030
       },
       "scala-vestibuli": {
         "exclusiveVertices": 2554,
@@ -85,25 +85,20 @@
   "facial-nerve": {
     "parentVertices": 10000,
     "children": {
-      "fn-meatal": {
-        "exclusiveVertices": 522,
-        "exportedVertices": 560,
-        "faces": 1042
+      "fn-geniculate": {
+        "exclusiveVertices": 503,
+        "exportedVertices": 539,
+        "faces": 1004
       },
       "fn-labyrinthine": {
-        "exclusiveVertices": 575,
-        "exportedVertices": 640,
-        "faces": 1148
-      },
-      "fn-geniculate": {
-        "exclusiveVertices": 672,
-        "exportedVertices": 739,
-        "faces": 1344
+        "exclusiveVertices": 858,
+        "exportedVertices": 922,
+        "faces": 1714
       },
       "fn-tympanic": {
-        "exclusiveVertices": 2379,
-        "exportedVertices": 2437,
-        "faces": 4758
+        "exclusiveVertices": 2787,
+        "exportedVertices": 2861,
+        "faces": 5574
       },
       "fn-second-genu": {
         "exclusiveVertices": 561,
@@ -117,24 +112,20 @@
       }
     },
     "segments": {
-      "fn-meatal": [
+      "fn-geniculate": [
         0.0,
-        1.25
+        1.2
       ],
       "fn-labyrinthine": [
-        1.25,
-        2.0
-      ],
-      "fn-geniculate": [
-        2.0,
-        4.0
+        1.2,
+        2.6
       ],
       "fn-tympanic": [
-        4.0,
-        13.5
+        2.6,
+        13.3
       ],
       "fn-second-genu": [
-        13.5,
+        13.3,
         15.25
       ],
       "fn-mastoid": [
@@ -143,11 +134,10 @@
       ]
     },
     "lengthsMm": {
-      "fn-meatal": 1.25,
-      "fn-labyrinthine": 0.75,
-      "fn-geniculate": 2.0,
-      "fn-tympanic": 9.5,
-      "fn-second-genu": 1.75,
+      "fn-geniculate": 1.2,
+      "fn-labyrinthine": 3.7,
+      "fn-tympanic": 10.7,
+      "fn-second-genu": 1.95,
       "fn-mastoid": 12.57
     },
     "arcMm": 27.82,
@@ -170,5 +160,5 @@
     "method": "superior-12-percent-fallback",
     "exclusiveSum": 4000
   },
-  "landmarkCount": 55
+  "landmarkCount": 56
 }

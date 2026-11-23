@@ -425,24 +425,6 @@
       }
     },
     {
-      "id": "fn-meatal",
-      "file": "models/fn-meatal.glb",
-      "name": {
-        "ko": "안면신경 내이도부",
-        "en": "Meatal segment"
-      },
-      "color": "#F6D56B",
-      "layer": "nerve",
-      "status": "미검증",
-      "content": "content/fn-meatal.json",
-      "parent": "facial-nerve",
-      "provenance": {
-        "specimen": "OpenEar ZETA",
-        "licence": "CC-BY-4.0",
-        "source": "https://zenodo.org/records/1473724"
-      }
-    },
-    {
       "id": "fn-labyrinthine",
       "file": "models/fn-labyrinthine.glb",
       "name": {

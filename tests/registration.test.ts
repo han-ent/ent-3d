@@ -61,7 +61,9 @@ describe('Umeyama registration', () => {
       appliedScale: number;
       review: string;
       containment: { outsideFraction: number; outsideVertices: number };
-      concha: { axisOffsetMm: number };
+      concha: { axisOffsetMm: number; porusBehindConchaMm: number };
+      skullFit: { outsideOver3mmFraction: number };
+      mastoidTipGapMm: number;
       applied: { scale: number; rotation: Mat3; translationMm: Vec3; angleDeg: number; rmsMm: number; maps: string };
       current: { rmsMm: number; pairs: { id: string; zetaMm: Vec3; skullMm: Vec3; residualMm: number }[] };
       canalPlanes: { lateralToFrankfortDeg: number; superiorToSagittalDeg: number; posteriorToSagittalDeg: number };
@@ -76,7 +78,9 @@ describe('Umeyama registration', () => {
     expect(file.applied.angleDeg).toBeLessThan(40);
     expect(file.containment.outsideVertices).toBe(0);
     expect(file.containment.outsideFraction).toBe(0);
-    expect(file.concha.axisOffsetMm).toBeLessThan(3);
+    expect(file.concha.porusBehindConchaMm).toBeLessThan(-2);
+    expect(file.skullFit.outsideOver3mmFraction).toBeLessThan(0.03);
+    expect(file.mastoidTipGapMm).toBeLessThan(8);
     expect(file.applied.maps).toBe('specimen-to-upright-head');
     expect(file.current.pairs.length).toBeGreaterThanOrEqual(5);
     expect(file.current.pairs.some((pair) => pair.id === 'styloid-base' || pair.id === 'henle-spine')).toBe(false);

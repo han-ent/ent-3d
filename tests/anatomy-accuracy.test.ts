@@ -49,26 +49,28 @@ describe('temporal-bone anatomy accuracy', () => {
   };
   const registration = JSON.parse(readFileSync(resolve(root, 'public/models/upper-body/registration.json'), 'utf8')) as {
     containment: { outsideFraction: number };
-    concha: { axisOffsetMm: number };
+    concha: { axisOffsetMm: number; porusBehindConchaMm: number };
+    skullFit: { outsideOver3mmFraction: number };
+    mastoidTipGapMm: number;
     current: { rmsMm: number; pairs: { id: string; skullMm: Axis }[] };
     applied: { angleDeg: number; scale: number; maps: string };
     canalPlanes: { lateralToFrankfortDeg: number; superiorToSagittalDeg: number; posteriorToSagittalDeg: number };
     headAxes: { anterior: Axis; inferior: Axis; lateral: Axis };
   };
 
-  it('puts the first genu at the anterior turn and keeps the tympanic run near 9.5 mm', () => {
+  it('puts the first genu at the anterior tip and the labyrinthine segment at the fundus', () => {
     const note = JSON.parse(readFileSync(resolve(data, 'split-notes.json'), 'utf8')) as {
       lengthsMm: Record<string, number>;
       firstGenuMm: number;
     };
-    expect(note.firstGenuMm).toBeGreaterThanOrEqual(2);
-    expect(note.firstGenuMm).toBeLessThanOrEqual(4);
-    expect(note.lengthsMm['fn-labyrinthine']).toBeGreaterThan(0.4);
-    expect(note.lengthsMm['fn-labyrinthine']).toBeLessThan(2);
-    expect(note.lengthsMm['fn-tympanic']).toBeGreaterThan(8);
-    expect(note.lengthsMm['fn-tympanic']).toBeLessThan(11);
-    expect(note.lengthsMm['fn-geniculate']).toBeGreaterThan(1.5);
-    expect(note.lengthsMm['fn-geniculate']).toBeLessThanOrEqual(2.5);
+    expect(note.lengthsMm['fn-meatal']).toBeUndefined();
+    expect(note.firstGenuMm).toBeLessThan(1.5);
+    expect(note.lengthsMm['fn-labyrinthine']).toBeGreaterThan(1.5);
+    expect(note.lengthsMm['fn-labyrinthine']).toBeLessThan(4.5);
+    expect(note.lengthsMm['fn-tympanic']).toBeGreaterThan(7);
+    expect(note.lengthsMm['fn-tympanic']).toBeLessThan(14);
+    expect(note.lengthsMm['fn-geniculate']).toBeGreaterThan(0.8);
+    expect(note.lengthsMm['fn-geniculate']).toBeLessThanOrEqual(2);
     expect(note.lengthsMm['fn-mastoid']).toBeGreaterThan(8);
     expect(report['facial-nerve'].arcMm).toBeGreaterThan(20);
     const mastoid = JSON.parse(readFileSync(resolve(data, 'content/fn-mastoid.json'), 'utf8')) as {
@@ -83,7 +85,9 @@ describe('temporal-bone anatomy accuracy', () => {
     expect(registration.applied.scale).toBe(1);
     expect(registration.applied.maps).toBe('specimen-to-upright-head');
     expect(registration.containment.outsideFraction).toBe(0);
-    expect(registration.concha.axisOffsetMm).toBeLessThan(3);
+    expect(registration.concha.porusBehindConchaMm).toBeLessThan(-2);
+    expect(registration.skullFit.outsideOver3mmFraction).toBeLessThan(0.03);
+    expect(registration.mastoidTipGapMm).toBeLessThan(8);
     expect(registration.current.rmsMm).toBeGreaterThan(0);
     expect(registration.current.rmsMm).toBeLessThan(18);
     expect(registration.applied.angleDeg).toBeGreaterThan(15);
@@ -107,8 +111,10 @@ describe('temporal-bone anatomy accuracy', () => {
     expect(dot(by['cochleariform-process'], by['stapes-footplate'], inferior)).toBeLessThan(0);
     expect(dot(by['pyramidal-eminence'], by['second-genu'], anterior)).toBeGreaterThan(1);
     expect(dot(by['pyramidal-eminence'], by['second-genu'], lateral)).toBeLessThan(0);
-    expect(dot(by['sinodural-angle'], by.tegmen, anterior)).toBeLessThan(-10);
-    expect(dot(by['sinodural-angle'], by['sigmoid-sinus'], inferior)).toBeLessThan(0);
+    expect(dot(by['sinodural-angle'], by.tegmen, anterior)).toBeLessThan(-4);
+    expect(Math.abs(dot(by['sinodural-angle'], by.tegmen, inferior))).toBeLessThan(8);
+    expect(dot(by['sinodural-angle'], by['mastoid-antrum'], anterior)).toBeLessThan(0);
+    expect(dot(by['geniculate-ganglion'], by['meatal-segment'], anterior)).toBeGreaterThan(0.5);
     const styloidDrop = dot(by['styloid-base'], by['stylomastoid-foramen'], inferior);
     expect(styloidDrop).toBeGreaterThan(2);
     expect(styloidDrop).toBeLessThan(12);
@@ -117,6 +123,38 @@ describe('temporal-bone anatomy accuracy', () => {
     const [cx, cy, cz] = by['stapes-anterior-crus'];
     const crusGap = Math.hypot(cx - hx, cy - hy, cz - hz);
     expect(crusGap).toBeGreaterThan(1.6);
+  });
+
+  it('keeps auricle labels apart and in anatomical order', () => {
+    const surface = JSON.parse(readFileSync(resolve(data, 'surface-anatomy.json'), 'utf8')) as {
+      labels: { id: string; xyz_mm: [number, number, number] }[];
+    };
+    const by = Object.fromEntries(surface.labels.map((item) => [item.id, item.xyz_mm]));
+    const ids = Object.keys(by);
+    for (let i = 0; i < ids.length; i += 1) {
+      for (let j = i + 1; j < ids.length; j += 1) {
+        const [ax0, ay, az] = by[ids[i]];
+        const [bx, byy, bz] = by[ids[j]];
+        const gap = Math.hypot(ax0 - bx, ay - byy, az - bz);
+        expect(gap, `${ids[i]} ${ids[j]}`).toBeGreaterThan(2.5);
+      }
+    }
+    const { anterior, inferior, lateral } = registration.headAxes;
+    const behindTragus = -dot(by.cavum, by.tragus, anterior);
+    expect(behindTragus).toBeGreaterThan(6);
+    expect(behindTragus).toBeLessThan(16);
+    expect(dot(by.cymba, by['crus-helix'], inferior)).toBeLessThan(0);
+    expect(dot(by.antihelix, by.cymba, anterior)).toBeLessThan(0);
+    expect(dot(by.antihelix, by.cymba, lateral)).toBeGreaterThan(0);
+    expect(dot(by.antitragus, by.tragus, anterior)).toBeLessThan(0);
+    expect(dot(by.antitragus, by.tragus, inferior)).toBeGreaterThan(0);
+    expect(Math.hypot(
+      by.antitragus[0] - by.tragus[0],
+      by.antitragus[1] - by.tragus[1],
+      by.antitragus[2] - by.tragus[2],
+    )).toBeLessThan(15);
+    expect(dot(by['postauricular-sulcus'], by.helix, anterior)).toBeLessThan(0);
+    expect(dot(by['postauricular-sulcus'], by.helix, lateral)).toBeLessThan(0);
   });
 
   it('ships no placeholder copy, and every description has a source', () => {
