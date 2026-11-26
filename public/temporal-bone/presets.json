@@ -19,8 +19,8 @@
             "en": "Cortical mastoidectomy"
           },
           "instructions": {
-            "ko": "유양동을 열기 전, 가쪽 유양 피질을 뒤에서 본다. 이소골과 와우는 뼈에 가려져 있다.",
-            "en": "The lateral mastoid cortex, before the antrum is open. The ossicles and the cochlea stay covered by bone."
+            "ko": "유양동을 열기 전, 가쪽 유양 피질을 가쪽에서 본다. 이소골과 와우는 뼈에 가려져 있다.",
+            "en": "The lateral mastoid cortex, seen from the side before the antrum is open. The ossicles and the cochlea stay covered by bone."
           },
           "identify": [
             "facial-nerve",
@@ -56,14 +56,14 @@
           ],
           "camera": {
             "position": [
-              -57.3996,
-              112.6391,
-              17.7281
+              6.401,
+              12.7222,
+              -65.9931
             ],
             "target": [
-              16.2885,
-              62.0684,
-              44.6663
+              22.0,
+              46.0,
+              38.0
             ],
             "up": [
               -0.258533,
@@ -92,9 +92,7 @@
             "bone",
             "sinus-dura",
             "scc-lateral",
-            "incus",
-            "facial-nerve",
-            "chorda-tympani"
+            "incus"
           ],
           "ghosted": [],
           "hidden": [
@@ -110,7 +108,9 @@
             "scc-superior",
             "scc-posterior",
             "common-crus",
-            "labyrinth"
+            "labyrinth",
+            "facial-nerve",
+            "chorda-tympani"
           ],
           "marker": {
             "id": "antrum-estimate",
@@ -178,12 +178,12 @@
             "sinus-dura",
             "facial-nerve",
             "chorda-tympani",
-            "scc-lateral"
+            "scc-lateral",
+            "incus"
           ],
           "ghosted": [],
           "hidden": [
             "malleus",
-            "incus",
             "stapes",
             "tympanic-membrane",
             "external-auditory-canal",

@@ -229,7 +229,7 @@ export function stagesForLandmark(id: string): ViewStage[] {
 export const STEP_LABELS: Record<string, readonly string[]> = {
   'cortical-mastoidectomy': ['mastoid-tip', 'tegmen', 'sigmoid-sinus', 'henle-spine', 'macewen-triangle', 'temporal-line'],
   antrum: ['incus-short-process', 'scc-lateral-arch', 'mastoid-antrum', 'tegmen', 'incus'],
-  'identify-facial-nerve': ['second-genu', 'geniculate-ganglion', 'scc-lateral-arch', 'facial-nerve', 'chorda-tympani'],
+  'identify-facial-nerve': ['second-genu', 'geniculate-ganglion', 'scc-lateral-arch', 'facial-nerve', 'chorda-tympani', 'incus', 'incus-short-process'],
   'posterior-tympanotomy': [
     'facial-recess',
     'round-window',
@@ -249,6 +249,9 @@ export function stepsForLabel(id: string): string[] {
     .filter(([, ids]) => ids.includes(id))
     .map(([step]) => step);
 }
+
+/** Names basic mode should keep on the inner-ear stage, including a whole cochlea. */
+export const INNER_CORE = ['cochlea', 'vestibule', 'scc-lateral', 'scc-superior', 'scc-posterior', 'iac', 'facial-nerve'] as const;
 
 export const SURGICAL_STRUCTURES = new Set([
   'facial-nerve',

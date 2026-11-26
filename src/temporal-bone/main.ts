@@ -114,7 +114,7 @@ workspace.innerHTML = `
         <p class="meta" id="ct-readout"></p>
         <label class="checkline"><span data-i18n="ct.window"></span><input id="ct-window" type="range" min="20" max="400" value="255" /></label>
         <label class="checkline"><span data-i18n="ct.level"></span><input id="ct-level" type="range" min="0" max="255" value="128" /></label>
-        <input id="ct-index" type="range" min="0" max="1" value="0" />
+        <input id="ct-index" type="range" min="0" max="1" value="0" data-i18n-aria="ct.slice" />
         <label class="checkline"><input id="ct-contour" type="checkbox" checked /><span data-i18n="ct.contour"></span></label>
         <label class="checkline"><input id="ct-float" type="checkbox" /><span data-i18n="ct.overlay"></span></label>
       </section>
@@ -272,12 +272,16 @@ function applySnap(snap: SheetSnap): void {
   const cover = desktop ? 0 : sheetCoverPx(snap, window.innerHeight);
   document.documentElement.style.setProperty('--sheet-cover', `${cover}px`);
   sheet.dataset.snap = desktop ? 'full' : snap;
+  document.body.classList.toggle('is-sheet-full', !desktop && snap === 'full');
   const open = desktop || snap !== 'peek';
   sheet.classList.toggle('is-open', open);
   sheetToggle.setAttribute('aria-expanded', String(open));
   sheetToggle.setAttribute('aria-label', open ? t('sheet.collapse') : t('sheet.expand'));
   syncCrosshair();
-  syncLabelInset();
+  requestAnimationFrame(() => {
+    syncLabelInset();
+    refitForSheet();
+  });
 }
 
 function openSheet(open: boolean): void {
@@ -517,6 +521,27 @@ function renderChips(): void {
       structureList.append(row);
     }
   }
+  const listed = new Set<string>();
+  structureList.querySelectorAll<HTMLElement>('[data-select]').forEach((node) => {
+    if (node.dataset.select) listed.add(node.dataset.select);
+  });
+  const extraHits = (hits ?? []).filter((hit) => !listed.has(hit.id) && hit.kind === 'structure');
+  if (extraHits.length) {
+    for (const hit of extraHits) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chip landmark-hit';
+      button.textContent = englishFirst(hit.en, hit.ko);
+      button.setAttribute('aria-label', button.textContent);
+      button.addEventListener('click', () => {
+        if (mode === 'quiz') return;
+        setMode('view');
+        const parent = hit.id === 'cochlea' ? 'scala-vestibuli' : hit.parentId;
+        if (parent && structureById(parent)) selectStructure(parent, true);
+      });
+      structureList.append(button);
+    }
+  }
   const landmarkHits = hits?.filter((hit) => hit.kind === 'landmark') ?? [];
   if (landmarkHits.length) {
     const heading = document.createElement('h3');
@@ -569,12 +594,14 @@ function renderStepDetail(): void {
     stageCaption.textContent = '';
     return;
   }
-  stageCaption.textContent = text(step.title);
+  const viewPreset = step.clipping?.enabled ? t('presets.viewPreset') : '';
+  stageCaption.textContent = viewPreset ? `${text(step.title)}. ${viewPreset}` : text(step.title);
   const marker = step.marker
     ? `<h3>${escapeHtml(t('presets.marker'))}</h3><p>${escapeHtml(text(step.marker.label))} · ${escapeHtml(step.marker.review)}</p><p class="source-line">${escapeHtml(step.marker.source)}</p>`
     : '';
   stepDetail.innerHTML = `
     <p>${escapeHtml(text(step.instructions))}</p>
+    ${viewPreset ? `<p class="hint">${escapeHtml(viewPreset)}</p>` : ''}
     <h3>${escapeHtml(t('presets.identify'))}</h3>
     ${namesHtml(step.identify)}
     <h3>${escapeHtml(t('presets.danger'))}</h3>
@@ -1032,11 +1059,21 @@ boneBtn.addEventListener('click', () => {
   boneBtn.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
 });
 let sheetDrag: { y: number; snap: SheetSnap; pointer: number } | null = null;
+sheetToggle.style.touchAction = 'none';
 sheetToggle.addEventListener('pointerdown', (event) => {
   if (desktopLayout()) return;
+  event.preventDefault();
   sheetDrag = { y: event.clientY, snap: sheetSnap, pointer: event.pointerId };
   sheetToggle.setPointerCapture(event.pointerId);
 });
+sheetToggle.addEventListener(
+  'touchmove',
+  (event) => {
+    if (!sheetDrag) return;
+    event.preventDefault();
+  },
+  { passive: false },
+);
 sheetToggle.addEventListener('pointermove', (event) => {
   if (!sheetDrag || event.pointerId !== sheetDrag.pointer || desktopLayout()) return;
   const next = Math.max(72, sheetCoverPx(sheetDrag.snap, window.innerHeight) - (event.clientY - sheetDrag.y));
@@ -1193,6 +1230,32 @@ function flyStage(stage: ViewStage): void {
   syncLabelInset();
 }
 
+function refitForSheet(): void {
+  if (!viewer || !manifest || desktopLayout()) return;
+  const width = Math.max(canvas.clientWidth, 1);
+  const height = Math.max(canvas.clientHeight, 1);
+  if (activeStep) {
+    const step = findStep(activeStep);
+    if (step) viewer.applyPreset(step);
+    return;
+  }
+  const stage = (['body', 'ear', 'bone', 'inner'] as const).find((id) => stageName === id);
+  if (!stage) return;
+  const box = stageBox(stage);
+  const view = STAGE_VIEW[stage];
+  if (!box) return;
+  const pose = frameAabb({
+    box,
+    direction: view.direction,
+    up: view.up,
+    fovDeg: view.fov,
+    viewWidthPx: width,
+    viewHeightPx: height,
+    margin: view.margin,
+  });
+  viewer.flyTo(pose.position, pose.target, view.up, view.fov);
+}
+
 function applyStage(distance: number): void {
   document.body.dataset.distance = distance.toFixed(0);
   if (activeStep) return;
@@ -1236,6 +1299,31 @@ function refreshStudyLabels(): void {
       steps: stepsForLabel(structure.id),
     });
   }
+  const cochleaParts = ['scala-vestibuli', 'scala-tympani', 'scala-vestibuli-basal', 'scala-tympani-basal']
+    .map((id) => viewer!.structureCenter(id))
+    .filter((point): point is [number, number, number] => point !== null);
+  if (cochleaParts.length) {
+    const position: [number, number, number] = [0, 0, 0];
+    for (const point of cochleaParts) {
+      position[0] += point[0];
+      position[1] += point[1];
+      position[2] += point[2];
+    }
+    position[0] /= cochleaParts.length;
+    position[1] /= cochleaParts.length;
+    position[2] /= cochleaParts.length;
+    labels.push({
+      id: 'cochlea',
+      text: 'Cochlea',
+      en: 'Cochlea',
+      ko: '와우',
+      tier: 'structure',
+      modes: ['basic', 'all'],
+      priority: 92,
+      position,
+      stages: ['inner'],
+    });
+  }
   for (const [layer, region] of Object.entries(regionOf)) {
     void layer;
     const points = buckets.get(region.id);
@@ -1265,14 +1353,15 @@ function refreshStudyLabels(): void {
     const english = displayEnglish(item.en);
     const steps = stepsForLabel(item.id);
     const placed = item.confidence === 'placed' || steps.length > 0;
+    const core = item.id === 'iac';
     labels.push({
       id: item.id,
       text: english,
       en: english,
       ko: item.ko,
-      tier: 'subpart',
-      modes: placed ? ['surgical', 'all'] : ['all'],
-      priority: (item.surgical ? 72 : 58) + (steps.length ? 8 : 0),
+      tier: core ? 'structure' : 'subpart',
+      modes: core ? ['basic', 'surgical', 'all'] : placed ? ['surgical', 'all'] : ['all'],
+      priority: core ? 90 : (item.surgical ? 72 : 58) + (steps.length ? 8 : 0),
       parentId: item.parent,
       position: item.xyz_mm,
       stages: stagesForLandmark(item.id),
@@ -1394,6 +1483,13 @@ async function boot(): Promise<void> {
     landmarks.map((item) => ({ id: item.id, en: item.en, ko: item.ko, parentId: item.parent })),
     termFile.terms ?? [],
   );
+  searchIndex.push({
+    id: 'cochlea',
+    kind: 'structure',
+    en: 'Cochlea',
+    ko: '와우',
+    aliases: ['scala vestibuli', 'scala tympani', '전정계', '고실계'],
+  });
   eacMm = landmarks.find((item) => item.id === 'eac-porus')?.xyz_mm ?? null;
 
   viewer = new EntViewer(canvas, manifest.viewer_offset_mm);
@@ -1480,6 +1576,7 @@ async function boot(): Promise<void> {
       distance: () => viewer?.cameraDistance() ?? 0,
       pose: () => viewer?.cameraPose() ?? null,
       crosshair: () => viewer?.crosshairVisible() ?? false,
+      shellHidden: () => viewer?.shellHidden() ?? false,
       eac: () => eacMm,
       labels(mode: 'basic' | 'surgical' | 'all') {
         labelMode = mode;

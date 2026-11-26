@@ -31,6 +31,8 @@
   "presets.danger": "At risk",
   "presets.none": "None",
   "presets.marker": "Marked point",
+  "presets.viewPreset": "View preset. One clipping plane cannot carve a drilled recess, so the bone on the near side of that plane is removed.",
+  "ct.slice": "CT slice",
   "ct.title": "CT",
   "ct.axial": "Axial",
   "ct.coronal": "Coronal",

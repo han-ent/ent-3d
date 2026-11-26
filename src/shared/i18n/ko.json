@@ -31,6 +31,8 @@
   "presets.danger": "위험 구조",
   "presets.none": "없음",
   "presets.marker": "표시 점",
+  "presets.viewPreset": "시점 프리셋입니다. 자르는 평면 하나로는 갈아 낸 와를 만들 수 없어, 그 평면의 가까운 쪽 뼈를 뺍니다.",
+  "ct.slice": "CT 단면",
   "ct.title": "CT",
   "ct.axial": "축상",
   "ct.coronal": "관상",

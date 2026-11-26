@@ -11,7 +11,7 @@ import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
 import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, type Placement, type StudyLabel } from '../labels';
 import type { ViewStage } from '../stage-frame';
-import { distanceForAspect, placeAlong } from '../stage-frame';
+import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM } from '../view-pose';
 import { choosePixelRatio, coveredBySphere } from './budget';
 import {
@@ -393,6 +393,11 @@ export class EntViewer {
 
   crosshairVisible(): boolean {
     return this.crosshair.visible;
+  }
+
+  /** True when the auricle and skin are kept off, as in the bone and dissection views. */
+  shellHidden(): boolean {
+    return this.shellForced === true && this.upperBody?.visible !== true && this.skinMesh?.visible !== true;
   }
 
   flyTo(position: Vec3, target: Vec3, up: Vec3 = [0, -1, 0], fov = DEFAULT_FOV): void {
@@ -1696,12 +1701,19 @@ export class EntViewer {
   /** Hide the head when the cut discards it or it leaves the camera frustum. */
   private cullContextMeshes(): void {
     this.camera.updateMatrixWorld();
+    if (this.shellForced === true) {
+      if (this.upperBody) this.upperBody.visible = false;
+      if (this.skinMesh) this.skinMesh.visible = false;
+      return;
+    }
     this.cullContext(this.upperBody, this.cutRadius.value);
   }
 
   private cullContext(mesh: THREE.Mesh | null, limit: number): void {
     if (!mesh) return;
-    if (this.cutRadius.value > 8) {
+    // Bone, inner-ear, and dissection views force the shell closed. The per-frame
+    // cull used to turn the auricle back on whenever the spherical cut was shut.
+    if (this.shellForced === true || this.cutRadius.value > 8) {
       mesh.visible = false;
       return;
     }
@@ -1872,6 +1884,18 @@ export class EntViewer {
     const distance = this.cameraDistance();
     const inset = this.labelInset;
     const parts = focusPartList(this.selected);
+    if (this.viewStage === 'inner' && this.labelMode === 'basic' && !this.viewStep && !parts) {
+      const column = [];
+      for (const id of INNER_CORE) {
+        const label = this.studyLabels.find((item) => item.id === id);
+        if (!label) continue;
+        const anchor = this.projectSpecimen(label.position, width, height);
+        if (!anchor || anchor.behind) continue;
+        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        column.push({ id: label.id, anchorX: anchor.x, anchorY: anchor.y, width: size.width, height: size.height });
+      }
+      if (column.length) return columnPlacements(column, width, height, inset);
+    }
     if (parts && !this.viewStep) {
       const column = [];
       for (const label of this.studyLabels) {

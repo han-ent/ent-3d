@@ -114,6 +114,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
   background: var(--stage);
 }
 
@@ -369,10 +370,8 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 }
 
 .sheet {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  flex: 0 0 auto;
   z-index: 6;
   height: var(--sheet-cover, 108px);
   max-height: none;
@@ -381,14 +380,22 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   background: var(--paper);
   border-top: 1px solid var(--line);
   min-height: 0;
-  box-shadow: 0 -8px 24px rgba(34, 34, 34, 0.06);
 }
 
-.sheet.is-open { height: var(--sheet-cover, 46%); max-height: none; flex: none; }
+.sheet.is-open { height: var(--sheet-cover, 108px); max-height: none; }
 
-.modebar { bottom: calc(var(--sheet-cover, 108px) + 8px); }
-.crumbs { bottom: calc(var(--sheet-cover, 108px) + 60px); }
-.stage-caption { bottom: calc(var(--sheet-cover, 108px) + 96px); }
+@media (max-width: 959px) {
+  body.is-sheet-full .modebar,
+  body.is-sheet-full .labelbar,
+  body.is-sheet-full .crumbs,
+  body.is-sheet-full .gizmo,
+  body.is-sheet-full .scale-hud,
+  body.is-sheet-full .stage-caption,
+  body.is-sheet-full .study-layer,
+  body.is-sheet-full .callout-layer {
+    visibility: hidden;
+  }
+}
 
 body.is-quiz .sheet.is-open {
   flex: 0 0 46%;
@@ -400,10 +407,11 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
 .sheet-handle {
   flex: none;
   width: 100%;
-  min-height: 28px;
+  min-height: 44px;
   border: 0;
   background: transparent;
-  padding: 6px 0 0;
+  padding: 8px 0 0;
+  touch-action: none;
 }
 
 .grip {

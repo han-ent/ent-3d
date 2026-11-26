@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { chooseStudyLabels, labelAllowed, type StudyLabel } from '../src/shared/labels';
 import { buildSearchIndex, searchEntries } from '../src/shared/search-index';
 import { nextSnap, sheetCoverPx, snapAfterDrag } from '../src/shared/sheet-snap';
-import { boxFitsView, frameAabb, STAGE_VIEW, stagesForLandmark } from '../src/shared/stage-frame';
+import { boxFitsView, frameAabb, INNER_CORE, STAGE_VIEW, stagesForLandmark } from '../src/shared/stage-frame';
 import type { PresetFile } from '../src/shared/types';
 import { isOutsideAabb, verticalSpanMm } from '../src/shared/view-pose';
 
@@ -177,7 +177,16 @@ describe('dissection steps', () => {
     const fossa = step('mcf-view');
     expect(cortical?.visible).not.toEqual(expect.arrayContaining(['malleus', 'incus', 'stapes']));
     expect(cortical?.hidden).toEqual(expect.arrayContaining(['malleus', 'incus', 'stapes']));
+    const corticalDelta = cortical!.camera.position.map((value, index) => value - cortical!.camera.target[index]);
+    expect(Math.abs(corticalDelta[2]!)).toBeGreaterThan(Math.abs(corticalDelta[0]!));
     expect(antrum?.visible).toEqual(expect.arrayContaining(['scc-lateral', 'incus']));
+    expect(antrum?.visible ?? []).not.toEqual(expect.arrayContaining(['facial-nerve', 'chorda-tympani']));
+    expect(antrum?.hidden).toEqual(expect.arrayContaining(['facial-nerve', 'chorda-tympani']));
+    expect(facial?.visible).toEqual(expect.arrayContaining(['incus', 'facial-nerve']));
+    expect(INNER_CORE).toEqual(['cochlea', 'vestibule', 'scc-lateral', 'scc-superior', 'scc-posterior', 'iac', 'facial-nerve']);
+    const css = readFileSync(resolve(root, 'src/styles/app.css'), 'utf8');
+    const handle = css.slice(css.indexOf('.sheet-handle'), css.indexOf('.sheet-handle') + 320);
+    expect(handle).toMatch(/touch-action:\s*none/);
     expect(antrum?.clipping?.constant).not.toBe(facial?.clipping?.constant);
     expect(facial?.clipping?.constant).not.toBe(posterior?.clipping?.constant);
     expect(posterior?.instructions.en.toLowerCase()).toContain('stapes');
