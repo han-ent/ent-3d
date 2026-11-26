@@ -9,7 +9,7 @@ import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
-import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, type Placement, type StudyLabel } from '../labels';
+import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, type Placement, type StudyLabel } from '../labels';
 import type { ViewStage } from '../stage-frame';
 import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { labelAnchorPoint } from '../surface-anchor';
@@ -964,6 +964,7 @@ export class EntViewer {
     this.stepTween(now);
     const moved = this.controls.update();
     const tweening = this.tween !== null;
+    if (relayoutOnTweenEnd(beforeTween, tweening)) this.labelPlanAt = 0;
     const drifting = moved && this.meaningfulMove();
     if (this.interacting && !this.pointerDown && now >= this.gestureUntil && !tweening) {
       this.interacting = false;
@@ -1012,6 +1013,7 @@ export class EntViewer {
     this.renderer.setSize(width, height, false);
     const resolution = this.hullMaterial?.uniforms.uResolution.value as THREE.Vector2 | undefined;
     if (resolution) resolution.set(this.renderer.domElement.width, this.renderer.domElement.height);
+    this.labelPlanAt = 0;
     this.invalidate();
   }
 

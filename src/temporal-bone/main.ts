@@ -1,6 +1,6 @@
 import '../styles/app.css';
 import { anatomicalPlaneName, ctDisplayOrient, displayedEdgeLabels, displayedSize, mapDisplayToRaw, mapRawToDisplay } from '../shared/frame';
-import { displayEnglish, englishFirst, type LabelMode, type StudyLabel } from '../shared/labels';
+import { dedupeStudyLabels, displayEnglish, englishFirst, type LabelMode, type StudyLabel } from '../shared/labels';
 import { buildSearchIndex, searchEntries, type SearchEntry, type TermRecord } from '../shared/search-index';
 import { ctPanelVisible, nextSnap, sheetCoverPx, snapAfterDrag, type SheetSnap } from '../shared/sheet-snap';
 import {
@@ -1403,7 +1403,7 @@ function refreshStudyLabels(): void {
       stages: ['body', 'ear'],
     });
   }
-  viewer.setStudyLabels(labels);
+  viewer.setStudyLabels(dedupeStudyLabels(labels));
 }
 
 function registrationTable(): string {

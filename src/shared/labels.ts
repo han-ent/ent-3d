@@ -101,6 +101,77 @@ export type StudyLabel = {
   steps?: readonly string[];
 };
 
+function nameKey(label: StudyLabel): string {
+  return `${label.en.trim().toLowerCase()}|${label.ko.trim().toLowerCase()}`;
+}
+
+function listsOverlap(a?: readonly string[], b?: readonly string[]): boolean {
+  if (!a?.length || !b?.length) return true;
+  return a.some((item) => b.includes(item));
+}
+
+/** Canal structures win over the arch landmark that repeats their name. */
+const CANAL_STRUCTURE: Record<string, string> = {
+  'scc-lateral-arch': 'scc-lateral',
+  'scc-superior-arch': 'scc-superior',
+  'scc-posterior-arch': 'scc-posterior',
+};
+
+function preferLabel(current: StudyLabel, incoming: StudyLabel): StudyLabel {
+  if (CANAL_STRUCTURE[incoming.id] === current.id) return current;
+  if (CANAL_STRUCTURE[current.id] === incoming.id) return incoming;
+  const rank = (label: StudyLabel) => (label.tier === 'structure' ? 2 : label.tier === 'region' ? 0 : 1);
+  if (rank(current) !== rank(incoming)) return rank(current) > rank(incoming) ? current : incoming;
+  if (current.priority !== incoming.priority) return current.priority > incoming.priority ? current : incoming;
+  return current.id.localeCompare(incoming.id) <= 0 ? current : incoming;
+}
+
+function unique<T>(items: readonly T[]): T[] {
+  return [...new Set(items)];
+}
+
+/**
+ * One visible name per structure. The arch-anchored canal label is kept
+ * and the landmark that repeats it is dropped. Modes and stages are merged
+ * so the survivor still appears wherever either copy did.
+ */
+export function dedupeStudyLabels(labels: readonly StudyLabel[]): StudyLabel[] {
+  const kept: StudyLabel[] = [];
+  for (const label of labels) {
+    const index = kept.findIndex(
+      (other) =>
+        (other.id === label.id || nameKey(other) === nameKey(label)) &&
+        (listsOverlap(other.stages, label.stages) || listsOverlap(other.steps, label.steps)),
+    );
+    if (index < 0) {
+      kept.push({
+        ...label,
+        modes: [...label.modes],
+        stages: label.stages ? [...label.stages] : undefined,
+        steps: label.steps ? [...label.steps] : undefined,
+      });
+      continue;
+    }
+    const other = kept[index]!;
+    const winner = preferLabel(other, label);
+    const stages = !other.stages?.length || !label.stages?.length ? undefined : unique([...other.stages, ...label.stages]);
+    kept[index] = {
+      ...winner,
+      modes: unique([...other.modes, ...label.modes]),
+      stages,
+      steps: unique([...(other.steps ?? []), ...(label.steps ?? [])]),
+      priority: Math.max(other.priority, label.priority),
+      position: winner.position,
+    };
+  }
+  return kept;
+}
+
+/** True on the frame a camera flight arrives, so labels are placed for that view. */
+export function relayoutOnTweenEnd(wasTweening: boolean, stillTweening: boolean): boolean {
+  return wasTweening && !stillTweening;
+}
+
 function modeIncludes(label: StudyLabel, mode: LabelMode): boolean {
   if (mode === 'all') return label.modes.includes('all') || label.modes.includes('basic') || label.modes.includes('surgical');
   return label.modes.includes(mode);
