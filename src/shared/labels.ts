@@ -1,3 +1,5 @@
+import type { ViewStage } from './stage-frame';
+
 export type LabelTier = 'region' | 'structure' | 'subpart' | 'surface';
 
 export type LabelMode = 'basic' | 'surgical' | 'all';
@@ -69,12 +71,18 @@ export function displayEnglish(en: string): string {
   return SHORT_EN[trimmed] ?? trimmed;
 }
 
-/** Which label tiers belong at this camera distance. */
+/**
+ * Preferred tiers when a view is only being thinned out.
+ * This does not override the label mode. `chooseStudyLabels` uses the mode first.
+ */
 export function tiersForDistance(distanceMm: number): LabelTier[] {
   if (distanceMm > 60) return ['region', 'surface'];
   if (distanceMm > 20) return ['structure'];
   return ['structure', 'subpart'];
 }
+
+/** Auricle names kept on the entry view. The other surface points stay for the ear stage. */
+export const BODY_SURFACE = ['helix', 'tragus', 'lobule'] as const;
 
 export type StudyLabel = {
   id: string;
@@ -87,21 +95,92 @@ export type StudyLabel = {
   parentId?: string;
   /** Specimen millimetres. */
   position: [number, number, number];
+  /** Crumb stages that may show this label. Empty means every stage. */
+  stages?: readonly ViewStage[];
+  /** Dissection steps that may show this label. */
+  steps?: readonly string[];
 };
 
-export function labelAllowed(label: StudyLabel, mode: LabelMode, distanceMm: number, selectedParent: string | null): boolean {
-  if (mode !== 'all' && !label.modes.includes(mode)) return false;
-  if (mode === 'all' && !label.modes.includes('all') && !label.modes.includes('basic') && !label.modes.includes('surgical')) {
-    return false;
+function modeIncludes(label: StudyLabel, mode: LabelMode): boolean {
+  if (mode === 'all') return label.modes.includes('all') || label.modes.includes('basic') || label.modes.includes('surgical');
+  return label.modes.includes(mode);
+}
+
+function contextIncludes(label: StudyLabel, stage: ViewStage | null, stepId: string | null): boolean {
+  if (stepId) {
+    if (label.tier === 'region') return false;
+    if (label.steps?.includes(stepId)) return true;
+    if (label.tier === 'subpart') return false;
+    if (!label.stages || !stage) return false;
+    return label.stages.includes(stage);
   }
-  const tiers = tiersForDistance(distanceMm);
-  if (!tiers.includes(label.tier)) return false;
-  if (label.tier === 'subpart') {
+  if (label.stages && !label.stages.includes(stage ?? 'body')) return false;
+  if (stage === 'body' && label.tier === 'surface' && !BODY_SURFACE.includes(label.id as (typeof BODY_SURFACE)[number])) return false;
+  return true;
+}
+
+/**
+ * The selected mode decides the set. Distance does not throw that set away.
+ * A basic sub-part still waits until its parent is selected.
+ */
+export function labelAllowed(
+  label: StudyLabel,
+  mode: LabelMode,
+  _distanceMm: number,
+  selectedParent: string | null,
+  stage: ViewStage | null = null,
+  stepId: string | null = null,
+): boolean {
+  if (!modeIncludes(label, mode)) return false;
+  if (!contextIncludes(label, stage, stepId)) return false;
+  if (mode === 'basic' && label.tier === 'subpart') {
     if (!selectedParent) return false;
     return label.parentId === selectedParent || label.id === selectedParent;
   }
-  if (distanceMm > 220 && label.tier === 'region') return false;
   return true;
+}
+
+/** How many labels to keep before collision turns the rest into dots. */
+export function labelBudget(mode: LabelMode, distanceMm: number): number {
+  if (mode === 'surgical') return distanceMm > 220 ? 8 : distanceMm > 120 ? 14 : 22;
+  if (mode === 'basic') return distanceMm > 220 ? 6 : 12;
+  return distanceMm > 220 ? 8 : distanceMm > 120 ? 14 : 20;
+}
+
+/**
+ * Thin a mode's own labels. Structure names are reserved so a far view
+ * cannot collapse to the four group headings.
+ */
+export function declutterLabels(labels: readonly StudyLabel[], mode: LabelMode, distanceMm: number): StudyLabel[] {
+  const budget = labelBudget(mode, distanceMm);
+  const ranked = labels.slice().sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
+  if (ranked.length <= budget) return ranked;
+  if (mode === 'surgical') return ranked.slice(0, budget);
+  const primary = ranked.filter((label) => label.tier === 'structure' || label.tier === 'surface');
+  const rest = ranked.filter((label) => label.tier !== 'structure' && label.tier !== 'surface');
+  const reserved = Math.min(primary.length, Math.max(4, Math.ceil(budget * 0.5)));
+  const ordered = [...primary.slice(0, reserved), ...rest, ...primary.slice(reserved)];
+  const seen = new Set<string>();
+  const picked: StudyLabel[] = [];
+  for (const label of ordered) {
+    if (seen.has(label.id)) continue;
+    seen.add(label.id);
+    picked.push(label);
+    if (picked.length >= budget) break;
+  }
+  return picked;
+}
+
+export function chooseStudyLabels(
+  labels: readonly StudyLabel[],
+  mode: LabelMode,
+  distanceMm: number,
+  selectedParent: string | null,
+  stage: ViewStage | null,
+  stepId: string | null,
+): StudyLabel[] {
+  const allowed = labels.filter((label) => labelAllowed(label, mode, distanceMm, selectedParent, stage, stepId));
+  return declutterLabels(allowed, mode, distanceMm);
 }
 
 export type PlacementInput = {
@@ -157,7 +236,9 @@ export function placeLabels(
   width: number,
   height: number,
   inset: { top: number; right: number; bottom: number; left: number } = { top: 0, right: 0, bottom: 0, left: 0 },
+  options: { allowDots?: boolean } = {},
 ): Placement[] {
+  const allowDots = options.allowDots !== false;
   const ordered = items.slice().sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
   const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
   const result: Placement[] = [];
@@ -179,6 +260,7 @@ export function placeLabels(
       break;
     }
     if (!chosen) {
+      if (!allowDots) continue;
       const left = Math.max(minX + 8, Math.min(maxX - 8, item.anchorX));
       const top = Math.max(minY + 8, Math.min(maxY - 8, item.anchorY));
       chosen = { id: item.id, mode: 'dot', x: left, y: top, dimmed };

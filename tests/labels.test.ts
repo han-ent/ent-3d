@@ -26,12 +26,13 @@ describe('english-first labels', () => {
     expect(tiersForDistance(12)).toEqual(['structure', 'subpart']);
   });
 
-  it('shows a subpart only for the selected parent when close', () => {
+  it('lets the selected mode win over camera distance', () => {
     const item = label({});
-    expect(labelAllowed(item, 'surgical', 12, 'malleus')).toBe(true);
-    expect(labelAllowed(item, 'basic', 12, 'malleus')).toBe(false);
-    expect(labelAllowed(item, 'surgical', 40, 'malleus')).toBe(false);
-    expect(labelAllowed(item, 'all', 12, null)).toBe(false);
+    expect(labelAllowed(item, 'surgical', 12, 'malleus', 'bone')).toBe(true);
+    expect(labelAllowed(item, 'surgical', 90, null, 'bone')).toBe(true);
+    expect(labelAllowed(item, 'basic', 12, 'malleus', 'bone')).toBe(false);
+    expect(labelAllowed(item, 'all', 90, null, 'bone')).toBe(true);
+    expect(labelAllowed(item, 'basic', 12, null, 'bone')).toBe(false);
   });
 });
 

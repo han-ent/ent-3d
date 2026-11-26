@@ -109,6 +109,7 @@
   "sheet.expand": "설명 열기",
   "sheet.collapse": "접기",
   "sheet.structures": "구조",
+  "sheet.landmarks": "표지",
   "sheet.emptyTitle": "구조를 누르세요",
   "sheet.emptyLine": "뼈 안의 구조가 먼저 선택됩니다.",
   "bone.transparent": "뼈 투명",

@@ -19,8 +19,8 @@
             "en": "Cortical mastoidectomy"
           },
           "instructions": {
-            "ko": "가쪽 유양 피질을 뒤에서 봅니다. 와우는 이 단계에서 숨깁니다.",
-            "en": "Look at the lateral mastoid cortex from behind. The cochlea stays hidden."
+            "ko": "유양동을 열기 전, 가쪽 유양 피질을 뒤에서 본다. 이소골과 와우는 뼈에 가려져 있다.",
+            "en": "The lateral mastoid cortex, before the antrum is open. The ossicles and the cochlea stay covered by bone."
           },
           "identify": [
             "facial-nerve",
@@ -31,23 +31,22 @@
             "sinus-dura"
           ],
           "visible": [
+            "bone",
+            "sinus-dura"
+          ],
+          "ghosted": [],
+          "hidden": [
             "facial-nerve",
             "chorda-tympani",
             "malleus",
             "incus",
-            "stapes"
-          ],
-          "ghosted": [
-            "bone",
-            "sinus-dura"
-          ],
-          "hidden": [
+            "stapes",
+            "tympanic-membrane",
+            "external-auditory-canal",
             "scala-vestibuli",
             "scala-tympani",
             "cochleovestibular-nerve",
             "carotid-artery",
-            "tympanic-membrane",
-            "external-auditory-canal",
             "vestibule",
             "scc-lateral",
             "scc-superior",
@@ -81,8 +80,8 @@
             "en": "Antrum"
           },
           "instructions": {
-            "ko": "유양동은 점으로만 표시되어 있고 함기셀은 그려져 있지 않다. 점은 미검증이다.",
-            "en": "The antrum is marked by a point. The air cells themselves are not shown. The point is unverified."
+            "ko": "유양 피질을 유양동까지 연다. 외측반고리관과 침골 단돌기가 보인다. 유양동 점은 미검증이다.",
+            "en": "The mastoid is open back to the antrum. The lateral canal and the short process of the incus are in view. The antrum point is unverified."
           },
           "identify": [],
           "danger": [
@@ -90,25 +89,24 @@
             "sinus-dura"
           ],
           "visible": [
-            "facial-nerve",
-            "chorda-tympani",
-            "malleus",
-            "incus",
-            "stapes"
-          ],
-          "ghosted": [
             "bone",
-            "sinus-dura"
+            "sinus-dura",
+            "scc-lateral",
+            "incus",
+            "facial-nerve",
+            "chorda-tympani"
           ],
+          "ghosted": [],
           "hidden": [
+            "malleus",
+            "stapes",
+            "tympanic-membrane",
+            "external-auditory-canal",
             "scala-vestibuli",
             "scala-tympani",
             "cochleovestibular-nerve",
             "carotid-artery",
-            "tympanic-membrane",
-            "external-auditory-canal",
             "vestibule",
-            "scc-lateral",
             "scc-superior",
             "scc-posterior",
             "common-crus",
@@ -145,6 +143,15 @@
               0.007458
             ],
             "fov": 28
+          },
+          "clipping": {
+            "enabled": true,
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "constant": -50
           }
         },
         {
@@ -154,8 +161,8 @@
             "en": "Identify the facial nerve"
           },
           "instructions": {
-            "ko": "뒤가쪽에서 안면신경을 봅니다. 와우를 정면으로 보지 않습니다.",
-            "en": "The facial nerve from posterolateral. This view does not face the cochlea."
+            "ko": "외측반고리관 아래에서 안면신경 유양분절을 확인한다. 고삭신경이 이곳에서 갈라진다.",
+            "en": "The mastoid segment of the facial nerve, below the lateral canal. The chorda tympani leaves the nerve here."
           },
           "identify": [
             "facial-nerve"
@@ -167,25 +174,24 @@
           ],
           "highlight": "facial-nerve",
           "visible": [
+            "bone",
+            "sinus-dura",
             "facial-nerve",
             "chorda-tympani",
-            "incus",
-            "malleus",
-            "stapes"
+            "scc-lateral"
           ],
-          "ghosted": [
-            "bone",
-            "sinus-dura"
-          ],
+          "ghosted": [],
           "hidden": [
+            "malleus",
+            "incus",
+            "stapes",
+            "tympanic-membrane",
+            "external-auditory-canal",
             "scala-vestibuli",
             "scala-tympani",
             "cochleovestibular-nerve",
             "carotid-artery",
-            "tympanic-membrane",
-            "external-auditory-canal",
             "vestibule",
-            "scc-lateral",
             "scc-superior",
             "scc-posterior",
             "common-crus",
@@ -208,6 +214,15 @@
               0.007458
             ],
             "fov": 28
+          },
+          "clipping": {
+            "enabled": true,
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "constant": -53
           }
         },
         {
@@ -217,11 +232,11 @@
             "en": "Posterior tympanotomy"
           },
           "instructions": {
-            "ko": "안면신경과 고삭신경 사이로 침골을 봅니다.",
-            "en": "The incus between the facial nerve and the chorda tympani."
+            "ko": "안면신경과 고삭신경 사이의 안면신경와를 통해 등골, 정원창 함요, 고실갑각이 보인다.",
+            "en": "Through the facial recess, between the facial nerve and the chorda tympani, the stapes, round-window niche, and promontory are in view."
           },
           "identify": [
-            "incus",
+            "stapes",
             "facial-nerve",
             "chorda-tympani"
           ],
@@ -229,25 +244,24 @@
             "facial-nerve",
             "chorda-tympani"
           ],
-          "highlight": "incus",
+          "highlight": "stapes",
           "visible": [
+            "bone",
             "facial-nerve",
             "chorda-tympani",
-            "incus",
-            "malleus",
             "stapes",
-            "tympanic-membrane"
+            "incus"
           ],
-          "ghosted": [
-            "bone"
-          ],
+          "ghosted": [],
           "hidden": [
+            "malleus",
+            "tympanic-membrane",
+            "external-auditory-canal",
+            "sinus-dura",
             "scala-vestibuli",
             "scala-tympani",
             "cochleovestibular-nerve",
             "carotid-artery",
-            "external-auditory-canal",
-            "sinus-dura",
             "vestibule",
             "scc-lateral",
             "scc-superior",
@@ -272,6 +286,15 @@
               0.007458
             ],
             "fov": 28
+          },
+          "clipping": {
+            "enabled": true,
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "constant": -57
           }
         }
       ]
@@ -362,8 +385,8 @@
             "en": "Cochlea from above"
           },
           "instructions": {
-            "ko": "위에서 와우와 안면신경을 봅니다.",
-            "en": "The cochlea and facial nerve from above."
+            "ko": "와우 위쪽 뼈를 열어 위에서 와우와 안면신경을 본다.",
+            "en": "The bone above the cochlea is opened, so the cochlea and the facial nerve are seen from above."
           },
           "identify": [
             "scala-vestibuli",
@@ -397,11 +420,6 @@
             "external-auditory-canal",
             "tympanic-membrane",
             "sinus-dura",
-            "vestibule",
-            "scc-lateral",
-            "scc-superior",
-            "scc-posterior",
-            "common-crus",
             "labyrinth"
           ],
           "camera": {
@@ -421,6 +439,15 @@
               -0.453194
             ],
             "fov": 28
+          },
+          "clipping": {
+            "enabled": true,
+            "normal": [
+              0,
+              1,
+              0
+            ],
+            "constant": -24
           }
         }
       ]

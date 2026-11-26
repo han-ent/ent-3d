@@ -107,6 +107,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   min-height: 0;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .stage {
@@ -116,11 +117,20 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   background: var(--stage);
 }
 
+.stage,
+.stage canvas,
+.callout-layer,
+.study-layer,
+.study-label,
+.study-dot,
+.callout {
+  touch-action: none;
+}
+
 .stage canvas {
   width: 100%;
   height: 100%;
   display: block;
-  touch-action: none;
 }
 
 .stage-status {
@@ -237,7 +247,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 
 .study-label {
   position: absolute;
-  pointer-events: auto;
+  pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -273,7 +283,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   border-radius: 50%;
   background: rgba(140, 47, 27, 0.38);
   transform: translate(-50%, -50%);
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .labelbar {
@@ -327,7 +337,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 
 .callout {
   position: absolute;
-  pointer-events: auto;
+  pointer-events: none;
   border: 0;
   background: transparent;
   color: #f7f5f0;
@@ -359,16 +369,26 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 }
 
 .sheet {
-  flex: 0 0 auto;
-  max-height: 46%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  height: var(--sheet-cover, 108px);
+  max-height: none;
   display: flex;
   flex-direction: column;
   background: var(--paper);
   border-top: 1px solid var(--line);
   min-height: 0;
+  box-shadow: 0 -8px 24px rgba(34, 34, 34, 0.06);
 }
 
-.sheet.is-open { flex: 1 1 58%; max-height: none; }
+.sheet.is-open { height: var(--sheet-cover, 46%); max-height: none; flex: none; }
+
+.modebar { bottom: calc(var(--sheet-cover, 108px) + 8px); }
+.crumbs { bottom: calc(var(--sheet-cover, 108px) + 60px); }
+.stage-caption { bottom: calc(var(--sheet-cover, 108px) + 96px); }
 
 body.is-quiz .sheet.is-open {
   flex: 0 0 46%;
@@ -578,15 +598,25 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
   .workspace { flex-direction: row; }
   .stage { flex: 1 1 auto; }
   .sheet {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
     width: min(420px, 38vw);
+    height: auto;
     max-height: none;
     flex: none;
     border-top: 0;
     border-left: 1px solid var(--line);
+    box-shadow: none;
   }
-  .sheet.is-open { flex: none; }
+  .sheet.is-open { height: auto; flex: none; }
   .sheet:not(.is-open) .sheet-body { display: block; }
   .sheet-handle { display: none; }
+  .modebar { bottom: 8px; }
+  .crumbs { bottom: 78px; }
+  .stage-caption { bottom: 56px; }
   .modebar button { flex: 0 0 auto; min-height: 32px; padding: 4px 12px; }
   .page { padding-top: 40px; }
 }

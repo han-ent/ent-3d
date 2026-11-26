@@ -6,11 +6,13 @@ import type { ContourSource } from '../ct-slice';
 import { displayOpacity, choosePick, isEnvelope, touchSampleOffsets, type PickCandidate } from '../picking';
 import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
-import { chooseScaleMm, distanceMm, worldClippingPlane } from '../measurement';
+import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
-import { columnPlacements, estimateLabelSize, focusPartList, PEEL_LABELS, placeLabels, type Placement, type StudyLabel } from '../labels';
-import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM, verticalSpanMm } from '../view-pose';
+import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, type Placement, type StudyLabel } from '../labels';
+import type { ViewStage } from '../stage-frame';
+import { distanceForAspect, placeAlong } from '../stage-frame';
+import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM } from '../view-pose';
 import { choosePixelRatio, coveredBySphere } from './budget';
 import {
   ATLAS_BACKGROUND,
@@ -151,6 +153,11 @@ export class EntViewer {
   private stageHidden = new Set<string>();
   private studyLabels: StudyLabel[] = [];
   private labelMode: 'basic' | 'surgical' | 'all' = 'basic';
+  private viewStage: ViewStage | null = 'body';
+  private viewStep: string | null = null;
+  private labelInset = { top: 64, right: 100, bottom: 128, left: 12 };
+  private shellForced: boolean | null = null;
+  private readonly freeClip: THREE.Plane[] = [];
   private studyLayer: HTMLElement | null = null;
   private studyButtons = new Map<string, HTMLButtonElement>();
   private labelPlan: Placement[] = [];
@@ -236,6 +243,7 @@ export class EntViewer {
     this.controls.zoomSpeed = 0.85;
     this.controls.minDistance = 2;
     this.controls.maxDistance = 1600;
+    this.controls.zoomToCursor = true;
 
     this.world.name = 'specimen';
     this.world.position.set(this.offset[0], this.offset[1], this.offset[2]);
@@ -376,6 +384,17 @@ export class EntViewer {
     return this.camera.position.distanceTo(this.controls.target);
   }
 
+  cameraPose(): { position: Vec3; target: Vec3 } {
+    return {
+      position: [this.camera.position.x, this.camera.position.y, this.camera.position.z],
+      target: [this.controls.target.x, this.controls.target.y, this.controls.target.z],
+    };
+  }
+
+  crosshairVisible(): boolean {
+    return this.crosshair.visible;
+  }
+
   flyTo(position: Vec3, target: Vec3, up: Vec3 = [0, -1, 0], fov = DEFAULT_FOV): void {
     this.moveCamera(this.worldPoint(position), this.worldPoint(target), up, fov, false);
   }
@@ -416,6 +435,81 @@ export class EntViewer {
     this.labelById = new Map(labels.map((label) => [label.id, label]));
     this.labelPlanAt = 0;
     this.invalidate();
+  }
+
+  /** Crumb stage and dissection step. The label mode is filtered with these, not by distance alone. */
+  setViewContext(stage: ViewStage | null, stepId: string | null): void {
+    this.viewStage = stage;
+    this.viewStep = stepId;
+    this.labelPlanAt = 0;
+    this.invalidate();
+  }
+
+  setLabelInset(inset: { top: number; right: number; bottom: number; left: number }): void {
+    this.labelInset = inset;
+    this.labelPlanAt = 0;
+    this.invalidate();
+  }
+
+  /**
+   * Hide the skin and auricle without opening a spherical window in the bone.
+   * `null` follows the cutaway radius again.
+   */
+  setShellOpen(open: boolean | null): void {
+    this.shellForced = open;
+    if (open) {
+      this.distanceRadius = 0;
+      this.focusRadius = 0;
+      this.cutRadius.value = 0;
+    }
+    this.applyShellVisibility();
+    this.invalidate();
+  }
+
+  clearPreset(): void {
+    this.presetVis = null;
+    this.setClipping(null);
+    this.setMarker(null, '');
+    this.refreshLook();
+  }
+
+  /** Union of structure bounds in specimen millimetres. */
+  boundsOf(ids: readonly string[]): { min: Vec3; max: Vec3 } | null {
+    const box = new THREE.Box3();
+    for (const id of ids) {
+      const record = this.records.get(id);
+      if (!record || record.aggregate) continue;
+      record.object.updateWorldMatrix(true, true);
+      const visible = record.object.visible;
+      record.object.visible = true;
+      box.expandByObject(record.object);
+      record.object.visible = visible;
+    }
+    return this.specimenBox(box);
+  }
+
+  /** Skin, auricle, and skull, in specimen millimetres. */
+  entryBounds(): { min: Vec3; max: Vec3 } | null {
+    const box = new THREE.Box3();
+    for (const mesh of [this.skinMesh, this.upperBody, this.skullLayer]) {
+      if (!mesh) continue;
+      mesh.updateWorldMatrix(true, true);
+      const visible = mesh.visible;
+      mesh.visible = true;
+      box.expandByObject(mesh);
+      mesh.visible = visible;
+    }
+    return this.specimenBox(box);
+  }
+
+  private specimenBox(box: THREE.Box3): { min: Vec3; max: Vec3 } | null {
+    if (box.isEmpty()) return null;
+    const min = this.world.worldToLocal(box.min.clone());
+    const max = this.world.worldToLocal(box.max.clone());
+    return {
+      min: [Math.min(min.x, max.x), Math.min(min.y, max.y), Math.min(min.z, max.z)],
+      max: [Math.max(min.x, max.x), Math.max(min.y, max.y), Math.max(min.z, max.z)],
+    };
   }
 
   flash(id: string): void {
@@ -470,6 +564,7 @@ export class EntViewer {
       const triangles = obj.geometry.index ? obj.geometry.index.count / 3 : (obj.geometry.getAttribute('position')?.count ?? 0) / 3;
       if (this.hullsOn && triangles > 0 && triangles < 40000) {
         const hull = new THREE.Mesh(obj.geometry, this.hullFor(cutScaleFor(id)));
+        (hull.material as THREE.ShaderMaterial).clippingPlanes = this.planesFor(id);
         hull.visible = this.style === 'atlas';
         hull.renderOrder = 2;
         hull.userData.kind = 'hull';
@@ -583,6 +678,7 @@ export class EntViewer {
     this.isolateId = null;
     this.userHidden = new Set(['external-auditory-canal']);
     this.boneTransparent = false;
+    this.shellForced = null;
     this.labelsHidden = this.mode === 'quiz';
     this.setMarker(null, '');
     this.focusCut(null);
@@ -639,30 +735,25 @@ export class EntViewer {
       visible: preset.visible ? new Set(preset.visible) : null,
     };
     this.isolateId = null;
+    this.stageHidden = new Set();
     const highlight = preset.highlight ?? null;
     this.selected = highlight;
     this.dimOthers = false;
     this.linked.clear();
+    this.shellForced = true;
+    this.distanceRadius = 0;
+    this.focusRadius = 0;
+    this.cutRadius.value = 0;
+    this.applyShellVisibility();
     this.refreshLook();
     const position = preset.camera.position;
     const target = preset.camera.target;
     const up = preset.camera.up ?? [0, -1, 0];
     const fov = preset.camera.fov ?? DEFAULT_FOV;
-    const authored = verticalSpanMm(distanceMm(position, target), fov);
-    const radius = highlight ? this.boundingRadius(highlight) : 8;
-    const span = Math.max(authored, framingSpanMm(radius, this.canvas.clientWidth, this.canvas.clientHeight));
-    const distance = span / (2 * Math.tan((fov * Math.PI) / 360));
-    const direction = [
-      position[0] - target[0],
-      position[1] - target[1],
-      position[2] - target[2],
-    ];
-    const length = Math.hypot(direction[0], direction[1], direction[2]) || 1;
-    const next: Vec3 = [
-      target[0] + (direction[0] / length) * distance,
-      target[1] + (direction[1] / length) * distance,
-      target[2] + (direction[2] / length) * distance,
-    ];
+    const direction: Vec3 = [position[0] - target[0], position[1] - target[1], position[2] - target[2]];
+    const authored = Math.hypot(direction[0], direction[1], direction[2]) || 1;
+    const distance = distanceForAspect(authored, fov, this.canvas.clientWidth, this.canvas.clientHeight);
+    const next = placeAlong(target, direction, distance);
     this.moveCamera(this.worldPoint(next), this.worldPoint(target), up, fov, false);
     this.setClipping(preset.clipping?.enabled ? preset.clipping : null);
   }
@@ -976,15 +1067,16 @@ export class EntViewer {
     const envelope = record.id === 'bone' || record.id === 'sinus-dura' || record.id === 'external-auditory-canal';
     const dimmed = close && !inSelection && !neighbour && record.id !== 'bone';
     const defaultGhost = !this.presetVis && record.id === 'sinus-dura';
+    const presetGhost = this.presetVis?.ghosted.has(record.id) === true;
     let opacity = displayOpacity({
       id: record.id,
       base: record.opacity,
       selectedId: inSelection ? record.id : this.selected,
       dimOthers: this.dimOthers && !inSelection && !close,
-      ghost: this.presetVis?.ghosted.has(record.id) === true || defaultGhost,
+      ghost: presetGhost || defaultGhost,
       boneTransparent: this.boneTransparent,
     });
-    if (record.id === 'bone' && !this.boneTransparent) opacity = 1;
+    if (record.id === 'bone' && !this.boneTransparent && !presetGhost) opacity = 1;
     else if (close && envelope) opacity = Math.min(opacity, 0.08);
     else if (close && (record.id === 'tympanic-membrane' || record.id.startsWith('tm-')) && (family === 'malleus' || family === 'incus' || family === 'stapes')) opacity = 0.34;
     else if (close && neighbour) opacity = 0.82;
@@ -1088,6 +1180,11 @@ export class EntViewer {
     if (list.includes(id)) return true;
     const parent = this.parentOf.get(id);
     return parent !== undefined && list.includes(parent);
+  }
+
+  /** Surgical cuts open bone and sinus only. Nerves and ossicles stay whole. */
+  private planesFor(id: string): THREE.Plane[] {
+    return id === 'bone' || id === 'sinus-dura' ? this.clipping : this.freeClip;
   }
 
   private setClipping(clip: { normal: Vec3; constant: number } | null): void {
@@ -1243,7 +1340,8 @@ export class EntViewer {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'callout';
-      button.addEventListener('pointerup', (event) => {
+      button.dataset.labelId = id;
+      button.addEventListener('click', (event) => {
         event.stopPropagation();
         event.preventDefault();
         this.onLabelHandler?.(id === 'marker' ? '' : id);
@@ -1414,7 +1512,7 @@ export class EntViewer {
   }
 
   private applyShellVisibility(): void {
-    const open = this.cutRadius.value > 8;
+    const open = this.shellForced ?? this.cutRadius.value > 8;
     if (this.skinMesh) this.skinMesh.visible = !open;
     if (this.upperBody) this.upperBody.visible = !open;
     // The skull sits inside the skin. Its outline shows through the occiput crease, so it stays hidden.
@@ -1491,7 +1589,7 @@ export class EntViewer {
         opacity,
         cut: { center: { value: this.cutCenter }, radius: this.cutRadius },
         cutScale: cutScaleFor(id),
-        clippingPlanes: this.clipping,
+        clippingPlanes: this.planesFor(id),
         side,
         detail: atlasDetail(id),
       });
@@ -1501,7 +1599,7 @@ export class EntViewer {
       roughness: 0.48,
       metalness: 0.04,
       side,
-      clippingPlanes: this.clipping,
+      clippingPlanes: this.planesFor(id),
       opacity,
       transparent: opacity < 0.98,
     });
@@ -1535,7 +1633,7 @@ export class EntViewer {
         opacity: 1,
         cut: { center: { value: this.cutCenter }, radius: this.cutRadius },
         cutScale,
-        clippingPlanes: this.clipping,
+        clippingPlanes: id === 'bone' || id === 'sinus-dura' ? this.clipping : this.freeClip,
         side,
         detail: atlasDetail(id),
         reveal,
@@ -1675,8 +1773,8 @@ export class EntViewer {
         button.type = 'button';
         button.style.left = '0';
         button.style.top = '0';
-        button.addEventListener('pointerup', (event) => {
-          event.stopPropagation();
+        button.dataset.labelId = item.id;
+        button.addEventListener('click', (event) => {
           event.preventDefault();
           this.onLabelHandler?.(item.id);
         });
@@ -1693,6 +1791,8 @@ export class EntViewer {
       const modeClass = item.mode === 'dot' ? 'study-dot' : 'study-label';
       if (button.className !== modeClass) button.className = modeClass;
       const caption = source ? `${item.mode}|${source.en}|${source.ko}` : item.mode;
+      const accessible = source ? `${source.en}${source.ko ? ` ${source.ko}` : ''}` : item.id;
+      if (button.getAttribute('aria-label') !== accessible) button.setAttribute('aria-label', accessible);
       if (button.dataset.caption !== caption) {
         button.dataset.caption = caption;
         button.replaceChildren();
@@ -1770,13 +1870,12 @@ export class EntViewer {
   private layoutStudyLabels(width: number, height: number): Placement[] {
     this.rebuildOccluders();
     const distance = this.cameraDistance();
-    const inset = { top: 58, right: 16, bottom: 108, left: 16 };
+    const inset = this.labelInset;
     const parts = focusPartList(this.selected);
-    if (parts && distance < 160) {
+    if (parts && !this.viewStep) {
       const column = [];
       for (const label of this.studyLabels) {
         if (!parts.includes(label.id)) continue;
-        if (this.labelMode !== 'all' && !label.modes.includes(this.labelMode)) continue;
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
         const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
@@ -1784,10 +1883,15 @@ export class EntViewer {
       }
       if (column.length) return columnPlacements(column, width, height, inset);
     }
-    if (!this.selected && this.cutRadius.value > 8 && distance < 160) {
+    const chosen = chooseStudyLabels(this.studyLabels, this.labelMode, distance, this.selected, this.viewStage, this.viewStep);
+    if (this.viewStep) {
       const column = [];
-      for (const label of this.studyLabels) {
-        if (!PEEL_LABELS.includes(label.id as (typeof PEEL_LABELS)[number])) continue;
+      for (const label of chosen) {
+        if (!label.steps?.includes(this.viewStep)) continue;
+        if (label.tier !== 'subpart') {
+          const owner = this.records.get(label.id);
+          if (owner && !owner.object.visible) continue;
+        }
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
         const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
@@ -1796,29 +1900,20 @@ export class EntViewer {
       if (column.length) return columnPlacements(column, width, height, inset);
     }
     const inputs = [];
-    for (const label of this.studyLabels) {
-      const tiers = distance > 140 ? ['region', 'surface'] : ['region', 'surface', 'structure', 'subpart'];
-      if (label.tier === 'surface' && this.cutRadius.value > 8) continue;
-      if (!tiers.includes(label.tier)) continue;
-      if (this.labelMode !== 'all' && !label.modes.includes(this.labelMode)) continue;
-      if (label.tier === 'subpart' && label.parentId !== this.selected && label.id !== this.selected) continue;
-      if (distance > 220 && label.tier === 'region') continue;
-      const selectedLabel = this.selected ? this.studyLabels.find((item) => item.id === this.selected) : undefined;
-      if (this.selected && distance < 45 && label.tier === 'structure' && label.id !== this.selected && selectedLabel) {
-        const away = Math.hypot(
-          label.position[0] - selectedLabel.position[0],
-          label.position[1] - selectedLabel.position[1],
-          label.position[2] - selectedLabel.position[2],
-        );
-        if (away > 18) continue;
+    for (const label of chosen) {
+      if (label.tier !== 'subpart') {
+        const owner = this.records.get(label.id);
+        if (owner && !owner.object.visible) continue;
       }
+      if (label.tier === 'surface' && (this.shellForced || this.cutRadius.value > 8) && this.viewStage !== 'body' && this.viewStage !== 'ear') continue;
       const anchor = this.projectSpecimen(label.position, width, height);
       if (!anchor || anchor.behind) continue;
       const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
       const occluded = this.anchorOccluded(label.position);
       let priority = label.priority;
       if (label.id === this.selected) priority += 40;
-      if (label.parentId === this.selected) priority += 140;
+      if (label.parentId === this.selected) priority += 80;
+      if (this.viewStep && label.steps?.includes(this.viewStep)) priority += 50;
       inputs.push({
         id: label.id,
         priority,
@@ -1829,7 +1924,8 @@ export class EntViewer {
         occluded,
       });
     }
-    return placeLabels(inputs, width, height, inset);
+    const allowDots = this.viewStage !== 'body' && this.viewStage !== 'ear';
+    return placeLabels(inputs, width, height, inset, { allowDots });
   }
 
   private projectSpecimen(position: Vec3, width: number, height: number): { x: number; y: number; behind: boolean } | null {
@@ -1921,6 +2017,19 @@ export class EntViewer {
     }
   }
 
+  private labelAt(clientX: number, clientY: number): string | null {
+    const buttons = [...this.studyButtons.values(), ...this.calloutButtons.values()];
+    for (const button of buttons) {
+      if (button.hidden) continue;
+      const rect = button.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) continue;
+      if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+        return button.dataset.labelId ?? null;
+      }
+    }
+    return null;
+  }
+
   private onPointerDown = (event: PointerEvent): void => {
     this.down = { x: event.clientX, y: event.clientY };
   };
@@ -1930,6 +2039,11 @@ export class EntViewer {
     const moved = Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y);
     this.down = null;
     if (moved > 10) return;
+    const labelId = this.labelAt(event.clientX, event.clientY);
+    if (labelId) {
+      this.onLabelHandler?.(labelId === 'marker' ? '' : labelId);
+      return;
+    }
     if (event.shiftKey) {
       const hit = this.cast(event.clientX, event.clientY);
       if (hit) this.onShiftHandler?.(hit.pointMm);

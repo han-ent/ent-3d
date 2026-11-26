@@ -109,6 +109,7 @@
   "sheet.expand": "Open notes",
   "sheet.collapse": "Close",
   "sheet.structures": "Structures",
+  "sheet.landmarks": "Landmarks",
   "sheet.emptyTitle": "Tap a structure",
   "sheet.emptyLine": "Structures inside the bone are chosen first.",
   "bone.transparent": "Bone clear",

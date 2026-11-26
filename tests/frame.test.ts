@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anatomicalPlaneName, ctEdgeLabels, GIZMO_AXES } from '../src/shared/frame';
+import { anatomicalPlaneName, ctDisplayOrient, ctEdgeLabels, displayedEdgeLabels, GIZMO_AXES, mapDisplayToRaw, mapRawToDisplay } from '../src/shared/frame';
 import { framingSpanMm } from '../src/shared/view-pose';
 
 describe('anatomical frame', () => {
@@ -26,5 +26,21 @@ describe('anatomical frame', () => {
     expect(anatomicalPlaneName('sagittal')).toBe('coronal');
     expect(ctEdgeLabels('axial')).toEqual({ left: 'Post', top: 'Inf', right: 'Ant', bottom: 'Sup' });
     expect(ctEdgeLabels('coronal').top).toBe('Med');
+  });
+
+  it('turns slices into radiological orientation for this right ear', () => {
+    expect(displayedEdgeLabels('coronal')).toEqual({ left: 'Lat', top: 'Ant', right: 'Med', bottom: 'Post' });
+    expect(displayedEdgeLabels('sagittal')).toEqual({ left: 'Lat', top: 'Sup', right: 'Med', bottom: 'Inf' });
+    expect(displayedEdgeLabels('axial').top).toBe('Sup');
+    const axial = ctDisplayOrient('coronal');
+    const anteriorMedial = mapRawToDisplay(axial, 1, 0);
+    expect(anteriorMedial.v).toBeCloseTo(0);
+    expect(anteriorMedial.u).toBeCloseTo(1);
+    const back = mapDisplayToRaw(axial, anteriorMedial.u, anteriorMedial.v);
+    expect(back.u).toBeCloseTo(1);
+    expect(back.v).toBeCloseTo(0);
+    const coronal = ctDisplayOrient('sagittal');
+    const superior = mapRawToDisplay(coronal, 0, 0.5);
+    expect(superior.v).toBeLessThan(0.5);
   });
 });
