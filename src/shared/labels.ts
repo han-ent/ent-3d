@@ -277,11 +277,12 @@ export type ColumnInput = {
   anchorY: number;
   width: number;
   height: number;
+  priority?: number;
 };
 
 /**
- * Stack selected sub-part labels in a column beside the structure.
- * Sorted by anchor so the top label belongs to the superior part.
+ * Stack labels in a column beside the anchors, inside the free rectangle.
+ * Lowest priority is dropped when the column is taller than that rectangle.
  */
 export function columnPlacements(
   items: readonly ColumnInput[],
@@ -290,17 +291,41 @@ export function columnPlacements(
   inset: { top: number; right: number; bottom: number; left: number } = { top: 0, right: 0, bottom: 0, left: 0 },
 ): Placement[] {
   if (!items.length) return [];
-  const meanX = items.reduce((sum, item) => sum + item.anchorX, 0) / items.length;
-  const meanY = items.reduce((sum, item) => sum + item.anchorY, 0) / items.length;
-  const labelW = Math.max(...items.map((item) => item.width));
   const gap = 8;
-  const totalH = items.reduce((sum, item) => sum + item.height, 0) + gap * (items.length - 1);
-  const placeRight = meanX < width * 0.62;
-  const x = placeRight
-    ? Math.min(width - inset.right - labelW, Math.max(inset.left, meanX + 56))
-    : Math.max(inset.left, Math.min(meanX - 56 - labelW, width - inset.right - labelW));
-  let y = Math.max(inset.top, Math.min(height - inset.bottom - totalH, meanY - totalH / 2));
-  return items
+  const minX = inset.left;
+  const minY = inset.top;
+  const maxX = Math.max(minX + 24, width - inset.right);
+  const maxY = Math.max(minY + 20, height - inset.bottom);
+  const availH = Math.max(20, maxY - minY);
+  const ranked = items
+    .slice()
+    .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.id.localeCompare(b.id));
+  const kept: ColumnInput[] = [];
+  let used = 0;
+  for (const item of ranked) {
+    const next = used + item.height + (kept.length ? gap : 0);
+    if (next > availH) continue;
+    kept.push(item);
+    used = next;
+  }
+  if (!kept.length) {
+    const first = ranked[0];
+    if (first) kept.push(first);
+  }
+  const aLeft = Math.min(...kept.map((item) => item.anchorX));
+  const aRight = Math.max(...kept.map((item) => item.anchorX));
+  const labelW = Math.min(maxX - minX, Math.max(...kept.map((item) => item.width)));
+  const spaceRight = maxX - aRight;
+  const spaceLeft = aLeft - minX;
+  const placeRight = spaceRight >= spaceLeft;
+  let x = placeRight ? maxX - labelW : minX;
+  if (placeRight && x < aRight + 10 && spaceLeft >= labelW + 10) x = Math.max(minX, aLeft - 10 - labelW);
+  if (!placeRight && x + labelW > aLeft - 10 && spaceRight >= labelW + 10) x = Math.min(maxX - labelW, aRight + 10);
+  x = Math.max(minX, Math.min(maxX - labelW, x));
+  const totalH = kept.reduce((sum, item) => sum + item.height, 0) + gap * Math.max(0, kept.length - 1);
+  const meanY = kept.reduce((sum, item) => sum + item.anchorY, 0) / kept.length;
+  let y = Math.max(minY, Math.min(maxY - Math.min(totalH, availH), meanY - totalH / 2));
+  return kept
     .slice()
     .sort((a, b) => a.anchorY - b.anchorY || a.id.localeCompare(b.id))
     .map((item) => {

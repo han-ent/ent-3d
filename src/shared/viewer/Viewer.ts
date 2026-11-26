@@ -12,6 +12,7 @@ import { GIZMO_AXES } from '../frame';
 import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, type Placement, type StudyLabel } from '../labels';
 import type { ViewStage } from '../stage-frame';
 import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
+import { labelAnchorPoint } from '../surface-anchor';
 import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM } from '../view-pose';
 import { choosePixelRatio, coveredBySphere } from './budget';
 import {
@@ -402,6 +403,43 @@ export class EntViewer {
 
   flyTo(position: Vec3, target: Vec3, up: Vec3 = [0, -1, 0], fov = DEFAULT_FOV): void {
     this.moveCamera(this.worldPoint(position), this.worldPoint(target), up, fov, false);
+  }
+
+  /**
+   * Label anchor in specimen millimetres. A centroid that falls in a hole
+   * (a canal loop) is replaced by the nearest surface vertex.
+   */
+  surfaceLabelAnchor(id: string, centroid: Vec3): Vec3 {
+    const record = this.records.get(id);
+    if (!record) return centroid;
+    const flat: number[] = [];
+    const scratch = new THREE.Vector3();
+    let triangles = 0;
+    for (const mesh of record.meshes) {
+      const attr = mesh.geometry.getAttribute('position');
+      if (!attr) continue;
+      const indexed = mesh.geometry.index;
+      const count = indexed ? indexed.count / 3 : attr.count / 3;
+      triangles += count;
+    }
+    const stride = triangles > 20000 ? 8 : 1;
+    for (const mesh of record.meshes) {
+      const attr = mesh.geometry.getAttribute('position');
+      if (!attr) continue;
+      mesh.updateWorldMatrix(true, false);
+      const indexed = mesh.geometry.index;
+      const count = indexed ? Math.floor(indexed.count / 3) : Math.floor(attr.count / 3);
+      for (let triangle = 0; triangle < count; triangle += stride) {
+        for (let vertex = 0; vertex < 3; vertex += 1) {
+          const slot = indexed ? indexed.getX(triangle * 3 + vertex) : triangle * 3 + vertex;
+          scratch.fromBufferAttribute(attr as THREE.BufferAttribute, slot);
+          scratch.applyMatrix4(mesh.matrixWorld);
+          const local = this.world.worldToLocal(scratch.clone());
+          flat.push(local.x, local.y, local.z);
+        }
+      }
+    }
+    return labelAnchorPoint(centroid, flat, null, 1);
   }
 
   structureCenter(id: string): Vec3 | null {
@@ -1892,7 +1930,14 @@ export class EntViewer {
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
         const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
-        column.push({ id: label.id, anchorX: anchor.x, anchorY: anchor.y, width: size.width, height: size.height });
+        column.push({
+          id: label.id,
+          anchorX: anchor.x,
+          anchorY: anchor.y,
+          width: size.width,
+          height: size.height,
+          priority: label.priority,
+        });
       }
       if (column.length) return columnPlacements(column, width, height, inset);
     }
@@ -1903,7 +1948,14 @@ export class EntViewer {
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
         const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
-        column.push({ id: label.id, anchorX: anchor.x, anchorY: anchor.y, width: size.width, height: size.height });
+        column.push({
+          id: label.id,
+          anchorX: anchor.x,
+          anchorY: anchor.y,
+          width: size.width,
+          height: size.height,
+          priority: label.priority,
+        });
       }
       if (column.length) return columnPlacements(column, width, height, inset);
     }
@@ -1919,7 +1971,14 @@ export class EntViewer {
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
         const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
-        column.push({ id: label.id, anchorX: anchor.x, anchorY: anchor.y, width: size.width, height: size.height });
+        column.push({
+          id: label.id,
+          anchorX: anchor.x,
+          anchorY: anchor.y,
+          width: size.width,
+          height: size.height,
+          priority: label.priority,
+        });
       }
       if (column.length) return columnPlacements(column, width, height, inset);
     }

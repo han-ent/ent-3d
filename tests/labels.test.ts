@@ -89,6 +89,25 @@ describe('label collision', () => {
     }
   });
 
+  it('keeps a column beside the anchors and drops what does not fit', () => {
+    const placed = columnPlacements(
+      [
+        { id: 'low', anchorX: 180, anchorY: 200, width: 90, height: 30, priority: 1 },
+        { id: 'mid', anchorX: 180, anchorY: 160, width: 90, height: 30, priority: 5 },
+        { id: 'high', anchorX: 180, anchorY: 120, width: 90, height: 30, priority: 9 },
+      ],
+      390,
+      220,
+      { top: 40, right: 20, bottom: 80, left: 12 },
+    );
+    expect(placed.map((item) => item.id)).toEqual(['high', 'mid']);
+    for (const item of placed) {
+      expect(item.y).toBeGreaterThanOrEqual(40);
+      expect(item.y + 30).toBeLessThanOrEqual(220 - 80 + 1);
+      expect(item.x + 90 <= 180 - 8 || item.x >= 180 + 8).toBe(true);
+    }
+  });
+
   it('dims an occluded label', () => {
     const placed = placeLabels(
       [{ id: 'hidden', priority: 5, anchorX: 30, anchorY: 30, width: 40, height: 18, occluded: true }],

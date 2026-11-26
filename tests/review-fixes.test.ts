@@ -5,6 +5,9 @@ import { chooseStudyLabels, labelAllowed, type StudyLabel } from '../src/shared/
 import { buildSearchIndex, searchEntries } from '../src/shared/search-index';
 import { nextSnap, sheetCoverPx, snapAfterDrag } from '../src/shared/sheet-snap';
 import { boxFitsView, frameAabb, INNER_CORE, STAGE_VIEW, stagesForLandmark } from '../src/shared/stage-frame';
+import { CANAL_WALL, labelAnchorPoint, structureLabelAnchor } from '../src/shared/surface-anchor';
+import en from '../src/shared/i18n/en.json';
+import ko from '../src/shared/i18n/ko.json';
 import type { PresetFile } from '../src/shared/types';
 import { isOutsideAabb, verticalSpanMm } from '../src/shared/view-pose';
 
@@ -151,6 +154,45 @@ describe('search aliases', () => {
     expect(searchEntries(index, 'round').some((hit) => hit.id === 'round-window')).toBe(true);
     expect(searchEntries(index, '정원창').some((hit) => hit.id === 'round-window')).toBe(true);
     expect(searchEntries(index, 'jugular').some((hit) => hit.id === 'jugular-bulb')).toBe(true);
+  });
+});
+
+describe('canal wall anchors', () => {
+  const cube: number[] = [];
+  const add = (a: [number, number, number], b: [number, number, number], c: [number, number, number]) => {
+    cube.push(...a, ...b, ...c);
+  };
+  add([1, -1, -1], [1, 1, -1], [1, 1, 1]);
+  add([1, -1, -1], [1, 1, 1], [1, -1, 1]);
+  add([-1, -1, -1], [-1, 1, 1], [-1, 1, -1]);
+  add([-1, -1, -1], [-1, -1, 1], [-1, 1, 1]);
+
+  it('keeps a centroid that is inside the mesh and moves one that is not', () => {
+    expect(labelAnchorPoint([0, 0.2, 0], cube, null)).toEqual([0, 0.2, 0]);
+    const outside = labelAnchorPoint([5, 0.2, 0], cube, null);
+    expect(outside[0]).toBeCloseTo(1);
+    expect(Math.hypot(outside[1], outside[2])).toBeLessThan(1.5);
+  });
+
+  it('anchors each semicircular canal on its arch landmark', () => {
+    const landmarks = JSON.parse(readFileSync(resolve(root, 'public/temporal-bone/landmarks.json'), 'utf8')) as {
+      landmarks: { id: string; xyz_mm: [number, number, number] }[];
+    };
+    const walls = Object.fromEntries(landmarks.landmarks.map((item) => [item.id, item.xyz_mm]));
+    for (const [structure, wall] of Object.entries(CANAL_WALL)) {
+      const anchor = structureLabelAnchor(structure, [0, 0, 0], walls);
+      expect(anchor, structure).toEqual(walls[wall]);
+      expect(anchor).not.toEqual([0, 0, 0]);
+    }
+  });
+});
+
+describe('view preset copy', () => {
+  it('keeps the on-screen line short and the explanation for the sheet', () => {
+    expect(en['presets.viewPresetShort']).toBe('View preset · not actual drilling');
+    expect(ko['presets.viewPresetShort']).toBe('시점 프리셋 · 실제 드릴링 아님');
+    expect(en['presets.viewPreset'].length).toBeGreaterThan(en['presets.viewPresetShort'].length);
+    expect(ko['presets.viewPreset']).toContain('평면');
   });
 });
 

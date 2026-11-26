@@ -13,6 +13,7 @@ import {
   SURGICAL_STRUCTURES,
   type ViewStage,
 } from '../shared/stage-frame';
+import { CANAL_WALL } from '../shared/surface-anchor';
 import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
 import { sliceFile, slicePose, clampIndex } from '../shared/ct';
 import { firstLine, isPendingText, paragraphLines, sentenceNeedsSourceCheck } from '../shared/content-display';
@@ -302,7 +303,7 @@ function syncLabelInset(): void {
   let freeRight = stageRect.right;
   let freeBottom = stageRect.bottom;
   let freeLeft = stageRect.left;
-  for (const node of workspace.querySelectorAll('.labelbar, .gizmo, .modebar, .crumbs, .scale-hud, #sheet')) {
+    for (const node of workspace.querySelectorAll('.labelbar, .gizmo, .modebar, .crumbs, .scale-hud, .stage-caption, #sheet')) {
     const rect = node.getBoundingClientRect();
     if (rect.width < 2 || rect.height < 2) continue;
     if (rect.right < stageRect.left + 8 || rect.left > stageRect.right - 8) continue;
@@ -380,7 +381,7 @@ function renderPeek(): void {
     peekLine.textContent = t('sheet.emptyLine');
   }
   peekActions.replaceChildren();
-  stageCaption.textContent = mode === 'quiz' || !step ? '' : text(step.title);
+  stageCaption.textContent = mode === 'quiz' ? '' : captionFor(step);
   if (!selected || mode === 'quiz') return;
   const isolate = document.createElement('button');
   isolate.type = 'button';
@@ -587,6 +588,12 @@ function namesHtml(ids: string[]): string {
     .join('')}</div>`;
 }
 
+function captionFor(step: DissectionStep | undefined): string {
+  if (!step) return '';
+  if (step.clipping?.enabled) return t('presets.viewPresetShort');
+  return text(step.title);
+}
+
 function renderStepDetail(): void {
   const step = activeStep ? findStep(activeStep) : undefined;
   if (!step) {
@@ -595,7 +602,7 @@ function renderStepDetail(): void {
     return;
   }
   const viewPreset = step.clipping?.enabled ? t('presets.viewPreset') : '';
-  stageCaption.textContent = viewPreset ? `${text(step.title)}. ${viewPreset}` : text(step.title);
+  stageCaption.textContent = captionFor(step);
   const marker = step.marker
     ? `<h3>${escapeHtml(t('presets.marker'))}</h3><p>${escapeHtml(text(step.marker.label))} · ${escapeHtml(step.marker.review)}</p><p class="source-line">${escapeHtml(step.marker.source)}</p>`
     : '';
@@ -1273,6 +1280,10 @@ function refreshStudyLabels(): void {
     canal: { id: 'region-middle', en: 'Middle ear', ko: '중이' },
   };
   const buckets = new Map<string, [number, number, number][]>();
+  const walls: Record<string, [number, number, number]> = {};
+  for (const landmark of landmarks) {
+    if (Object.values(CANAL_WALL).includes(landmark.id)) walls[landmark.id] = landmark.xyz_mm;
+  }
   for (const structure of manifest.structures) {
     const center = viewer.structureCenter(structure.id);
     if (!center) continue;
@@ -1285,6 +1296,16 @@ function refreshStudyLabels(): void {
     const english = displayEnglish(structure.name.en);
     const modes: LabelMode[] = ['basic', 'all'];
     if (SURGICAL_STRUCTURES.has(structure.id)) modes.push('surgical');
+    const position = CANAL_WALL[structure.id]
+      ? (walls[CANAL_WALL[structure.id]!] ?? center)
+      : viewer.surfaceLabelAnchor(structure.id, center);
+    const corePriority: Record<string, number> = {
+      vestibule: 90,
+      'scc-lateral': 86,
+      'scc-superior': 82,
+      'scc-posterior': 78,
+      'facial-nerve': 70,
+    };
     labels.push({
       id: structure.id,
       text: english,
@@ -1292,9 +1313,9 @@ function refreshStudyLabels(): void {
       ko: structure.name.ko,
       tier: structure.parent || parents.has(structure.id) ? (structure.parent ? 'subpart' : 'structure') : 'structure',
       modes,
-      priority: structure.parent ? 25 : structure.id === 'bone' ? 80 : 48,
+      priority: corePriority[structure.id] ?? (structure.parent ? 25 : structure.id === 'bone' ? 80 : 48),
       parentId: structure.parent,
-      position: center,
+      position,
       stages: structureStages(structure.id, structure.layer),
       steps: stepsForLabel(structure.id),
     });
