@@ -1,6 +1,19 @@
 import '../styles/app.css';
-import { anatomicalPlaneName, ctEdgeLabels } from '../shared/frame';
-import { displayEnglish, englishFirst, type LabelMode, type StudyLabel } from '../shared/labels';
+import { anatomicalPlaneName, ctDisplayOrient, displayedEdgeLabels, displayedSize, mapDisplayToRaw, mapRawToDisplay } from '../shared/frame';
+import { dedupeStudyLabels, displayEnglish, englishFirst, type LabelMode, type StudyLabel } from '../shared/labels';
+import { buildSearchIndex, searchEntries, type SearchEntry, type TermRecord } from '../shared/search-index';
+import { ctPanelVisible, nextSnap, sheetCoverPx, snapAfterDrag, type SheetSnap } from '../shared/sheet-snap';
+import {
+  frameAabb,
+  hiddenForStage,
+  STAGE_VIEW,
+  stagesForLandmark,
+  stepsForLabel,
+  structureStages,
+  SURGICAL_STRUCTURES,
+  type ViewStage,
+} from '../shared/stage-frame';
+import { CANAL_WALL } from '../shared/surface-anchor';
 import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
 import { sliceFile, slicePose, clampIndex } from '../shared/ct';
 import { firstLine, isPendingText, paragraphLines, sentenceNeedsSourceCheck } from '../shared/content-display';
@@ -59,7 +72,7 @@ workspace.innerHTML = `
     </div>
     <p class="stage-caption" id="stage-caption"></p>
     <div class="modebar" role="toolbar">
-      <button type="button" data-mode="view" data-i18n="mode.view"></button>
+      <button type="button" data-mode="view" data-dev-only data-i18n="mode.view"></button>
       <button type="button" data-mode="measure" data-dev-only data-i18n="mode.measure"></button>
       <button type="button" data-mode="quiz" data-dev-only data-i18n="mode.quiz"></button>
       <button type="button" id="frame-btn" data-i18n="mode.frame"></button>
@@ -82,7 +95,7 @@ workspace.innerHTML = `
       <div id="info-body"></div>
       <section>
         <h3 data-i18n="sheet.structures"></h3>
-        <input class="struct-search" id="structure-search" type="search" />
+        <input class="struct-search" id="structure-search" type="search" data-i18n-aria="sheet.search" />
         <div id="structure-list"></div>
       </section>
       <section>
@@ -102,7 +115,7 @@ workspace.innerHTML = `
         <p class="meta" id="ct-readout"></p>
         <label class="checkline"><span data-i18n="ct.window"></span><input id="ct-window" type="range" min="20" max="400" value="255" /></label>
         <label class="checkline"><span data-i18n="ct.level"></span><input id="ct-level" type="range" min="0" max="255" value="128" /></label>
-        <input id="ct-index" type="range" min="0" max="1" value="0" />
+        <input id="ct-index" type="range" min="0" max="1" value="0" data-i18n-aria="ct.slice" />
         <label class="checkline"><input id="ct-contour" type="checkbox" checked /><span data-i18n="ct.contour"></span></label>
         <label class="checkline"><input id="ct-float" type="checkbox" /><span data-i18n="ct.overlay"></span></label>
       </section>
@@ -171,6 +184,7 @@ type XyzItem = {
   xyz_mm: [number, number, number];
   surgical?: boolean;
   tier?: string;
+  confidence?: string;
 };
 type CtAnnotation = XyzItem & { plane: SliceName; slice_index: number; xy: [number, number] };
 type RegistrationFile = {
@@ -196,6 +210,9 @@ let landmarks: XyzItem[] = [];
 let surfaceLabels: XyzItem[] = [];
 let ctLabels: CtAnnotation[] = [];
 let labelMode: LabelMode = 'basic';
+let searchIndex: SearchEntry[] = [];
+let sheetSnap: SheetSnap = 'peek';
+const rawCanvas = document.createElement('canvas');
 let renderStyle: 'atlas' | 'model' = params.get('style') === 'model' ? 'model' : 'atlas';
 let eacMm: [number, number, number] | null = null;
 let stageName = '';
@@ -246,9 +263,62 @@ function findStep(id: string): DissectionStep | undefined {
   return undefined;
 }
 
-function openSheet(open: boolean): void {
+function desktopLayout(): boolean {
+  return window.matchMedia('(min-width: 960px)').matches;
+}
+
+function applySnap(snap: SheetSnap): void {
+  sheetSnap = snap;
+  const desktop = desktopLayout();
+  const cover = desktop ? 0 : sheetCoverPx(snap, window.innerHeight);
+  document.documentElement.style.setProperty('--sheet-cover', `${cover}px`);
+  sheet.dataset.snap = desktop ? 'full' : snap;
+  document.body.classList.toggle('is-sheet-full', !desktop && snap === 'full');
+  const open = desktop || snap !== 'peek';
   sheet.classList.toggle('is-open', open);
   sheetToggle.setAttribute('aria-expanded', String(open));
+  sheetToggle.setAttribute('aria-label', open ? t('sheet.collapse') : t('sheet.expand'));
+  syncCrosshair();
+  requestAnimationFrame(() => {
+    syncLabelInset();
+    refitForSheet();
+  });
+}
+
+function openSheet(open: boolean): void {
+  applySnap(open ? (sheetSnap === 'peek' ? 'half' : sheetSnap) : 'peek');
+}
+
+function syncCrosshair(): void {
+  const show = ctPanelVisible(sheetSnap, desktopLayout()) && crosshair ? crosshair : null;
+  viewer?.setCrosshair(show);
+}
+
+function syncLabelInset(): void {
+  if (!viewer) return;
+  const stageEl = workspace.querySelector('.stage');
+  if (!stageEl) return;
+  const stageRect = stageEl.getBoundingClientRect();
+  let freeTop = stageRect.top;
+  let freeRight = stageRect.right;
+  let freeBottom = stageRect.bottom;
+  let freeLeft = stageRect.left;
+    for (const node of workspace.querySelectorAll('.labelbar, .gizmo, .modebar, .crumbs, .scale-hud, .stage-caption, #sheet')) {
+    const rect = node.getBoundingClientRect();
+    if (rect.width < 2 || rect.height < 2) continue;
+    if (rect.right < stageRect.left + 8 || rect.left > stageRect.right - 8) continue;
+    if (rect.bottom < stageRect.top + 8 || rect.top > stageRect.bottom - 8) continue;
+    if (rect.top < stageRect.top + stageRect.height * 0.5) freeTop = Math.max(freeTop, Math.min(rect.bottom, stageRect.bottom));
+    if (rect.bottom > stageRect.bottom - stageRect.height * 0.72) freeBottom = Math.min(freeBottom, Math.max(rect.top, stageRect.top));
+    if (rect.left > stageRect.left + stageRect.width * 0.55) freeRight = Math.min(freeRight, rect.left);
+    if (rect.right < stageRect.left + stageRect.width * 0.45) freeLeft = Math.max(freeLeft, rect.left);
+  }
+  viewer.setLabelInset({
+    top: Math.max(8, freeTop - stageRect.top + 6),
+    right: Math.max(8, stageRect.right - freeRight + 6),
+    bottom: Math.max(8, stageRect.bottom - freeBottom + 6),
+    left: Math.max(8, freeLeft - stageRect.left + 6),
+  });
 }
 
 function paintStatic(): void {
@@ -256,16 +326,23 @@ function paintStatic(): void {
   applyI18n(document.body);
   searchInput.placeholder = t('sheet.search');
   searchInput.setAttribute('aria-label', t('sheet.search'));
+  for (const button of workspace.querySelectorAll<HTMLButtonElement>('button')) {
+    const name = button.textContent?.replace(/\s+/g, ' ').trim();
+    if (name && !button.getAttribute('aria-label')) button.setAttribute('aria-label', name);
+  }
+  sheetToggle.setAttribute('aria-label', sheet.classList.contains('is-open') ? t('sheet.collapse') : t('sheet.expand'));
   workspace.querySelectorAll<HTMLElement>('[data-dev-only]').forEach((node) => {
     node.hidden = !DEV;
   });
   boneBtn.textContent = viewer?.boneIsTransparent() ? t('bone.solid') : t('bone.transparent');
+  boneBtn.setAttribute('aria-label', boneBtn.textContent ?? '');
   workspace.querySelectorAll<HTMLButtonElement>('[data-labels]').forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.labels === labelMode));
   });
   renderCrumbs();
   boneBtn.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
   styleBtn.textContent = renderStyle === 'atlas' ? t('style.atlas') : t('style.model');
+  styleBtn.setAttribute('aria-label', styleBtn.textContent ?? '');
   styleBtn.setAttribute('aria-pressed', String(renderStyle === 'atlas'));
   for (const structure of manifest?.structures ?? []) viewer?.setLabel(structure.id, structureLabel(structure.id));
   renderMeasure(viewer?.measurementPoints() ?? []);
@@ -304,7 +381,7 @@ function renderPeek(): void {
     peekLine.textContent = t('sheet.emptyLine');
   }
   peekActions.replaceChildren();
-  stageCaption.textContent = mode === 'quiz' || !step ? '' : text(step.title);
+  stageCaption.textContent = mode === 'quiz' ? '' : captionFor(step);
   if (!selected || mode === 'quiz') return;
   const isolate = document.createElement('button');
   isolate.type = 'button';
@@ -396,14 +473,16 @@ function renderInfo(): void {
 
 function renderChips(): void {
   if (!manifest) return;
-  const query = searchInput.value.trim().toLowerCase();
+  const query = searchInput.value.trim();
+  const hits = query ? searchEntries(searchIndex, query) : null;
+  const structureHits = hits ? new Set(hits.filter((hit) => hit.kind === 'structure').map((hit) => hit.id)) : null;
   structureList.replaceChildren();
   const hidden = new Set(viewer?.hiddenIds() ?? []);
   for (const system of STRUCTURE_SYSTEMS) {
     const items = manifest.structures.filter((structure) => {
       if (!system.ids.includes(structure.id)) return false;
-      if (!query) return true;
-      return structure.name.ko.toLowerCase().includes(query) || structure.name.en.toLowerCase().includes(query);
+      if (!structureHits) return true;
+      return structureHits.has(structure.id);
     });
     if (items.length === 0) continue;
     const heading = document.createElement('h3');
@@ -430,6 +509,7 @@ function renderChips(): void {
       hide.className = 'hide-btn';
       hide.dataset.hide = structure.id;
       hide.textContent = hidden.has(structure.id) ? t('sheet.show') : t('sheet.hide');
+      hide.setAttribute('aria-label', `${hide.textContent} ${structureLabel(structure.id)}`);
       hide.addEventListener('click', () => {
         const next = !hidden.has(structure.id);
         viewer?.setHidden(structure.id, next);
@@ -440,6 +520,47 @@ function renderChips(): void {
       });
       row.append(button, hide);
       structureList.append(row);
+    }
+  }
+  const listed = new Set<string>();
+  structureList.querySelectorAll<HTMLElement>('[data-select]').forEach((node) => {
+    if (node.dataset.select) listed.add(node.dataset.select);
+  });
+  const extraHits = (hits ?? []).filter((hit) => !listed.has(hit.id) && hit.kind === 'structure');
+  if (extraHits.length) {
+    for (const hit of extraHits) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chip landmark-hit';
+      button.textContent = englishFirst(hit.en, hit.ko);
+      button.setAttribute('aria-label', button.textContent);
+      button.addEventListener('click', () => {
+        if (mode === 'quiz') return;
+        setMode('view');
+        const parent = hit.id === 'cochlea' ? 'scala-vestibuli' : hit.parentId;
+        if (parent && structureById(parent)) selectStructure(parent, true);
+      });
+      structureList.append(button);
+    }
+  }
+  const landmarkHits = hits?.filter((hit) => hit.kind === 'landmark') ?? [];
+  if (landmarkHits.length) {
+    const heading = document.createElement('h3');
+    heading.className = 'group-label';
+    heading.textContent = t('sheet.landmarks');
+    structureList.append(heading);
+    for (const hit of landmarkHits) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chip landmark-hit';
+      button.textContent = englishFirst(hit.en, hit.ko);
+      button.setAttribute('aria-label', button.textContent);
+      button.addEventListener('click', () => {
+        if (mode === 'quiz') return;
+        setMode('view');
+        if (hit.parentId && structureById(hit.parentId)) selectStructure(hit.parentId, true);
+      });
+      structureList.append(button);
     }
   }
 }
@@ -467,6 +588,12 @@ function namesHtml(ids: string[]): string {
     .join('')}</div>`;
 }
 
+function captionFor(step: DissectionStep | undefined): string {
+  if (!step) return '';
+  if (step.clipping?.enabled) return t('presets.viewPresetShort');
+  return text(step.title);
+}
+
 function renderStepDetail(): void {
   const step = activeStep ? findStep(activeStep) : undefined;
   if (!step) {
@@ -474,12 +601,14 @@ function renderStepDetail(): void {
     stageCaption.textContent = '';
     return;
   }
-  stageCaption.textContent = text(step.title);
+  const viewPreset = step.clipping?.enabled ? t('presets.viewPreset') : '';
+  stageCaption.textContent = captionFor(step);
   const marker = step.marker
     ? `<h3>${escapeHtml(t('presets.marker'))}</h3><p>${escapeHtml(text(step.marker.label))} · ${escapeHtml(step.marker.review)}</p><p class="source-line">${escapeHtml(step.marker.source)}</p>`
     : '';
   stepDetail.innerHTML = `
     <p>${escapeHtml(text(step.instructions))}</p>
+    ${viewPreset ? `<p class="hint">${escapeHtml(viewPreset)}</p>` : ''}
     <h3>${escapeHtml(t('presets.identify'))}</h3>
     ${namesHtml(step.identify)}
     <h3>${escapeHtml(t('presets.danger'))}</h3>
@@ -540,7 +669,7 @@ function renderQuiz(): void {
 }
 
 function renderOrient(): void {
-  const labels = ctEdgeLabels(activePlane);
+  const labels = displayedEdgeLabels(activePlane);
   ctOrientTop.innerHTML = `<span>${labels.left}</span><span>${labels.top}</span><span>${labels.right}</span>`;
   ctOrientBottom.innerHTML = `<span></span><span>${labels.bottom}</span><span></span>`;
 }
@@ -625,6 +754,10 @@ function startQuiz(kind: 'name' | 'locate'): void {
 
 function applyStep(step: DissectionStep): void {
   activeStep = step.id;
+  const stage: ViewStage = step.id === 'mcf-view' ? 'inner' : 'bone';
+  stageName = stage;
+  viewer?.setBoneTransparent(false);
+  viewer?.setViewContext(stage, step.id);
   viewer?.applyPreset(step);
   if (step.marker) {
     const mark = step.marker.review === '미검증' ? '미검증' : step.marker.review;
@@ -695,11 +828,16 @@ function orientPoint(point: Vec3): void {
     const count = volume!.dims[axis];
     planeState[plane].index = clampIndex(indexAlong(volume!, axis, point), count);
   });
-  viewer?.setCrosshair(point);
+  syncCrosshair();
   const slider = workspace.querySelector<HTMLInputElement>('#ct-index');
   if (slider) slider.value = String(planeState[activePlane].index);
   void drawCt();
   void syncFloatPlanes();
+}
+
+function displayPoint(orient: ReturnType<typeof ctDisplayOrient>, col01: number, row01: number, width: number, height: number): { x: number; y: number } {
+  const mapped = mapRawToDisplay(orient, col01, row01);
+  return { x: mapped.u * width, y: mapped.v * height };
 }
 
 async function drawCt(): Promise<void> {
@@ -708,23 +846,38 @@ async function drawCt(): Promise<void> {
   const index = planeState[plane].index;
   const url = assetUrl(`${DATA}/${sliceFile(volume.planes[plane].folder, index, volume.index_digits, volume.file_extension)}`);
   const image = await loadImage(url);
-  const ctx = ctCanvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return;
-  if (ctCanvas.width !== image.naturalWidth || ctCanvas.height !== image.naturalHeight) {
-    ctCanvas.width = image.naturalWidth;
-    ctCanvas.height = image.naturalHeight;
+  const rawCtx = rawCanvas.getContext('2d', { willReadFrequently: true });
+  const ctx = ctCanvas.getContext('2d');
+  if (!rawCtx || !ctx) return;
+  if (rawCanvas.width !== image.naturalWidth || rawCanvas.height !== image.naturalHeight) {
+    rawCanvas.width = image.naturalWidth;
+    rawCanvas.height = image.naturalHeight;
   }
-  ctx.drawImage(image, 0, 0);
+  rawCtx.drawImage(image, 0, 0);
   let raw = rawCache.get(url);
   if (!raw) {
-    raw = ctx.getImageData(0, 0, ctCanvas.width, ctCanvas.height);
+    raw = rawCtx.getImageData(0, 0, rawCanvas.width, rawCanvas.height);
     rawCache.set(url, raw);
   }
   const windowWidth = Number(workspace.querySelector<HTMLInputElement>('#ct-window')?.value ?? 255);
   const level = Number(workspace.querySelector<HTMLInputElement>('#ct-level')?.value ?? 128);
-  const out = ctx.createImageData(raw.width, raw.height);
+  const out = rawCtx.createImageData(raw.width, raw.height);
   remapGray(raw.data, windowWidth, level, out.data);
-  ctx.putImageData(out, 0, 0);
+  rawCtx.putImageData(out, 0, 0);
+  const orient = ctDisplayOrient(plane);
+  const size = displayedSize(orient, raw.width, raw.height);
+  if (ctCanvas.width !== size.width || ctCanvas.height !== size.height) {
+    ctCanvas.width = size.width;
+    ctCanvas.height = size.height;
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, size.width, size.height);
+  ctx.save();
+  ctx.translate(size.width / 2, size.height / 2);
+  ctx.scale(orient.flipX ? -1 : 1, orient.flipY ? -1 : 1);
+  ctx.rotate((orient.turnsCW * Math.PI) / 2);
+  ctx.drawImage(rawCanvas, -raw.width / 2, -raw.height / 2);
+  ctx.restore();
   if (contoursOn && viewer) {
     const pose = slicePose(volume, plane, index);
     const segments = contoursOnPlane(viewer.contourSources(true), pose.position, pose.normal);
@@ -732,29 +885,30 @@ async function drawCt(): Promise<void> {
     for (const segment of segments) {
       const a = sliceFractions(volume, plane, index, segment.a);
       const b = sliceFractions(volume, plane, index, segment.b);
+      const start = displayPoint(orient, a.col01, a.row01, size.width, size.height);
+      const end = displayPoint(orient, b.col01, b.row01, size.width, size.height);
       ctx.strokeStyle = segment.color;
       ctx.beginPath();
-      ctx.moveTo(a.col01 * ctCanvas.width, a.row01 * ctCanvas.height);
-      ctx.lineTo(b.col01 * ctCanvas.width, b.row01 * ctCanvas.height);
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
       ctx.stroke();
     }
   }
-  if (crosshair) {
+  if (crosshair && ctPanelVisible(sheetSnap, desktopLayout())) {
     const frac = sliceFractions(volume, plane, index, crosshair);
+    const at = displayPoint(orient, frac.col01, frac.row01, size.width, size.height);
     ctx.strokeStyle = '#8C2F1B';
     ctx.beginPath();
-    const x = frac.col01 * ctCanvas.width;
-    const y = frac.row01 * ctCanvas.height;
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, ctCanvas.height);
-    ctx.moveTo(0, y);
-    ctx.lineTo(ctCanvas.width, y);
+    ctx.moveTo(at.x, 0);
+    ctx.lineTo(at.x, size.height);
+    ctx.moveTo(0, at.y);
+    ctx.lineTo(size.width, at.y);
     ctx.stroke();
   }
   const pose = slicePose(volume, plane, index);
   const axis = volume.planes[plane].axis;
   ctReadout.textContent = `${t(`ct.anatomical.${anatomicalPlaneName(plane)}`)} ${index + 1}/${volume.dims[axis]} · ${pose.position[axis].toFixed(1)} mm`;
-  drawCtLabels(ctx, plane, index);
+  drawCtLabels(ctx, plane, index, orient);
 }
 
 async function syncFloatPlanes(): Promise<void> {
@@ -825,13 +979,10 @@ function buildCt(): void {
     if (!volume) return;
     const rect = ctCanvas.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return;
-    const point = pointOnSlice(
-      volume,
-      activePlane,
-      planeState[activePlane].index,
-      (event.clientX - rect.left) / rect.width,
-      (event.clientY - rect.top) / rect.height,
-    );
+    const displayU = (event.clientX - rect.left) / rect.width;
+    const displayV = (event.clientY - rect.top) / rect.height;
+    const raw = mapDisplayToRaw(ctDisplayOrient(activePlane), displayU, displayV);
+    const point = pointOnSlice(volume, activePlane, planeState[activePlane].index, raw.u, raw.v);
     orientPoint(point);
   });
   renderOrient();
@@ -893,8 +1044,9 @@ workspace.querySelector('#frame-btn')?.addEventListener('click', () => {
   viewer?.frameDefault();
   selected = null;
   activeStep = null;
-  viewer?.setCrosshair(null);
   crosshair = null;
+  viewer?.setCrosshair(null);
+  flyStage('body');
   renderPeek();
   renderInfo();
   renderChips();
@@ -910,9 +1062,44 @@ styleBtn.addEventListener('click', () => {
 boneBtn.addEventListener('click', () => {
   viewer?.setBoneTransparent(!viewer.boneIsTransparent());
   boneBtn.textContent = viewer?.boneIsTransparent() ? t('bone.solid') : t('bone.transparent');
+  boneBtn.setAttribute('aria-label', boneBtn.textContent ?? '');
   boneBtn.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
 });
-sheetToggle.addEventListener('click', () => openSheet(!sheet.classList.contains('is-open')));
+let sheetDrag: { y: number; snap: SheetSnap; pointer: number } | null = null;
+sheetToggle.style.touchAction = 'none';
+sheetToggle.addEventListener('pointerdown', (event) => {
+  if (desktopLayout()) return;
+  event.preventDefault();
+  sheetDrag = { y: event.clientY, snap: sheetSnap, pointer: event.pointerId };
+  sheetToggle.setPointerCapture(event.pointerId);
+});
+sheetToggle.addEventListener(
+  'touchmove',
+  (event) => {
+    if (!sheetDrag) return;
+    event.preventDefault();
+  },
+  { passive: false },
+);
+sheetToggle.addEventListener('pointermove', (event) => {
+  if (!sheetDrag || event.pointerId !== sheetDrag.pointer || desktopLayout()) return;
+  const next = Math.max(72, sheetCoverPx(sheetDrag.snap, window.innerHeight) - (event.clientY - sheetDrag.y));
+  document.documentElement.style.setProperty('--sheet-cover', `${next}px`);
+  syncLabelInset();
+});
+sheetToggle.addEventListener('pointerup', (event) => {
+  if (!sheetDrag || event.pointerId !== sheetDrag.pointer) return;
+  const delta = event.clientY - sheetDrag.y;
+  const start = sheetDrag.snap;
+  sheetDrag = null;
+  if (desktopLayout()) return;
+  if (Math.abs(delta) < 10) applySnap(nextSnap(start));
+  else applySnap(snapAfterDrag(start, delta, window.innerHeight));
+});
+sheetToggle.addEventListener('pointercancel', () => {
+  sheetDrag = null;
+  applySnap(sheetSnap);
+});
 searchInput.addEventListener('input', () => renderChips());
 
 onLangChange(() => {
@@ -933,7 +1120,12 @@ onLangChange(() => {
   paintStatic();
 });
 
-function drawCtLabels(ctx: CanvasRenderingContext2D, plane: SliceName, index: number): void {
+function drawCtLabels(
+  ctx: CanvasRenderingContext2D,
+  plane: SliceName,
+  index: number,
+  orient: ReturnType<typeof ctDisplayOrient>,
+): void {
   ctx.save();
   ctx.font = '12px sans-serif';
   ctx.textBaseline = 'top';
@@ -950,8 +1142,9 @@ function drawCtLabels(ctx: CanvasRenderingContext2D, plane: SliceName, index: nu
     .sort((a, b) => Math.abs(a.slice_index - index) - Math.abs(b.slice_index - index))
     .slice(0, 8);
   for (const label of nearby) {
-    const x = label.xy[0] * ctCanvas.width;
-    const y = label.xy[1] * ctCanvas.height;
+    const at = displayPoint(orient, label.xy[0], label.xy[1], ctCanvas.width, ctCanvas.height);
+    const x = at.x;
+    const y = at.y;
     const caption = englishFirst(label.en, label.ko);
     const width = Math.min(ctx.measureText(caption).width + 8, ctCanvas.width - 8);
     ctx.fillStyle = 'rgba(247,245,240,0.88)';
@@ -965,7 +1158,7 @@ function drawCtLabels(ctx: CanvasRenderingContext2D, plane: SliceName, index: nu
 function renderCrumbs(): void {
   const crumbs = workspace.querySelector<HTMLElement>('#crumbs');
   if (!crumbs) return;
-  const steps = [
+  const steps: { id: ViewStage; key: string }[] = [
     { id: 'body', key: 'crumbs.body' },
     { id: 'ear', key: 'crumbs.ear' },
     { id: 'bone', key: 'crumbs.bone' },
@@ -987,47 +1180,92 @@ function renderCrumbs(): void {
   });
 }
 
-function flyStage(stage: string): void {
-  if (!viewer || !eacMm) return;
-  const eac = eacMm;
-  if (stage === 'body') {
-    const center: [number, number, number] = [eac[0] + 20, eac[1] - 8, eac[2] + 92];
-    viewer.flyTo([center[0] + 150, center[1] - 20, center[2] - 470], center, [0, -1, 0], 32);
-  } else if (stage === 'ear') {
-    viewer.flyTo([eac[0] + 40, eac[1] - 30, eac[2] - 140], eac, [0, -1, 0], 32);
-  } else if (stage === 'bone') {
-    viewer.flyTo([eac[0] + 10, eac[1] - 20, eac[2] - 55], eac, [0, -1, 0], 32);
-  } else {
-    viewer.flyTo([eac[0], eac[1] - 6, eac[2] - 16], [eac[0] - 4, eac[1] + 2, eac[2] + 8], [0, -1, 0], 32);
+function stageBox(stage: ViewStage): { min: [number, number, number]; max: [number, number, number] } | null {
+  if (!viewer) return null;
+  if (stage === 'body') return viewer.entryBounds();
+  if (stage === 'ear' && eacMm) {
+    const pad = 46;
+    return {
+      min: [eacMm[0] - pad, eacMm[1] - pad * 1.15, eacMm[2] - 16],
+      max: [eacMm[0] + pad * 0.8, eacMm[1] + pad * 0.85, eacMm[2] + 36],
+    };
   }
+  if (stage === 'bone') return viewer.boundsOf(['bone', 'sinus-dura']);
+  return viewer.boundsOf([
+    'scala-vestibuli',
+    'scala-tympani',
+    'vestibule',
+    'scc-lateral',
+    'scc-superior',
+    'scc-posterior',
+    'common-crus',
+    'facial-nerve',
+    'cochleovestibular-nerve',
+  ]);
 }
 
-let stageBucket = '';
+function flyStage(stage: ViewStage): void {
+  if (!viewer || !manifest) return;
+  activeStep = null;
+  stageName = stage;
+  viewer.clearPreset();
+  viewer.setMarker(null, '');
+  viewer.setViewContext(stage, null);
+  viewer.setBoneTransparent(stage === 'inner');
+  viewer.setShellOpen(stage === 'bone' || stage === 'inner');
+  viewer.setStageHidden(hiddenForStage(stage, manifest.structures.map((item) => item.id)));
+  viewer.setCutaway(0, 1);
+  const box = stageBox(stage);
+  const view = STAGE_VIEW[stage];
+  if (box) {
+    const pose = frameAabb({
+      box,
+      direction: view.direction,
+      up: view.up,
+      fovDeg: view.fov,
+      viewWidthPx: Math.max(canvas.clientWidth, 1),
+      viewHeightPx: Math.max(canvas.clientHeight, 1),
+      margin: view.margin,
+    });
+    viewer.flyTo(pose.position, pose.target, view.up, view.fov);
+  }
+  boneBtn.textContent = viewer.boneIsTransparent() ? t('bone.solid') : t('bone.transparent');
+  boneBtn.setAttribute('aria-label', boneBtn.textContent);
+  boneBtn.setAttribute('aria-pressed', String(viewer.boneIsTransparent()));
+  renderCrumbs();
+  renderPresets();
+  syncLabelInset();
+}
+
+function refitForSheet(): void {
+  if (!viewer || !manifest || desktopLayout()) return;
+  const width = Math.max(canvas.clientWidth, 1);
+  const height = Math.max(canvas.clientHeight, 1);
+  if (activeStep) {
+    const step = findStep(activeStep);
+    if (step) viewer.applyPreset(step);
+    return;
+  }
+  const stage = (['body', 'ear', 'bone', 'inner'] as const).find((id) => stageName === id);
+  if (!stage) return;
+  const box = stageBox(stage);
+  const view = STAGE_VIEW[stage];
+  if (!box) return;
+  const pose = frameAabb({
+    box,
+    direction: view.direction,
+    up: view.up,
+    fovDeg: view.fov,
+    viewWidthPx: width,
+    viewHeightPx: height,
+    margin: view.margin,
+  });
+  viewer.flyTo(pose.position, pose.target, view.up, view.fov);
+}
 
 function applyStage(distance: number): void {
-  if (!viewer || !manifest) return;
-  const next = distance > 160 ? 'body' : distance > 70 ? 'ear' : distance > 28 ? 'bone' : 'inner';
-  const radius = distance > 230 ? 0 : Math.max(0, Math.min(52, (200 - distance) * 0.42));
-  const bucket = `${next}:${selected ?? ''}:${radius.toFixed(1)}`;
-  if (bucket === stageBucket) return;
-  stageBucket = bucket;
   document.body.dataset.distance = distance.toFixed(0);
-  viewer.setCutaway(radius, 1);
-  const key = `${next}:${selected ?? ''}`;
-  if (key === stageName) return;
-  stageName = key;
-  const hidden: string[] = [];
-  for (const structure of manifest.structures) {
-    const deep = structure.layer === 'inner-ear' || (structure.layer === 'nerve' && structure.id !== 'chorda-tympani');
-    const middle = structure.layer === 'ossicles' || structure.layer === 'membrane' || structure.id === 'chorda-tympani';
-    if (distance > 170) hidden.push(structure.id);
-    else if (distance > 160 && (deep || middle)) hidden.push(structure.id);
-    else if (distance > 125 && deep) hidden.push(structure.id);
-  }
-  // A selected structure is framed with its neighbours, so the distance
-  // stages must not hide the ossicles or the inner ear around it.
-  viewer.setStageHidden(selected ? [] : hidden);
-  renderCrumbs();
+  if (activeStep) return;
 }
 
 function refreshStudyLabels(): void {
@@ -1042,6 +1280,10 @@ function refreshStudyLabels(): void {
     canal: { id: 'region-middle', en: 'Middle ear', ko: '중이' },
   };
   const buckets = new Map<string, [number, number, number][]>();
+  const walls: Record<string, [number, number, number]> = {};
+  for (const landmark of landmarks) {
+    if (Object.values(CANAL_WALL).includes(landmark.id)) walls[landmark.id] = landmark.xyz_mm;
+  }
   for (const structure of manifest.structures) {
     const center = viewer.structureCenter(structure.id);
     if (!center) continue;
@@ -1052,16 +1294,55 @@ function refreshStudyLabels(): void {
       buckets.set(region.id, list);
     }
     const english = displayEnglish(structure.name.en);
+    const modes: LabelMode[] = ['basic', 'all'];
+    if (SURGICAL_STRUCTURES.has(structure.id)) modes.push('surgical');
+    const position = CANAL_WALL[structure.id]
+      ? (walls[CANAL_WALL[structure.id]!] ?? center)
+      : viewer.surfaceLabelAnchor(structure.id, center);
+    const corePriority: Record<string, number> = {
+      vestibule: 90,
+      'scc-lateral': 86,
+      'scc-superior': 82,
+      'scc-posterior': 78,
+      'facial-nerve': 70,
+    };
     labels.push({
       id: structure.id,
       text: english,
       en: english,
       ko: structure.name.ko,
       tier: structure.parent || parents.has(structure.id) ? (structure.parent ? 'subpart' : 'structure') : 'structure',
-      modes: ['basic', 'all'],
-      priority: structure.parent ? 25 : 45,
+      modes,
+      priority: corePriority[structure.id] ?? (structure.parent ? 25 : structure.id === 'bone' ? 80 : 48),
       parentId: structure.parent,
-      position: center,
+      position,
+      stages: structureStages(structure.id, structure.layer),
+      steps: stepsForLabel(structure.id),
+    });
+  }
+  const cochleaParts = ['scala-vestibuli', 'scala-tympani', 'scala-vestibuli-basal', 'scala-tympani-basal']
+    .map((id) => viewer!.structureCenter(id))
+    .filter((point): point is [number, number, number] => point !== null);
+  if (cochleaParts.length) {
+    const position: [number, number, number] = [0, 0, 0];
+    for (const point of cochleaParts) {
+      position[0] += point[0];
+      position[1] += point[1];
+      position[2] += point[2];
+    }
+    position[0] /= cochleaParts.length;
+    position[1] /= cochleaParts.length;
+    position[2] /= cochleaParts.length;
+    labels.push({
+      id: 'cochlea',
+      text: 'Cochlea',
+      en: 'Cochlea',
+      ko: '와우',
+      tier: 'structure',
+      modes: ['basic', 'all'],
+      priority: 92,
+      position,
+      stages: ['inner'],
     });
   }
   for (const [layer, region] of Object.entries(regionOf)) {
@@ -1084,22 +1365,28 @@ function refreshStudyLabels(): void {
       ko: region.ko,
       tier: 'region',
       modes: ['basic', 'all'],
-      priority: 35,
+      priority: 30,
       position,
+      stages: ['bone'],
     });
   }
   for (const item of landmarks) {
     const english = displayEnglish(item.en);
+    const steps = stepsForLabel(item.id);
+    const placed = item.confidence === 'placed' || steps.length > 0;
+    const core = item.id === 'iac';
     labels.push({
       id: item.id,
       text: english,
       en: english,
       ko: item.ko,
-      tier: 'subpart',
-      modes: item.surgical ? ['basic', 'surgical', 'all'] : ['all'],
-      priority: item.surgical ? 60 : 18,
+      tier: core ? 'structure' : 'subpart',
+      modes: core ? ['basic', 'surgical', 'all'] : placed ? ['surgical', 'all'] : ['all'],
+      priority: core ? 90 : (item.surgical ? 72 : 58) + (steps.length ? 8 : 0),
       parentId: item.parent,
       position: item.xyz_mm,
+      stages: stagesForLandmark(item.id),
+      steps,
     });
   }
   for (const item of surfaceLabels) {
@@ -1111,11 +1398,12 @@ function refreshStudyLabels(): void {
       ko: item.ko,
       tier: 'surface',
       modes: ['basic', 'all'],
-      priority: ['helix', 'tragus', 'lobule'].includes(item.id) ? 70 : 28,
+      priority: ['helix', 'tragus', 'lobule'].includes(item.id) ? 80 : 28,
       position: item.xyz_mm,
+      stages: ['body', 'ear'],
     });
   }
-  viewer.setStudyLabels(labels);
+  viewer.setStudyLabels(dedupeStudyLabels(labels));
 }
 
 function registrationTable(): string {
@@ -1195,16 +1483,34 @@ async function boot(): Promise<void> {
   const volumeIssues = validateVolume(volume);
   if (volumeIssues.length) throw new Error(formatIssues(volumeIssues));
 
-  const [landmarkFile, surfaceFile, ctFile, registrationFile] = await Promise.all([
+  const [landmarkFile, surfaceFile, ctFile, registrationFile, termFile] = await Promise.all([
     fetchJson<{ landmarks: XyzItem[] }>(publicUrl(`${DATA}/landmarks.json`)),
     fetchJson<{ labels: XyzItem[] }>(publicUrl(`${DATA}/surface-anatomy.json`)),
     fetchJson<{ labels: CtAnnotation[] }>(publicUrl(`${DATA}/ct-labels.json`)),
     fetchJson<RegistrationFile>(publicUrl('models/upper-body/registration.json')).catch(() => null),
+    fetchJson<{ terms: TermRecord[] }>(publicUrl('shared/terms.json')).catch(() => ({ terms: [] as TermRecord[] })),
   ]);
   registration = registrationFile;
   landmarks = landmarkFile.landmarks;
   surfaceLabels = surfaceFile.labels;
   ctLabels = ctFile.labels;
+  searchIndex = buildSearchIndex(
+    loaded.structures.map((structure) => ({
+      id: structure.id,
+      en: structure.name.en,
+      ko: structure.name.ko,
+      parentId: structure.parent,
+    })),
+    landmarks.map((item) => ({ id: item.id, en: item.en, ko: item.ko, parentId: item.parent })),
+    termFile.terms ?? [],
+  );
+  searchIndex.push({
+    id: 'cochlea',
+    kind: 'structure',
+    en: 'Cochlea',
+    ko: '와우',
+    aliases: ['scala vestibuli', 'scala tympani', '전정계', '고실계'],
+  });
   eacMm = landmarks.find((item) => item.id === 'eac-porus')?.xyz_mm ?? null;
 
   viewer = new EntViewer(canvas, manifest.viewer_offset_mm);
@@ -1289,6 +1595,9 @@ async function boot(): Promise<void> {
         selectStructure(id, frame);
       },
       distance: () => viewer?.cameraDistance() ?? 0,
+      pose: () => viewer?.cameraPose() ?? null,
+      crosshair: () => viewer?.crosshairVisible() ?? false,
+      shellHidden: () => viewer?.shellHidden() ?? false,
       eac: () => eacMm,
       labels(mode: 'basic' | 'surgical' | 'all') {
         labelMode = mode;
@@ -1306,6 +1615,23 @@ async function boot(): Promise<void> {
   if (failures.length) stageStatus.textContent = `${t('temporal.loadError')} ${failures.join(', ')}`;
   paintStatic();
 }
+
+applySnap('peek');
+window.addEventListener('resize', () => {
+  applySnap(desktopLayout() ? sheetSnap : sheetSnap);
+  syncLabelInset();
+});
+const blockPinch = (event: Event) => event.preventDefault();
+document.addEventListener('gesturestart', blockPinch, { passive: false });
+document.addEventListener('gesturechange', blockPinch, { passive: false });
+workspace.querySelector('.stage')?.addEventListener(
+  'touchmove',
+  (event) => {
+    const touch = event as TouchEvent;
+    if (touch.touches.length > 1) touch.preventDefault();
+  },
+  { passive: false },
+);
 
 boot().catch((error: unknown) => {
   stageStatus.hidden = false;

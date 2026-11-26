@@ -107,20 +107,31 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   min-height: 0;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .stage {
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
   background: var(--stage);
+}
+
+.stage,
+.stage canvas,
+.callout-layer,
+.study-layer,
+.study-label,
+.study-dot,
+.callout {
+  touch-action: none;
 }
 
 .stage canvas {
   width: 100%;
   height: 100%;
   display: block;
-  touch-action: none;
 }
 
 .stage-status {
@@ -179,13 +190,19 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 
 .stage-caption {
   position: absolute;
-  left: 10px;
+  left: 8px;
+  right: 8px;
   bottom: 56px;
   margin: 0;
-  max-width: 70%;
+  max-width: none;
+  height: 18px;
   font-size: 12px;
+  line-height: 18px;
   color: #222;
   pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .modebar {
@@ -237,7 +254,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 
 .study-label {
   position: absolute;
-  pointer-events: auto;
+  pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -273,7 +290,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   border-radius: 50%;
   background: rgba(140, 47, 27, 0.38);
   transform: translate(-50%, -50%);
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .labelbar {
@@ -304,7 +321,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   position: absolute;
   left: 8px;
   right: 8px;
-  bottom: 78px;
+  bottom: 96px;
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
@@ -327,7 +344,7 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 
 .callout {
   position: absolute;
-  pointer-events: auto;
+  pointer-events: none;
   border: 0;
   background: transparent;
   color: #f7f5f0;
@@ -359,8 +376,11 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
 }
 
 .sheet {
+  position: relative;
   flex: 0 0 auto;
-  max-height: 46%;
+  z-index: 6;
+  height: var(--sheet-cover, 108px);
+  max-height: none;
   display: flex;
   flex-direction: column;
   background: var(--paper);
@@ -368,7 +388,20 @@ h3 { font-size: 16px; font-weight: 600; line-height: 1.6; margin: 16px 0 6px; }
   min-height: 0;
 }
 
-.sheet.is-open { flex: 1 1 58%; max-height: none; }
+.sheet.is-open { height: var(--sheet-cover, 108px); max-height: none; }
+
+@media (max-width: 959px) {
+  body.is-sheet-full .modebar,
+  body.is-sheet-full .labelbar,
+  body.is-sheet-full .crumbs,
+  body.is-sheet-full .gizmo,
+  body.is-sheet-full .scale-hud,
+  body.is-sheet-full .stage-caption,
+  body.is-sheet-full .study-layer,
+  body.is-sheet-full .callout-layer {
+    visibility: hidden;
+  }
+}
 
 body.is-quiz .sheet.is-open {
   flex: 0 0 46%;
@@ -380,10 +413,11 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
 .sheet-handle {
   flex: none;
   width: 100%;
-  min-height: 28px;
+  min-height: 44px;
   border: 0;
   background: transparent;
-  padding: 6px 0 0;
+  padding: 8px 0 0;
+  touch-action: none;
 }
 
 .grip {
@@ -578,15 +612,25 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
   .workspace { flex-direction: row; }
   .stage { flex: 1 1 auto; }
   .sheet {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
     width: min(420px, 38vw);
+    height: auto;
     max-height: none;
     flex: none;
     border-top: 0;
     border-left: 1px solid var(--line);
+    box-shadow: none;
   }
-  .sheet.is-open { flex: none; }
+  .sheet.is-open { height: auto; flex: none; }
   .sheet:not(.is-open) .sheet-body { display: block; }
   .sheet-handle { display: none; }
+  .modebar { bottom: 8px; }
+  .crumbs { bottom: 96px; }
+  .stage-caption { bottom: 56px; }
   .modebar button { flex: 0 0 auto; min-height: 32px; padding: 4px 12px; }
   .page { padding-top: 40px; }
 }

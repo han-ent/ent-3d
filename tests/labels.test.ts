@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { columnPlacements, englishFirst, focusPartList, labelAllowed, placeLabels, tiersForDistance, type StudyLabel } from '../src/shared/labels';
+import { chooseStudyLabels, columnPlacements, dedupeStudyLabels, englishFirst, focusPartList, labelAllowed, placeLabels, relayoutOnTweenEnd, tiersForDistance, type StudyLabel } from '../src/shared/labels';
 
 const label = (patch: Partial<StudyLabel>): StudyLabel => ({
   id: 'malleus-umbo',
@@ -26,12 +26,13 @@ describe('english-first labels', () => {
     expect(tiersForDistance(12)).toEqual(['structure', 'subpart']);
   });
 
-  it('shows a subpart only for the selected parent when close', () => {
+  it('lets the selected mode win over camera distance', () => {
     const item = label({});
-    expect(labelAllowed(item, 'surgical', 12, 'malleus')).toBe(true);
-    expect(labelAllowed(item, 'basic', 12, 'malleus')).toBe(false);
-    expect(labelAllowed(item, 'surgical', 40, 'malleus')).toBe(false);
-    expect(labelAllowed(item, 'all', 12, null)).toBe(false);
+    expect(labelAllowed(item, 'surgical', 12, 'malleus', 'bone')).toBe(true);
+    expect(labelAllowed(item, 'surgical', 90, null, 'bone')).toBe(true);
+    expect(labelAllowed(item, 'basic', 12, 'malleus', 'bone')).toBe(false);
+    expect(labelAllowed(item, 'all', 90, null, 'bone')).toBe(true);
+    expect(labelAllowed(item, 'basic', 12, null, 'bone')).toBe(false);
   });
 });
 
@@ -86,6 +87,80 @@ describe('label collision', () => {
       const current = placed[index]!;
       expect(current.y).toBeGreaterThanOrEqual(previous.y + 34);
     }
+  });
+
+  it('keeps a column beside the anchors and drops what does not fit', () => {
+    const placed = columnPlacements(
+      [
+        { id: 'low', anchorX: 180, anchorY: 200, width: 90, height: 30, priority: 1 },
+        { id: 'mid', anchorX: 180, anchorY: 160, width: 90, height: 30, priority: 5 },
+        { id: 'high', anchorX: 180, anchorY: 120, width: 90, height: 30, priority: 9 },
+      ],
+      390,
+      220,
+      { top: 40, right: 20, bottom: 80, left: 12 },
+    );
+    expect(placed.map((item) => item.id)).toEqual(['high', 'mid']);
+    for (const item of placed) {
+      expect(item.y).toBeGreaterThanOrEqual(40);
+      expect(item.y + 30).toBeLessThanOrEqual(220 - 80 + 1);
+      expect(item.x + 90 <= 180 - 8 || item.x >= 180 + 8).toBe(true);
+    }
+  });
+
+  it('keeps one Lateral SCC and prefers the arch-anchored structure', () => {
+    const structure = (id: string, en: string, ko: string, position: [number, number, number]): StudyLabel => ({
+      id,
+      text: en,
+      en,
+      ko,
+      tier: 'structure',
+      modes: ['basic', 'surgical', 'all'],
+      priority: 86,
+      position,
+      stages: ['inner'],
+    });
+    const landmark = (id: string, en: string, ko: string, parentId: string, position: [number, number, number]): StudyLabel => ({
+      id,
+      text: en,
+      en,
+      ko,
+      tier: 'subpart',
+      modes: ['surgical', 'all'],
+      priority: 72,
+      parentId,
+      position,
+      stages: ['inner'],
+    });
+    const arch: [number, number, number] = [24.6, 29.3, 52.6];
+    const labels = dedupeStudyLabels([
+      structure('scc-lateral', 'Lateral SCC', '외측반고리관', arch),
+      landmark('scc-lateral-arch', 'Lateral SCC', '외측반고리관', 'scc-lateral', [24.6, 29.3, 52.6]),
+      structure('scc-superior', 'Superior SCC', '상반고리관', [25, 22, 58]),
+      landmark('scc-superior-arch', 'Superior SCC', '상반고리관', 'scc-superior', [25, 22, 58]),
+      structure('scc-posterior', 'Posterior SCC', '후반고리관', [26, 34, 58]),
+      landmark('scc-posterior-arch', 'Posterior SCC', '후반고리관', 'scc-posterior', [26, 34, 58]),
+      structure('vestibule', 'Vestibule', '전정', [29, 31, 58]),
+      landmark('vestibule-center', 'Vestibule', '전정', 'vestibule', [29, 31, 58]),
+      structure('common-crus', 'Common crus', '총각', [27, 28, 60]),
+      landmark('common-crus', 'Common crus', '총각', 'common-crus', [27, 28, 60]),
+    ]);
+    for (const mode of ['basic', 'surgical', 'all'] as const) {
+      const shown = chooseStudyLabels(labels, mode, 80, null, 'inner', null);
+      const names = shown.map((item) => item.en);
+      expect(new Set(names).size, mode).toBe(names.length);
+    }
+    const lateral = labels.find((item) => item.en === 'Lateral SCC');
+    expect(labels.filter((item) => item.en === 'Lateral SCC')).toHaveLength(1);
+    expect(lateral?.id).toBe('scc-lateral');
+    expect(lateral?.position).toEqual(arch);
+    expect(lateral?.modes).toEqual(expect.arrayContaining(['basic', 'surgical', 'all']));
+  });
+
+  it('lays labels out again when a camera flight ends', () => {
+    expect(relayoutOnTweenEnd(true, false)).toBe(true);
+    expect(relayoutOnTweenEnd(true, true)).toBe(false);
+    expect(relayoutOnTweenEnd(false, false)).toBe(false);
   });
 
   it('dims an occluded label', () => {

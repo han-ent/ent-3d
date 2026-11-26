@@ -1,3 +1,5 @@
+import type { ViewStage } from './stage-frame';
+
 export type LabelTier = 'region' | 'structure' | 'subpart' | 'surface';
 
 export type LabelMode = 'basic' | 'surgical' | 'all';
@@ -69,12 +71,18 @@ export function displayEnglish(en: string): string {
   return SHORT_EN[trimmed] ?? trimmed;
 }
 
-/** Which label tiers belong at this camera distance. */
+/**
+ * Preferred tiers when a view is only being thinned out.
+ * This does not override the label mode. `chooseStudyLabels` uses the mode first.
+ */
 export function tiersForDistance(distanceMm: number): LabelTier[] {
   if (distanceMm > 60) return ['region', 'surface'];
   if (distanceMm > 20) return ['structure'];
   return ['structure', 'subpart'];
 }
+
+/** Auricle names kept on the entry view. The other surface points stay for the ear stage. */
+export const BODY_SURFACE = ['helix', 'tragus', 'lobule'] as const;
 
 export type StudyLabel = {
   id: string;
@@ -87,21 +95,163 @@ export type StudyLabel = {
   parentId?: string;
   /** Specimen millimetres. */
   position: [number, number, number];
+  /** Crumb stages that may show this label. Empty means every stage. */
+  stages?: readonly ViewStage[];
+  /** Dissection steps that may show this label. */
+  steps?: readonly string[];
 };
 
-export function labelAllowed(label: StudyLabel, mode: LabelMode, distanceMm: number, selectedParent: string | null): boolean {
-  if (mode !== 'all' && !label.modes.includes(mode)) return false;
-  if (mode === 'all' && !label.modes.includes('all') && !label.modes.includes('basic') && !label.modes.includes('surgical')) {
-    return false;
+function nameKey(label: StudyLabel): string {
+  return `${label.en.trim().toLowerCase()}|${label.ko.trim().toLowerCase()}`;
+}
+
+function listsOverlap(a?: readonly string[], b?: readonly string[]): boolean {
+  if (!a?.length || !b?.length) return true;
+  return a.some((item) => b.includes(item));
+}
+
+/** Canal structures win over the arch landmark that repeats their name. */
+const CANAL_STRUCTURE: Record<string, string> = {
+  'scc-lateral-arch': 'scc-lateral',
+  'scc-superior-arch': 'scc-superior',
+  'scc-posterior-arch': 'scc-posterior',
+};
+
+function preferLabel(current: StudyLabel, incoming: StudyLabel): StudyLabel {
+  if (CANAL_STRUCTURE[incoming.id] === current.id) return current;
+  if (CANAL_STRUCTURE[current.id] === incoming.id) return incoming;
+  const rank = (label: StudyLabel) => (label.tier === 'structure' ? 2 : label.tier === 'region' ? 0 : 1);
+  if (rank(current) !== rank(incoming)) return rank(current) > rank(incoming) ? current : incoming;
+  if (current.priority !== incoming.priority) return current.priority > incoming.priority ? current : incoming;
+  return current.id.localeCompare(incoming.id) <= 0 ? current : incoming;
+}
+
+function unique<T>(items: readonly T[]): T[] {
+  return [...new Set(items)];
+}
+
+/**
+ * One visible name per structure. The arch-anchored canal label is kept
+ * and the landmark that repeats it is dropped. Modes and stages are merged
+ * so the survivor still appears wherever either copy did.
+ */
+export function dedupeStudyLabels(labels: readonly StudyLabel[]): StudyLabel[] {
+  const kept: StudyLabel[] = [];
+  for (const label of labels) {
+    const index = kept.findIndex(
+      (other) =>
+        (other.id === label.id || nameKey(other) === nameKey(label)) &&
+        (listsOverlap(other.stages, label.stages) || listsOverlap(other.steps, label.steps)),
+    );
+    if (index < 0) {
+      kept.push({
+        ...label,
+        modes: [...label.modes],
+        stages: label.stages ? [...label.stages] : undefined,
+        steps: label.steps ? [...label.steps] : undefined,
+      });
+      continue;
+    }
+    const other = kept[index]!;
+    const winner = preferLabel(other, label);
+    const stages = !other.stages?.length || !label.stages?.length ? undefined : unique([...other.stages, ...label.stages]);
+    kept[index] = {
+      ...winner,
+      modes: unique([...other.modes, ...label.modes]),
+      stages,
+      steps: unique([...(other.steps ?? []), ...(label.steps ?? [])]),
+      priority: Math.max(other.priority, label.priority),
+      position: winner.position,
+    };
   }
-  const tiers = tiersForDistance(distanceMm);
-  if (!tiers.includes(label.tier)) return false;
-  if (label.tier === 'subpart') {
+  return kept;
+}
+
+/** True on the frame a camera flight arrives, so labels are placed for that view. */
+export function relayoutOnTweenEnd(wasTweening: boolean, stillTweening: boolean): boolean {
+  return wasTweening && !stillTweening;
+}
+
+function modeIncludes(label: StudyLabel, mode: LabelMode): boolean {
+  if (mode === 'all') return label.modes.includes('all') || label.modes.includes('basic') || label.modes.includes('surgical');
+  return label.modes.includes(mode);
+}
+
+function contextIncludes(label: StudyLabel, stage: ViewStage | null, stepId: string | null): boolean {
+  if (stepId) {
+    if (label.tier === 'region') return false;
+    if (label.steps?.includes(stepId)) return true;
+    if (label.tier === 'subpart') return false;
+    if (!label.stages || !stage) return false;
+    return label.stages.includes(stage);
+  }
+  if (label.stages && !label.stages.includes(stage ?? 'body')) return false;
+  if (stage === 'body' && label.tier === 'surface' && !BODY_SURFACE.includes(label.id as (typeof BODY_SURFACE)[number])) return false;
+  return true;
+}
+
+/**
+ * The selected mode decides the set. Distance does not throw that set away.
+ * A basic sub-part still waits until its parent is selected.
+ */
+export function labelAllowed(
+  label: StudyLabel,
+  mode: LabelMode,
+  _distanceMm: number,
+  selectedParent: string | null,
+  stage: ViewStage | null = null,
+  stepId: string | null = null,
+): boolean {
+  if (!modeIncludes(label, mode)) return false;
+  if (!contextIncludes(label, stage, stepId)) return false;
+  if (mode === 'basic' && label.tier === 'subpart') {
     if (!selectedParent) return false;
     return label.parentId === selectedParent || label.id === selectedParent;
   }
-  if (distanceMm > 220 && label.tier === 'region') return false;
   return true;
+}
+
+/** How many labels to keep before collision turns the rest into dots. */
+export function labelBudget(mode: LabelMode, distanceMm: number): number {
+  if (mode === 'surgical') return distanceMm > 220 ? 8 : distanceMm > 120 ? 14 : 22;
+  if (mode === 'basic') return distanceMm > 220 ? 6 : 12;
+  return distanceMm > 220 ? 8 : distanceMm > 120 ? 14 : 20;
+}
+
+/**
+ * Thin a mode's own labels. Structure names are reserved so a far view
+ * cannot collapse to the four group headings.
+ */
+export function declutterLabels(labels: readonly StudyLabel[], mode: LabelMode, distanceMm: number): StudyLabel[] {
+  const budget = labelBudget(mode, distanceMm);
+  const ranked = labels.slice().sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
+  if (ranked.length <= budget) return ranked;
+  if (mode === 'surgical') return ranked.slice(0, budget);
+  const primary = ranked.filter((label) => label.tier === 'structure' || label.tier === 'surface');
+  const rest = ranked.filter((label) => label.tier !== 'structure' && label.tier !== 'surface');
+  const reserved = Math.min(primary.length, Math.max(4, Math.ceil(budget * 0.5)));
+  const ordered = [...primary.slice(0, reserved), ...rest, ...primary.slice(reserved)];
+  const seen = new Set<string>();
+  const picked: StudyLabel[] = [];
+  for (const label of ordered) {
+    if (seen.has(label.id)) continue;
+    seen.add(label.id);
+    picked.push(label);
+    if (picked.length >= budget) break;
+  }
+  return picked;
+}
+
+export function chooseStudyLabels(
+  labels: readonly StudyLabel[],
+  mode: LabelMode,
+  distanceMm: number,
+  selectedParent: string | null,
+  stage: ViewStage | null,
+  stepId: string | null,
+): StudyLabel[] {
+  const allowed = labels.filter((label) => labelAllowed(label, mode, distanceMm, selectedParent, stage, stepId));
+  return declutterLabels(allowed, mode, distanceMm);
 }
 
 export type PlacementInput = {
@@ -157,7 +307,9 @@ export function placeLabels(
   width: number,
   height: number,
   inset: { top: number; right: number; bottom: number; left: number } = { top: 0, right: 0, bottom: 0, left: 0 },
+  options: { allowDots?: boolean } = {},
 ): Placement[] {
+  const allowDots = options.allowDots !== false;
   const ordered = items.slice().sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
   const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
   const result: Placement[] = [];
@@ -179,6 +331,7 @@ export function placeLabels(
       break;
     }
     if (!chosen) {
+      if (!allowDots) continue;
       const left = Math.max(minX + 8, Math.min(maxX - 8, item.anchorX));
       const top = Math.max(minY + 8, Math.min(maxY - 8, item.anchorY));
       chosen = { id: item.id, mode: 'dot', x: left, y: top, dimmed };
@@ -195,11 +348,12 @@ export type ColumnInput = {
   anchorY: number;
   width: number;
   height: number;
+  priority?: number;
 };
 
 /**
- * Stack selected sub-part labels in a column beside the structure.
- * Sorted by anchor so the top label belongs to the superior part.
+ * Stack labels in a column beside the anchors, inside the free rectangle.
+ * Lowest priority is dropped when the column is taller than that rectangle.
  */
 export function columnPlacements(
   items: readonly ColumnInput[],
@@ -208,17 +362,41 @@ export function columnPlacements(
   inset: { top: number; right: number; bottom: number; left: number } = { top: 0, right: 0, bottom: 0, left: 0 },
 ): Placement[] {
   if (!items.length) return [];
-  const meanX = items.reduce((sum, item) => sum + item.anchorX, 0) / items.length;
-  const meanY = items.reduce((sum, item) => sum + item.anchorY, 0) / items.length;
-  const labelW = Math.max(...items.map((item) => item.width));
   const gap = 8;
-  const totalH = items.reduce((sum, item) => sum + item.height, 0) + gap * (items.length - 1);
-  const placeRight = meanX < width * 0.62;
-  const x = placeRight
-    ? Math.min(width - inset.right - labelW, Math.max(inset.left, meanX + 56))
-    : Math.max(inset.left, Math.min(meanX - 56 - labelW, width - inset.right - labelW));
-  let y = Math.max(inset.top, Math.min(height - inset.bottom - totalH, meanY - totalH / 2));
-  return items
+  const minX = inset.left;
+  const minY = inset.top;
+  const maxX = Math.max(minX + 24, width - inset.right);
+  const maxY = Math.max(minY + 20, height - inset.bottom);
+  const availH = Math.max(20, maxY - minY);
+  const ranked = items
+    .slice()
+    .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.id.localeCompare(b.id));
+  const kept: ColumnInput[] = [];
+  let used = 0;
+  for (const item of ranked) {
+    const next = used + item.height + (kept.length ? gap : 0);
+    if (next > availH) continue;
+    kept.push(item);
+    used = next;
+  }
+  if (!kept.length) {
+    const first = ranked[0];
+    if (first) kept.push(first);
+  }
+  const aLeft = Math.min(...kept.map((item) => item.anchorX));
+  const aRight = Math.max(...kept.map((item) => item.anchorX));
+  const labelW = Math.min(maxX - minX, Math.max(...kept.map((item) => item.width)));
+  const spaceRight = maxX - aRight;
+  const spaceLeft = aLeft - minX;
+  const placeRight = spaceRight >= spaceLeft;
+  let x = placeRight ? maxX - labelW : minX;
+  if (placeRight && x < aRight + 10 && spaceLeft >= labelW + 10) x = Math.max(minX, aLeft - 10 - labelW);
+  if (!placeRight && x + labelW > aLeft - 10 && spaceRight >= labelW + 10) x = Math.min(maxX - labelW, aRight + 10);
+  x = Math.max(minX, Math.min(maxX - labelW, x));
+  const totalH = kept.reduce((sum, item) => sum + item.height, 0) + gap * Math.max(0, kept.length - 1);
+  const meanY = kept.reduce((sum, item) => sum + item.anchorY, 0) / kept.length;
+  let y = Math.max(minY, Math.min(maxY - Math.min(totalH, availH), meanY - totalH / 2));
+  return kept
     .slice()
     .sort((a, b) => a.anchorY - b.anchorY || a.id.localeCompare(b.id))
     .map((item) => {
