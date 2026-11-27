@@ -8,17 +8,32 @@ export function nextSnap(current: SheetSnap): SheetSnap {
 }
 
 /**
- * Dragging up (negative deltaY) opens the sheet. A short drag still moves one snap.
+ * Release cover, in pixels from the bottom, chooses the nearest snap.
+ * `velocityY` is pixels per millisecond; negative moves the finger up.
+ * A flick skips one snap past that nearest point.
  */
-export function snapAfterDrag(start: SheetSnap, deltaY: number, viewportHeight: number): SheetSnap {
-  const step = Math.max(48, viewportHeight * 0.12);
-  const hopsRaw = -deltaY / step;
-  let hops = 0;
-  if (Math.abs(hopsRaw) >= 0.35) hops = hopsRaw > 0 ? 1 : -1;
-  // A normal drag moves one snap. Only a long fling skips the step in between.
-  if (Math.abs(hopsRaw) >= 1.8) hops = hopsRaw > 0 ? 2 : -2;
-  const index = Math.max(0, Math.min(ORDER.length - 1, ORDER.indexOf(start) + hops));
-  return ORDER[index] ?? start;
+export function snapFromRelease(coverPx: number, velocityY: number, viewportHeight: number): SheetSnap {
+  let best: SheetSnap = 'peek';
+  let bestGap = Infinity;
+  for (const snap of ORDER) {
+    const gap = Math.abs(sheetCoverPx(snap, viewportHeight) - coverPx);
+    if (gap < bestGap) {
+      best = snap;
+      bestGap = gap;
+    }
+  }
+  const flick = Math.abs(velocityY) >= 0.65;
+  if (!flick) return best;
+  const index = ORDER.indexOf(best);
+  if (velocityY < 0 && index < ORDER.length - 1) return ORDER[index + 1] ?? best;
+  if (velocityY > 0 && index > 0) return ORDER[index - 1] ?? best;
+  return best;
+}
+
+/** Drag delta from `start`. Negative deltaY opens the sheet. */
+export function snapAfterDrag(start: SheetSnap, deltaY: number, viewportHeight: number, velocityY = 0): SheetSnap {
+  const cover = sheetCoverPx(start, viewportHeight) - deltaY;
+  return snapFromRelease(cover, velocityY, viewportHeight);
 }
 
 export function sheetCoverPx(snap: SheetSnap, viewportHeight: number): number {

@@ -91,14 +91,23 @@ export function overlapChoices<T extends PickCandidate>(candidates: readonly T[]
   const centralInner = tagged.filter((candidate) => candidate.central && !candidate.envelope && !isNavShell(candidate.structureId));
   if (centralInner.length === 0) return [front];
   const nearest = Math.min(...centralInner.map((candidate) => candidate.distance));
-  const slack = Math.min(16, Math.max(slackMm, nearest * 0.15));
+  const slack = Math.min(24, Math.max(slackMm, nearest * 0.2));
   const byId = new Map<string, T>();
   for (const candidate of centralInner) {
     if (candidate.distance > nearest + slack) continue;
     const prev = byId.get(candidate.structureId);
     if (!prev || candidate.distance < prev.distance) byId.set(candidate.structureId, candidate);
   }
-  return [...byId.values()].sort((a, b) => a.distance - b.distance || a.structureId.localeCompare(b.structureId));
+  const ordered = [...byId.values()].sort((a, b) => a.distance - b.distance || a.structureId.localeCompare(b.structureId));
+  const nearestHit = ordered[0];
+  if (!nearestHit) return [];
+  const cochlear = ordered.find(
+    (candidate) =>
+      (candidate.structureId === 'cochlea' || candidate.structureId.startsWith('scala-')) &&
+      candidate.distance <= nearestHit.distance + 12,
+  );
+  if (!cochlear || cochlear === nearestHit) return ordered;
+  return [cochlear, ...ordered.filter((candidate) => candidate !== cochlear)];
 }
 
 export function choosePick<T extends PickCandidate>(candidates: readonly T[]): T | null {

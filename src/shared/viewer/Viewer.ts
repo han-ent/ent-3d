@@ -234,6 +234,8 @@ export class EntViewer {
   private outward = new THREE.Vector3();
   private applyingZoom = false;
   private lastStop = 0;
+  private pendingTap = 0;
+  private pinchOrigin: { cam: THREE.Vector3; target: THREE.Vector3 } | null = null;
   private pose = new THREE.Vector3();
   private poseTarget = new THREE.Vector3();
   private poseQuat = new THREE.Quaternion();
@@ -2254,6 +2256,18 @@ export class EntViewer {
     }
   }
 
+  /** True when the tap is on the projected cochlea (or other) anchor, not only its text chip. */
+  private nearLabelAnchor(id: string, clientX: number, clientY: number): boolean {
+    const label = this.labelById.get(id) ?? this.studyLabels.find((item) => item.id === id);
+    if (!label) return false;
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    const anchor = this.projectSpecimen(label.position, width, height);
+    if (!anchor || anchor.behind) return false;
+    const rect = this.canvas.getBoundingClientRect();
+    return Math.hypot(clientX - rect.left - anchor.x, clientY - rect.top - anchor.y) <= 24;
+  }
+
   private labelAt(clientX: number, clientY: number): string | null {
     const buttons = [...this.studyButtons.values(), ...this.calloutButtons.values()];
     for (const button of buttons) {
@@ -2301,6 +2315,9 @@ export class EntViewer {
   };
 
   private onPointerDown = (event: PointerEvent): void => {
+    if (!this.pinchOrigin) {
+      this.pinchOrigin = { cam: this.camera.position.clone(), target: this.controls.target.clone() };
+    }
     this.down = { x: event.clientX, y: event.clientY };
   };
 
@@ -2309,6 +2326,14 @@ export class EntViewer {
     event.preventDefault();
     this.pinching = true;
     this.suppressTap = true;
+    if (this.pendingTap) window.clearTimeout(this.pendingTap);
+    this.pendingTap = 0;
+    if (this.pinchOrigin) {
+      this.applyingZoom = true;
+      this.camera.position.copy(this.pinchOrigin.cam);
+      this.controls.target.copy(this.pinchOrigin.target);
+      this.applyingZoom = false;
+    }
     const a = event.touches[0]!;
     const b = event.touches[1]!;
     this.pinchStart = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
@@ -2328,6 +2353,7 @@ export class EntViewer {
     if (event.touches.length >= 2) return;
     if (this.pinching) this.zoomGesture = null;
     this.pinching = false;
+    this.pinchOrigin = null;
     if (event.touches.length === 0) this.suppressTap = false;
   };
 
@@ -2365,10 +2391,17 @@ export class EntViewer {
     this.lastTapX = event.clientX;
     this.lastTapY = event.clientY;
     if (double && hit && this.mode === 'view') {
+      if (this.pendingTap) window.clearTimeout(this.pendingTap);
+      this.pendingTap = 0;
       this.onDoubleHandler?.(hit);
       return;
     }
-    this.onPickHandler?.(hit);
+    if (this.pendingTap) window.clearTimeout(this.pendingTap);
+    const picked = hit;
+    this.pendingTap = window.setTimeout(() => {
+      this.pendingTap = 0;
+      this.onPickHandler?.(picked);
+    }, 260);
   };
 
   private rememberAnchor(anchor: THREE.Vector3, stop: number): void {
@@ -2389,12 +2422,16 @@ export class EntViewer {
       anchor: [anchor.x, anchor.y, anchor.z],
       outward: [this.outward.x, this.outward.y, this.outward.z],
       minDistance: this.distanceLimits.min,
-      stopDistance: Math.max(this.lastStop, this.distanceLimits.min),
+      stopDistance: this.distanceLimits.min,
     });
     if (!held.held && !this.cameraBuried()) return;
     this.applyingZoom = true;
     if (!held.held) {
-      const stop = Math.max(this.lastStop, this.distanceLimits.min);
+      const stop = this.distanceLimits.min;
+      if (this.camera.position.distanceTo(anchor) >= stop - 0.05) {
+        this.applyingZoom = false;
+        return;
+      }
       this.camera.position.copy(anchor).addScaledVector(this.outward, stop);
       this.controls.target.copy(anchor);
     } else {
@@ -2436,9 +2473,11 @@ export class EntViewer {
 
   private beginZoomAt(clientX: number, clientY: number): void {
     const damp = this.controls.enableDamping;
+    this.applyingZoom = true;
     this.controls.enableDamping = false;
     this.controls.update();
     this.controls.enableDamping = damp;
+    this.applyingZoom = false;
     const hit = this.surfaceAt(clientX, clientY);
     this.tween = null;
     this.zoomGesture = {
@@ -2545,6 +2584,20 @@ export class EntViewer {
           kind: 'structure',
         });
       }
+    }
+    if (this.nearLabelAnchor('cochlea', clientX, clientY)) {
+      const closest = gathered
+        .filter((item) => item.central && !item.envelope && !isNavShell(item.structureId))
+        .sort((a, b) => a.distance - b.distance)[0];
+      gathered.push({
+        structureId: 'scala-vestibuli',
+        distance: (closest?.distance ?? 1) - 0.05,
+        size: closest?.size ?? 12,
+        central: true,
+        envelope: false,
+        point: closest?.point.clone() ?? this.raycaster.ray.at(1, new THREE.Vector3()),
+        kind: 'structure',
+      });
     }
     const chosen = chooseTap(gathered);
     if (!chosen) return null;

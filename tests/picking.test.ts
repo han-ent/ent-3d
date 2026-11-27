@@ -69,6 +69,16 @@ describe('pick ranking', () => {
       { structureId: 'vestibule', distance: 14, size: 6, central: true },
     ]);
     expect(band.map((item) => item.structureId)).toEqual(['scala-vestibuli', 'vestibule']);
+    const cochleaFirst = overlapChoices([
+      { structureId: 'facial-nerve', distance: 10, size: 20, central: true },
+      { structureId: 'scala-vestibuli', distance: 13, size: 16, central: true },
+    ]);
+    expect(cochleaFirst.map((item) => item.structureId)[0]).toBe('scala-vestibuli');
+    const nerveFirst = overlapChoices([
+      { structureId: 'facial-nerve', distance: 10, size: 20, central: true },
+      { structureId: 'scala-vestibuli', distance: 30, size: 16, central: true },
+    ]);
+    expect(nerveFirst[0]?.structureId).toBe('facial-nerve');
   });
 
   it('dims bone further than the other structures', () => {

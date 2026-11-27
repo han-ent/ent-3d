@@ -764,7 +764,9 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
   .sheet-handle,
   .phone-peek { display: none; }
   .sheet .sheet-body,
-  .sheet .peek { display: block; visibility: visible; height: auto; overflow: auto; }
+  .sheet .peek { display: block; visibility: visible; height: auto; overflow: auto; background: #f7f5f0; }
+  .sheet .peek { position: relative; z-index: 1; padding-top: 12px; }
+  .sheet .peek h2 { font-size: 18px; background: #f7f5f0; }
   .phone-dock {
     position: absolute;
     z-index: 7;
@@ -817,6 +819,39 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
     min-height: 44px;
     min-width: 44px;
     font-size: 14px;
+  }
+  .scale-hud,
+  .gizmo span,
+  .study-en,
+  .study-ko,
+  .hint,
+  .meta,
+  .review-line,
+  .source-line,
+  .source-check,
+  .group-label,
+  .ct-orient,
+  .stage-caption,
+  .measure-card,
+  .measure-card button {
+    font-size: 14px;
+  }
+  .study-dot {
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    pointer-events: auto;
+  }
+  .study-dot::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 50%;
+    background: rgba(140, 47, 27, 0.38);
   }
 }
 

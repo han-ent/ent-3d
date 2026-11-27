@@ -376,6 +376,19 @@ function syncCrosshair(): void {
 
 function syncLabelInset(): void {
   if (!viewer) return;
+  if (layoutKind() === 'phone') {
+    const width = Math.max(canvas.clientWidth, window.innerWidth, 1);
+    const height = Math.max(canvas.clientHeight, window.innerHeight, 1);
+    const top = safeInset('top') + 68;
+    if (landscapePhone()) {
+      const sheetW = Math.round(Math.min(width * 0.23, 260));
+      viewer.setLabelInset({ top, right: sheetW + 16, bottom: safeInset('bottom') + 76, left: 12 });
+    } else {
+      const bottom = sheetCoverPx(sheetSnap, window.innerHeight) + safeInset('bottom') + 70;
+      viewer.setLabelInset({ top, right: 78, bottom, left: 12 });
+    }
+    return;
+  }
   const stageEl = workspace.querySelector('.stage');
   if (!stageEl) return;
   const stageRect = stageEl.getBoundingClientRect();
@@ -1307,6 +1320,13 @@ function onPick(hit: PickHit | null): void {
     return;
   }
   const choices = groupedOverlaps(hit);
+  if (groupPickId(hit.structureId) === 'cochlea' && choices.length < 2) {
+    hidePicker();
+    orientPoint(hit.pointMm);
+    selectStructure(hit.structureId.startsWith('scala-') ? hit.structureId : 'scala-vestibuli', false, { ko: '와우', en: 'Cochlea' });
+    viewer?.focusSurface(hit.pointMm);
+    return;
+  }
   if (choices.length > 1) {
     showPicker(choices);
     viewer?.focusSurface(hit.pointMm);
@@ -1326,6 +1346,12 @@ function onDouble(hit: PickHit): void {
     return;
   }
   orientPoint(hit.pointMm);
+  if (groupPickId(hit.structureId) === 'cochlea') {
+    selectStructure(hit.structureId.startsWith('scala-') ? hit.structureId : 'scala-vestibuli', false, { ko: '와우', en: 'Cochlea' });
+    viewer?.frameIds(COCHLEA_PARTS);
+    lowerSheetAfterFit();
+    return;
+  }
   selectStructure(hit.structureId, true);
 }
 
@@ -1385,7 +1411,7 @@ boneBtn.addEventListener('click', () => {
   boneBtn.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
   syncPhoneFabs();
 });
-let sheetDrag: { y: number; snap: SheetSnap; pointer: number; interactive: boolean } | null = null;
+let sheetDrag: { y: number; snap: SheetSnap; pointer: number; interactive: boolean; lastY: number; lastT: number; velocity: number } | null = null;
 let sheetMoved = false;
 const sheetHead = workspace.querySelector<HTMLElement>('#sheet-head') ?? sheetToggle;
 sheetHead.style.touchAction = 'none';
@@ -1394,7 +1420,7 @@ sheetHead.addEventListener('pointerdown', (event) => {
   if (!portraitPhone()) return;
   const target = event.target as HTMLElement | null;
   const interactive = Boolean(target?.closest('button')) && !target?.closest('.sheet-handle');
-  sheetDrag = { y: event.clientY, snap: sheetSnap, pointer: event.pointerId, interactive };
+  sheetDrag = { y: event.clientY, snap: sheetSnap, pointer: event.pointerId, interactive, lastY: event.clientY, lastT: performance.now(), velocity: 0 };
   sheetHead.setPointerCapture(event.pointerId);
 });
 sheetHead.addEventListener(
@@ -1408,6 +1434,11 @@ sheetHead.addEventListener(
 sheetHead.addEventListener('pointermove', (event) => {
   if (!sheetDrag || event.pointerId !== sheetDrag.pointer || !portraitPhone()) return;
   if (Math.abs(event.clientY - sheetDrag.y) > 8) sheetMoved = true;
+  const now = performance.now();
+  const dt = now - sheetDrag.lastT;
+  if (dt > 0) sheetDrag.velocity = (event.clientY - sheetDrag.lastY) / dt;
+  sheetDrag.lastY = event.clientY;
+  sheetDrag.lastT = now;
   const next = Math.max(72, sheetCoverPx(sheetDrag.snap, window.innerHeight) + safeInset('bottom') - (event.clientY - sheetDrag.y));
   document.documentElement.style.setProperty('--sheet-cover', `${next}px`);
   syncLabelInset();
@@ -1430,7 +1461,7 @@ sheetHead.addEventListener('pointerup', (event) => {
   if (!portraitPhone()) return;
   if (Math.abs(delta) < 10) {
     if (!start.interactive) applySnap(nextSnap(start.snap));
-  } else applySnap(snapAfterDrag(start.snap, delta, window.innerHeight));
+  } else applySnap(snapAfterDrag(start.snap, delta, window.innerHeight, start.velocity));
 });
 sheetHead.addEventListener('pointercancel', () => {
   sheetDrag = null;
@@ -1572,6 +1603,10 @@ function flyStage(stage: ViewStage): void {
   if (!viewer || !manifest) return;
   activeStep = null;
   stageName = stage;
+  if (searchInput.value) {
+    searchInput.value = '';
+    renderChips();
+  }
   selected = null;
   selectionTitle = null;
   hidePicker();
