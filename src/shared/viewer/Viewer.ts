@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { ContourSource } from '../ct-slice';
-import { displayOpacity, chooseTap, isEnvelope, isNavShell, overlapChoices, touchSampleOffsets, type PickCandidate } from '../picking';
+import { displayOpacity, chooseTap, isEnvelope, isNavShell, rankTapChoices, TAP_SCREEN_RADIUS_PX, touchSampleOffsets, type PickCandidate } from '../picking';
 import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
@@ -15,6 +15,7 @@ import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { labelAnchorPoint } from '../surface-anchor';
 import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM } from '../view-pose';
 import {
+  COCHLEA_PARTS,
   STAGE_LIMITS,
   fitDistanceMm,
   holdOrbit,
@@ -2256,23 +2257,28 @@ export class EntViewer {
     }
   }
 
-  /** Closest structure anchor within 24px of the tap, so a nearby cochlea is not promoted over the point actually under the finger. */
-  private nearestLabelAnchor(clientX: number, clientY: number): string | null {
+  /** Pixels from the finger to each study anchor. Region dots are not structures. */
+  private anchorScreenPx(clientX: number, clientY: number): Map<string, number> {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
     const rect = this.canvas.getBoundingClientRect();
-    let best: string | null = null;
-    let bestDist = 24;
+    const shown = new Set(
+      [...this.studyButtons.values()]
+        .filter((button) => button.classList.contains('study-label') && !button.hidden)
+        .map((button) => button.dataset.labelId),
+    );
+    const distances = new Map<string, number>();
     for (const label of this.studyLabels) {
+      if (!shown.has(label.id)) continue;
       const anchor = this.projectSpecimen(label.position, width, height);
       if (!anchor || anchor.behind) continue;
       const dist = Math.hypot(clientX - rect.left - anchor.x, clientY - rect.top - anchor.y);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = label.id;
+      distances.set(label.id, dist);
+      if (label.id === 'cochlea') {
+        for (const part of COCHLEA_PARTS) distances.set(part, dist);
       }
     }
-    return best;
+    return distances;
   }
 
   private labelAt(clientX: number, clientY: number): string | null {
@@ -2405,7 +2411,7 @@ export class EntViewer {
     const now = performance.now();
     const double =
       hit !== null &&
-      now - this.lastTapAt < 320 &&
+      now - this.lastTapAt < 450 &&
       Math.hypot(event.clientX - this.lastTapX, event.clientY - this.lastTapY) < 28;
     this.lastTapAt = now;
     this.lastTapX = event.clientX;
@@ -2421,7 +2427,7 @@ export class EntViewer {
     this.pendingTap = window.setTimeout(() => {
       this.pendingTap = 0;
       this.onPickHandler?.(picked);
-    }, 260);
+    }, 470);
   };
 
   private rememberAnchor(anchor: THREE.Vector3, stop: number): void {
@@ -2492,7 +2498,7 @@ export class EntViewer {
   }
 
   private beginZoomAt(clientX: number, clientY: number): void {
-    const hit = this.surfaceAt(clientX, clientY);
+    const hit = this.cursorPoint(clientX, clientY);
     this.tween = null;
     this.zoomGesture = {
       cam: this.camera.position.clone(),
@@ -2565,6 +2571,37 @@ export class EntViewer {
     return { point: hit.point.clone(), id, radius: zoomStructureSize(id, radius) };
   }
 
+  /**
+   * Point that should stay under the finger. A surface hit wins. A miss uses
+   * the finger ray where it crosses the orbit-target plane, so an empty pinch
+   * does not slide the view toward the screen centre.
+   */
+  private cursorPoint(clientX: number, clientY: number): { point: THREE.Vector3; radius: number } | null {
+    const hit = this.surfaceAt(clientX, clientY);
+    if (hit) return { point: hit.point, radius: hit.radius };
+    let nearest: { point: THREE.Vector3; radius: number; px: number } | null = null;
+    for (const dx of [-16, 0, 16]) {
+      for (const dy of [-16, 0, 16]) {
+        if (dx === 0 && dy === 0) continue;
+        const found = this.surfaceAt(clientX + dx, clientY + dy);
+        if (!found) continue;
+        const px = Math.hypot(dx, dy);
+        if (!nearest || px < nearest.px) nearest = { point: found.point, radius: found.radius, px };
+      }
+    }
+    if (nearest) return nearest;
+    const rect = this.canvas.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return null;
+    this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    this.camera.getWorldDirection(this.rayDir);
+    const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(this.rayDir, this.controls.target);
+    const point = new THREE.Vector3();
+    if (!this.raycaster.ray.intersectPlane(plane, point)) return null;
+    return { point, radius: 0 };
+  }
+
   private cast(clientX: number, clientY: number): PickHit | null {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return null;
@@ -2599,16 +2636,21 @@ export class EntViewer {
         });
       }
     }
-    if (this.nearestLabelAnchor(clientX, clientY) === 'cochlea') {
+    const screenPx = this.anchorScreenPx(clientX, clientY);
+    for (const item of gathered) item.screenPx = screenPx.get(item.structureId);
+    const cochleaPx = screenPx.get('cochlea');
+    const scalaHit = gathered.some((item) => item.central && (item.structureId === 'cochlea' || item.structureId.startsWith('scala-')));
+    if (cochleaPx != null && cochleaPx <= TAP_SCREEN_RADIUS_PX && !scalaHit) {
       const closest = gathered
         .filter((item) => item.central && !item.envelope && !isNavShell(item.structureId))
         .sort((a, b) => a.distance - b.distance)[0];
       gathered.push({
         structureId: 'scala-vestibuli',
-        distance: (closest?.distance ?? 1) - 0.05,
+        distance: (closest?.distance ?? 1) + 50,
         size: closest?.size ?? 12,
         central: true,
         envelope: false,
+        screenPx: cochleaPx,
         point: closest?.point.clone() ?? this.raycaster.ray.at(1, new THREE.Vector3()),
         kind: 'structure',
       });
@@ -2619,7 +2661,7 @@ export class EntViewer {
       const local = this.world.worldToLocal(item.point.clone());
       return [local.x, local.y, local.z];
     };
-    const overlaps = overlapChoices(gathered).map((item) => {
+    const overlaps = rankTapChoices(gathered).map((item) => {
       const gatheredHit = gathered.find((entry) => entry.structureId === item.structureId && entry.central) ?? item;
       return { structureId: item.structureId, pointMm: pointOf(gatheredHit as Gathered) };
     });

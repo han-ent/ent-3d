@@ -23,6 +23,13 @@ export function shouldStageJump(hitId: string, otherIds: readonly string[], stag
 /** Finger slop on a phone. Rays inside this radius still count. */
 export const TOUCH_TOLERANCE_PX = 12;
 
+/**
+ * Structures whose anchor sits inside this many pixels of the finger join the
+ * overlap chip. The closest anchor in the radius leads, so a cochlea tap and a
+ * vestibule tap do not steal each other.
+ */
+export const TAP_SCREEN_RADIUS_PX = 24;
+
 export type PickCandidate = {
   structureId: string;
   /** Distance from the camera along the ray, in world units (millimetres). */
@@ -32,6 +39,8 @@ export type PickCandidate = {
   /** True when the ray is the finger centre, not a tolerance sample. */
   central: boolean;
   envelope?: boolean;
+  /** Pixels from the finger to this structure's anchor. Absent when unknown. */
+  screenPx?: number;
 };
 
 export function isEnvelope(id: string): boolean {
@@ -99,6 +108,38 @@ export function overlapChoices<T extends PickCandidate>(candidates: readonly T[]
     if (!prev || candidate.distance < prev.distance) byId.set(candidate.structureId, candidate);
   }
   return [...byId.values()].sort((a, b) => a.distance - b.distance || a.structureId.localeCompare(b.structureId));
+}
+
+/**
+ * Overlap chip order. The closest anchor inside the tap radius leads, and the
+ * first mesh under the finger follows. A cochlea (or anything else) whose
+ * anchor is inside the radius stays in the chip even when a nearer mesh is in front.
+ */
+export function rankTapChoices<T extends PickCandidate>(candidates: readonly T[], slackMm = 4): T[] {
+  const ray = overlapChoices(candidates, slackMm);
+  const neighbours = new Map<string, T>();
+  for (const candidate of candidates) {
+    if (!candidate.central || isNavShell(candidate.structureId)) continue;
+    if (candidate.envelope ?? isEnvelope(candidate.structureId)) continue;
+    const px = candidate.screenPx;
+    if (px == null || px > TAP_SCREEN_RADIUS_PX) continue;
+    const prev = neighbours.get(candidate.structureId);
+    if (!prev || px < (prev.screenPx ?? Infinity)) neighbours.set(candidate.structureId, candidate);
+  }
+  const closest = [...neighbours.values()].sort(
+    (a, b) => (a.screenPx ?? Infinity) - (b.screenPx ?? Infinity) || a.distance - b.distance,
+  )[0];
+  const ordered: T[] = [];
+  const seen = new Set<string>();
+  const push = (item: T | undefined) => {
+    if (!item || seen.has(item.structureId)) return;
+    seen.add(item.structureId);
+    ordered.push(item);
+  };
+  push(closest ?? ray[0]);
+  for (const item of ray) push(item);
+  for (const item of [...neighbours.values()].sort((a, b) => (a.screenPx ?? Infinity) - (b.screenPx ?? Infinity))) push(item);
+  return ordered;
 }
 
 export function choosePick<T extends PickCandidate>(candidates: readonly T[]): T | null {
