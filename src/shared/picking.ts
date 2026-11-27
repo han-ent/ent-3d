@@ -98,16 +98,7 @@ export function overlapChoices<T extends PickCandidate>(candidates: readonly T[]
     const prev = byId.get(candidate.structureId);
     if (!prev || candidate.distance < prev.distance) byId.set(candidate.structureId, candidate);
   }
-  const ordered = [...byId.values()].sort((a, b) => a.distance - b.distance || a.structureId.localeCompare(b.structureId));
-  const nearestHit = ordered[0];
-  if (!nearestHit) return [];
-  const cochlear = ordered.find(
-    (candidate) =>
-      (candidate.structureId === 'cochlea' || candidate.structureId.startsWith('scala-')) &&
-      candidate.distance <= nearestHit.distance + 12,
-  );
-  if (!cochlear || cochlear === nearestHit) return ordered;
-  return [cochlear, ...ordered.filter((candidate) => candidate !== cochlear)];
+  return [...byId.values()].sort((a, b) => a.distance - b.distance || a.structureId.localeCompare(b.structureId));
 }
 
 export function choosePick<T extends PickCandidate>(candidates: readonly T[]): T | null {

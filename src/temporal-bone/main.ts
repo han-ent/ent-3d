@@ -975,8 +975,15 @@ function renderBackChip(): void {
   if (!chip) return;
   const stage = (['body', 'ear', 'bone', 'inner'] as const).find((id) => stageName === id);
   const show = layoutKind() === 'phone' && Boolean(selected) && Boolean(stage);
+  const appeared = show && chip.hidden;
   chip.hidden = !show;
   if (show && stage) chip.textContent = t('stage.back', { stage: t(`crumbs.${stage}`) });
+  if (appeared) {
+    chip.style.pointerEvents = 'none';
+    window.setTimeout(() => {
+      chip.style.pointerEvents = '';
+    }, 450);
+  }
 }
 
 function currentStage(): ViewStage {
@@ -1925,6 +1932,25 @@ async function boot(): Promise<void> {
   viewer.onLabel((id) => {
     if (mode === 'quiz') return;
     hidePicker();
+    const regionStage: Record<string, ViewStage> = {
+      'region-inner': 'inner',
+      'region-middle': 'bone',
+      'region-ossicles': 'bone',
+      'region-nerve': 'bone',
+    };
+    const nextStage = regionStage[id];
+    if (nextStage) {
+      if (currentStage() !== nextStage) flyStage(nextStage);
+      const focus =
+        id === 'region-middle' || id === 'region-ossicles'
+          ? 'tympanic-membrane'
+          : id === 'region-nerve'
+            ? 'facial-nerve'
+            : null;
+      if (focus && structureById(focus)) selectStructure(focus, true);
+      if (portraitPhone()) applySnap('peek');
+      return;
+    }
     const action = labelAction(id);
     if (action.kind === 'cochlea') {
       focusCochlea();

@@ -763,10 +763,15 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
   }
   .sheet-handle,
   .phone-peek { display: none; }
-  .sheet .sheet-body,
-  .sheet .peek { display: block; visibility: visible; height: auto; overflow: auto; background: #f7f5f0; }
-  .sheet .peek { position: relative; z-index: 1; padding-top: 12px; }
-  .sheet .peek h2 { font-size: 18px; background: #f7f5f0; }
+  .sheet .sheet-body { display: block; visibility: visible; height: auto; overflow: auto; background: #f7f5f0; }
+  .sheet .peek { display: block; visibility: visible; height: auto; overflow: visible; background: #f7f5f0; }
+  .sheet,
+  .sheet.is-open { padding-top: calc(64px + env(safe-area-inset-top)); }
+  .sheet .peek { position: relative; z-index: 1; padding-top: 10px; overflow: visible; }
+  .sheet .peek h2,
+  .sheet .peek p { background: #f7f5f0; }
+  .sheet .peek h2 { font-size: 18px; line-height: 1.45; margin-bottom: 4px; }
+  .sheet .peek p { margin-top: 4px; line-height: 1.45; }
   .phone-dock {
     position: absolute;
     z-index: 7;
@@ -836,11 +841,12 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
   .measure-card button {
     font-size: 14px;
   }
+  .study-label { min-height: 44px; box-sizing: border-box; }
   .study-dot {
     width: 44px;
     height: 44px;
     background: transparent;
-    pointer-events: auto;
+    pointer-events: none;
   }
   .study-dot::after {
     content: "";

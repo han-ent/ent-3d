@@ -73,7 +73,7 @@ describe('pick ranking', () => {
       { structureId: 'facial-nerve', distance: 10, size: 20, central: true },
       { structureId: 'scala-vestibuli', distance: 13, size: 16, central: true },
     ]);
-    expect(cochleaFirst.map((item) => item.structureId)[0]).toBe('scala-vestibuli');
+    expect(cochleaFirst.map((item) => item.structureId)[0]).toBe('facial-nerve');
     const nerveFirst = overlapChoices([
       { structureId: 'facial-nerve', distance: 10, size: 20, central: true },
       { structureId: 'scala-vestibuli', distance: 30, size: 16, central: true },

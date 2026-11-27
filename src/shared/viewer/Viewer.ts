@@ -235,7 +235,7 @@ export class EntViewer {
   private applyingZoom = false;
   private lastStop = 0;
   private pendingTap = 0;
-  private pinchOrigin: { cam: THREE.Vector3; target: THREE.Vector3 } | null = null;
+  private lastTouchAt = 0;
   private pose = new THREE.Vector3();
   private poseTarget = new THREE.Vector3();
   private poseQuat = new THREE.Quaternion();
@@ -1988,11 +1988,11 @@ export class EntViewer {
         this.studyButtons.set(item.id, button);
       }
       const conceal = this.interacting && secondary;
-      button.hidden = conceal;
+      button.hidden = false;
+      button.style.visibility = conceal ? 'hidden' : '';
       if (conceal) {
         const hiddenLine = this.leaderLines.get(item.id);
         if (hiddenLine) hiddenLine.style.display = 'none';
-        continue;
       }
       const modeClass = item.mode === 'dot' ? 'study-dot' : 'study-label';
       if (button.className !== modeClass) button.className = modeClass;
@@ -2256,34 +2256,56 @@ export class EntViewer {
     }
   }
 
-  /** True when the tap is on the projected cochlea (or other) anchor, not only its text chip. */
-  private nearLabelAnchor(id: string, clientX: number, clientY: number): boolean {
-    const label = this.labelById.get(id) ?? this.studyLabels.find((item) => item.id === id);
-    if (!label) return false;
+  /** Closest structure anchor within 24px of the tap, so a nearby cochlea is not promoted over the point actually under the finger. */
+  private nearestLabelAnchor(clientX: number, clientY: number): string | null {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
-    const anchor = this.projectSpecimen(label.position, width, height);
-    if (!anchor || anchor.behind) return false;
     const rect = this.canvas.getBoundingClientRect();
-    return Math.hypot(clientX - rect.left - anchor.x, clientY - rect.top - anchor.y) <= 24;
+    let best: string | null = null;
+    let bestDist = 24;
+    for (const label of this.studyLabels) {
+      const anchor = this.projectSpecimen(label.position, width, height);
+      if (!anchor || anchor.behind) continue;
+      const dist = Math.hypot(clientX - rect.left - anchor.x, clientY - rect.top - anchor.y);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = label.id;
+      }
+    }
+    return best;
   }
 
   private labelAt(clientX: number, clientY: number): string | null {
     const buttons = [...this.studyButtons.values(), ...this.calloutButtons.values()];
+    const hits: { id: string; inside: boolean; area: number; dist: number; dot: boolean }[] = [];
+    const minHit = this.canvas.clientWidth < 960 ? 44 : 0;
     for (const button of buttons) {
       if (button.hidden) continue;
       const rect = button.getBoundingClientRect();
       if (rect.width < 2 || rect.height < 2) continue;
-      const minHit = this.canvas.clientWidth < 960 ? 44 : 0;
-      const hitW = Math.max(rect.width, minHit);
-      const hitH = Math.max(rect.height, minHit);
+      const id = button.dataset.labelId;
+      if (!id) continue;
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-      if (Math.abs(clientX - cx) <= hitW / 2 && Math.abs(clientY - cy) <= hitH / 2) {
-        return button.dataset.labelId ?? null;
-      }
+      const inside = Math.abs(clientX - cx) <= rect.width / 2 && Math.abs(clientY - cy) <= rect.height / 2;
+      const padded =
+        Math.abs(clientX - cx) <= Math.max(rect.width, minHit) / 2 &&
+        Math.abs(clientY - cy) <= Math.max(rect.height, minHit) / 2;
+      if (!inside && !padded) continue;
+      hits.push({
+        id,
+        inside,
+        area: rect.width * rect.height,
+        dist: Math.hypot(clientX - cx, clientY - cy),
+        dot: button.classList.contains('study-dot'),
+      });
     }
-    return null;
+    const dotHit = hits.filter((hit) => hit.dot && hit.inside).sort((a, b) => a.dist - b.dist)[0];
+    if (dotHit) return dotHit.id;
+    const visual = hits.filter((hit) => hit.inside).sort((a, b) => a.area - b.area || a.dist - b.dist);
+    if (visual[0]) return visual[0].id;
+    hits.sort((a, b) => a.dist - b.dist);
+    return hits[0]?.id ?? null;
   }
 
   private labelSize(text: string, twoLines: boolean): { width: number; height: number } {
@@ -2315,11 +2337,15 @@ export class EntViewer {
   };
 
   private onPointerDown = (event: PointerEvent): void => {
-    if (!this.pinchOrigin) {
-      this.pinchOrigin = { cam: this.camera.position.clone(), target: this.controls.target.clone() };
-    }
+    if (event.pointerType === 'touch') this.lastTouchAt = performance.now();
+    if (this.syntheticMouse(event)) return;
     this.down = { x: event.clientX, y: event.clientY };
   };
+
+  /** Chrome's touch emulation follows a touch with a mouse pointer that would clear the tap. */
+  private syntheticMouse(event: PointerEvent): boolean {
+    return event.pointerType === 'mouse' && performance.now() - this.lastTouchAt < 700;
+  }
 
   private onTouchStart = (event: TouchEvent): void => {
     if (event.touches.length < 2) return;
@@ -2328,12 +2354,6 @@ export class EntViewer {
     this.suppressTap = true;
     if (this.pendingTap) window.clearTimeout(this.pendingTap);
     this.pendingTap = 0;
-    if (this.pinchOrigin) {
-      this.applyingZoom = true;
-      this.camera.position.copy(this.pinchOrigin.cam);
-      this.controls.target.copy(this.pinchOrigin.target);
-      this.applyingZoom = false;
-    }
     const a = event.touches[0]!;
     const b = event.touches[1]!;
     this.pinchStart = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
@@ -2353,11 +2373,11 @@ export class EntViewer {
     if (event.touches.length >= 2) return;
     if (this.pinching) this.zoomGesture = null;
     this.pinching = false;
-    this.pinchOrigin = null;
     if (event.touches.length === 0) this.suppressTap = false;
   };
 
   private onPointerUp = (event: PointerEvent): void => {
+    if (this.syntheticMouse(event)) return;
     if (!this.down) return;
     const moved = Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y);
     this.down = null;
@@ -2472,12 +2492,6 @@ export class EntViewer {
   }
 
   private beginZoomAt(clientX: number, clientY: number): void {
-    const damp = this.controls.enableDamping;
-    this.applyingZoom = true;
-    this.controls.enableDamping = false;
-    this.controls.update();
-    this.controls.enableDamping = damp;
-    this.applyingZoom = false;
     const hit = this.surfaceAt(clientX, clientY);
     this.tween = null;
     this.zoomGesture = {
@@ -2585,7 +2599,7 @@ export class EntViewer {
         });
       }
     }
-    if (this.nearLabelAnchor('cochlea', clientX, clientY)) {
+    if (this.nearestLabelAnchor(clientX, clientY) === 'cochlea') {
       const closest = gathered
         .filter((item) => item.central && !item.envelope && !isNavShell(item.structureId))
         .sort((a, b) => a.distance - b.distance)[0];
