@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { choosePick, chooseTap, displayOpacity, overlapChoices, TOUCH_TOLERANCE_PX, touchSampleOffsets } from '../src/shared/picking';
+import { choosePick, chooseTap, displayOpacity, overlapChoices, shouldStageJump, TOUCH_TOLERANCE_PX, touchSampleOffsets } from '../src/shared/picking';
 import type { Manifest } from '../src/shared/types';
 import { DEFAULT_CAMERA } from '../src/shared/view-pose';
 
@@ -44,6 +44,18 @@ describe('pick ranking', () => {
 
   it('selects nothing when the rays miss', () => {
     expect(choosePick([])).toBeNull();
+  });
+
+  it('does not let the ear hotspot steal a tap that also hits the cochlea', () => {
+    const chosen = chooseTap([
+      { structureId: 'ear-hotspot', distance: 4, size: 28, central: true, envelope: true },
+      { structureId: 'scala-vestibuli', distance: 30, size: 16, central: true },
+    ]);
+    expect(chosen?.structureId).toBe('scala-vestibuli');
+    expect(shouldStageJump('ear-hotspot', ['scala-vestibuli'], 'inner')).toBe(false);
+    expect(shouldStageJump('ear-hotspot', [], 'inner')).toBe(false);
+    expect(shouldStageJump('skin', [], 'body')).toBe(true);
+    expect(shouldStageJump('ear-hotspot', ['scala-vestibuli'], 'ear')).toBe(false);
   });
 
   it('keeps the front cochlear surface ahead of the vestibule behind it', () => {

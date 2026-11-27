@@ -11,9 +11,12 @@ export function nextSnap(current: SheetSnap): SheetSnap {
  * Dragging up (negative deltaY) opens the sheet. A short drag still moves one snap.
  */
 export function snapAfterDrag(start: SheetSnap, deltaY: number, viewportHeight: number): SheetSnap {
-  const step = Math.max(56, viewportHeight * 0.14);
-  let hops = Math.trunc(-deltaY / step);
-  if (hops === 0 && Math.abs(deltaY) >= step * 0.35) hops = deltaY < 0 ? 1 : -1;
+  const step = Math.max(48, viewportHeight * 0.12);
+  const hopsRaw = -deltaY / step;
+  let hops = 0;
+  if (Math.abs(hopsRaw) >= 0.35) hops = hopsRaw > 0 ? 1 : -1;
+  // A normal drag moves one snap. Only a long fling skips the step in between.
+  if (Math.abs(hopsRaw) >= 1.8) hops = hopsRaw > 0 ? 2 : -2;
   const index = Math.max(0, Math.min(ORDER.length - 1, ORDER.indexOf(start) + hops));
   return ORDER[index] ?? start;
 }

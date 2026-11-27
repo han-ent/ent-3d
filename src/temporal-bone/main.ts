@@ -14,6 +14,7 @@ import {
   SURGICAL_STRUCTURES,
   type ViewStage,
 } from '../shared/stage-frame';
+import { isNavShell, shouldStageJump } from '../shared/picking';
 import { COCHLEA_PARTS, STAGE_LIMITS, groupPickId, labelAction, visibleFovDeg } from '../shared/zoom-fit';
 import { CANAL_WALL } from '../shared/surface-anchor';
 import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
@@ -292,10 +293,23 @@ function desktopLayout(): boolean {
   return window.matchMedia('(min-width: 960px)').matches;
 }
 
+function landscapePhone(): boolean {
+  if (desktopLayout()) return false;
+  return (
+    window.matchMedia('(orientation: landscape) and (max-width: 959px)').matches ||
+    window.matchMedia('(max-height: 500px) and (max-width: 959px)').matches
+  );
+}
+
 function layoutKind(): 'desktop' | 'side' | 'phone' {
   if (desktopLayout()) return 'desktop';
+  if (landscapePhone()) return 'phone';
   if (window.matchMedia('(max-width: 767px) and (orientation: portrait)').matches) return 'phone';
   return 'side';
+}
+
+function portraitPhone(): boolean {
+  return layoutKind() === 'phone' && !landscapePhone();
 }
 
 function safeInset(edge: 'top' | 'bottom'): number {
@@ -310,6 +324,15 @@ function phoneVisible(): { x: number; y: number; width: number; height: number }
   const width = Math.max(canvas.clientWidth, window.innerWidth, 1);
   const height = Math.max(canvas.clientHeight, window.innerHeight, 1);
   const top = safeInset('top') + 64;
+  if (landscapePhone()) {
+    const sheetW = Math.round(Math.min(width * 0.23, 260));
+    return {
+      x: 8,
+      y: top,
+      width: Math.max(80, width - sheetW - 16),
+      height: Math.max(80, height - top - 72),
+    };
+  }
   const bottom = sheetCoverPx(sheetSnap, window.innerHeight) + safeInset('bottom') + 62;
   return {
     x: 10,
@@ -324,14 +347,16 @@ function syncVisibleRect(): void {
 }
 
 function applySnap(snap: SheetSnap): void {
-  const phone = layoutKind() === 'phone';
+  const phone = portraitPhone();
+  const land = landscapePhone();
   if (phone) sheetSnap = snap;
   const cover = phone ? sheetCoverPx(sheetSnap, window.innerHeight) + safeInset('bottom') : 0;
   document.documentElement.style.setProperty('--sheet-cover', `${cover}px`);
   sheet.dataset.snap = phone ? sheetSnap : 'full';
   document.body.classList.toggle('is-sheet-full', phone && sheetSnap === 'full');
-  document.body.classList.toggle('is-phone', phone);
-  const open = !phone || sheetSnap !== 'peek';
+  document.body.classList.toggle('is-phone', phone || land);
+  document.body.classList.toggle('is-landscape-phone', land);
+  const open = land || !phone || sheetSnap !== 'peek';
   sheet.classList.toggle('is-open', open);
   sheetToggle.setAttribute('aria-expanded', String(open));
   sheetToggle.setAttribute('aria-label', open ? t('sheet.collapse') : t('sheet.expand'));
@@ -428,7 +453,7 @@ function renderPeek(): void {
     peekTitle.textContent = t('quiz.title');
     peekLine.textContent = quiz?.question.mode === 'locate' ? quiz.question.label : t('quiz.promptName');
   } else if (structure) {
-    peekTitle.textContent = selectionTitle ? text(selectionTitle) : structureLabel(structure.id);
+    peekTitle.textContent = selectionTitle ? englishFirst(selectionTitle.en, selectionTitle.ko) : structureLabel(structure.id);
     const fn = content ? text(content.function) : '';
     peekLine.textContent = isPendingText(fn) ? t('sheet.pending') : firstLine(fn);
   } else if (step) {
@@ -771,7 +796,7 @@ function selectStructure(id: string, frame: boolean, title?: { ko: string; en: s
   const structure = structureById(id);
   if (structure) viewer?.setHidden(id, false);
   viewer?.flash(id);
-  if (layoutKind() === 'phone') applySnap(frame && sheetSnap === 'full' ? 'half' : frame ? sheetSnap : 'peek');
+  if (portraitPhone()) applySnap(frame && sheetSnap === 'full' ? 'half' : frame ? sheetSnap : 'peek');
   viewer?.select(id, frame);
   const sheetBody = document.querySelector<HTMLElement>('#sheet-body');
   if (sheetBody) sheetBody.scrollTop = 0;
@@ -782,7 +807,7 @@ function selectStructure(id: string, frame: boolean, title?: { ko: string; en: s
 }
 
 function lowerSheetAfterFit(): void {
-  if (layoutKind() === 'phone' && sheetSnap === 'full') applySnap('half');
+  if (portraitPhone() && sheetSnap === 'full') applySnap('half');
 }
 
 function focusCochlea(): void {
@@ -858,7 +883,7 @@ function showPicker(choices: { key: string; structureId: string; point: Vec3 }[]
 function syncPhoneFabs(): void {
   const boneFab = workspace.querySelector<HTMLButtonElement>('#bone-fab');
   if (boneFab) {
-    boneFab.textContent = viewer?.boneIsTransparent() ? '●' : '○';
+    boneFab.textContent = t('bone.short');
     boneFab.setAttribute('aria-label', boneBtn.textContent || t('bone.transparent'));
     boneFab.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
   }
@@ -1247,10 +1272,22 @@ function buildCt(): void {
 }
 
 function onPick(hit: PickHit | null): void {
-  if (hit && (hit.structureId === 'upper-body' || hit.structureId === 'skin' || hit.structureId === 'ear-hotspot' || hit.structureId === 'skull-layer')) {
+  if (hit && isNavShell(hit.structureId)) {
+    const others = (hit.overlaps ?? []).map((item) => item.structureId);
+    const stage = (['body', 'ear', 'bone', 'inner'] as const).find((id) => stageName === id) ?? 'body';
+    if (!shouldStageJump(hit.structureId, others, stage)) {
+      const real = (hit.overlaps ?? []).find((item) => !isNavShell(item.structureId));
+      if (real) {
+        hidePicker();
+        orientPoint(real.pointMm);
+        selectStructure(real.structureId, false);
+        viewer?.focusSurface(real.pointMm);
+      }
+      return;
+    }
     if (!eacMm) return;
     const distance = Math.hypot(hit.pointMm[0] - eacMm[0], hit.pointMm[1] - eacMm[1], hit.pointMm[2] - eacMm[2]);
-    if (hit.structureId === 'ear-hotspot' || distance < 48) flyStage(stageName === 'body' ? 'ear' : 'bone');
+    if (hit.structureId === 'ear-hotspot' || distance < 48) flyStage(stage === 'body' ? 'ear' : 'bone');
     return;
   }
   if (mode === 'quiz' && quiz && !quiz.answered && quiz.question.mode === 'locate') {
@@ -1284,7 +1321,7 @@ function onPick(hit: PickHit | null): void {
 function onDouble(hit: PickHit): void {
   if (mode !== 'view') return;
   hidePicker();
-  if (hit.structureId === 'upper-body' || hit.structureId === 'skin' || hit.structureId === 'ear-hotspot' || hit.structureId === 'skull-layer') {
+  if (isNavShell(hit.structureId)) {
     onPick(hit);
     return;
   }
@@ -1354,7 +1391,7 @@ const sheetHead = workspace.querySelector<HTMLElement>('#sheet-head') ?? sheetTo
 sheetHead.style.touchAction = 'none';
 sheetToggle.style.touchAction = 'none';
 sheetHead.addEventListener('pointerdown', (event) => {
-  if (layoutKind() !== 'phone') return;
+  if (!portraitPhone()) return;
   const target = event.target as HTMLElement | null;
   const interactive = Boolean(target?.closest('button')) && !target?.closest('.sheet-handle');
   sheetDrag = { y: event.clientY, snap: sheetSnap, pointer: event.pointerId, interactive };
@@ -1369,7 +1406,7 @@ sheetHead.addEventListener(
   { passive: false },
 );
 sheetHead.addEventListener('pointermove', (event) => {
-  if (!sheetDrag || event.pointerId !== sheetDrag.pointer || layoutKind() !== 'phone') return;
+  if (!sheetDrag || event.pointerId !== sheetDrag.pointer || !portraitPhone()) return;
   if (Math.abs(event.clientY - sheetDrag.y) > 8) sheetMoved = true;
   const next = Math.max(72, sheetCoverPx(sheetDrag.snap, window.innerHeight) + safeInset('bottom') - (event.clientY - sheetDrag.y));
   document.documentElement.style.setProperty('--sheet-cover', `${next}px`);
@@ -1390,7 +1427,7 @@ sheetHead.addEventListener('pointerup', (event) => {
   const delta = event.clientY - sheetDrag.y;
   const start = sheetDrag;
   sheetDrag = null;
-  if (layoutKind() !== 'phone') return;
+  if (!portraitPhone()) return;
   if (Math.abs(delta) < 10) {
     if (!start.interactive) applySnap(nextSnap(start.snap));
   } else applySnap(snapAfterDrag(start.snap, delta, window.innerHeight));
@@ -1401,7 +1438,10 @@ sheetHead.addEventListener('pointercancel', () => {
 });
 searchInput.addEventListener('input', () => {
   renderChips();
-  if (layoutKind() === 'phone' && searchInput.value.trim()) openSection('list');
+  if (portraitPhone() && searchInput.value.trim()) openSection('list');
+  if (landscapePhone() && searchInput.value.trim()) {
+    document.getElementById('list-section')?.scrollIntoView({ block: 'start' });
+  }
 });
 
 onLangChange(() => {

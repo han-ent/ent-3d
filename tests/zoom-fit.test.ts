@@ -7,6 +7,7 @@ import {
   STAGE_LIMITS,
   fitDistanceMm,
   groupPickId,
+  holdOrbit,
   labelAction,
   orbitAbout,
   stopDistanceMm,
@@ -49,7 +50,7 @@ describe('stage distance limits', () => {
     expect(STAGE_LIMITS.body).toEqual({ min: 300, max: 1500 });
     expect(STAGE_LIMITS.ear).toEqual({ min: 40, max: 500 });
     expect(STAGE_LIMITS.bone).toEqual({ min: 15, max: 400 });
-    expect(STAGE_LIMITS.inner).toEqual({ min: 4, max: 150 });
+    expect(STAGE_LIMITS.inner).toEqual({ min: 7, max: 150 });
     expect(STAGE_LIMITS.inner.min).toBeLessThan(STAGE_LIMITS.bone.min);
     expect(STAGE_LIMITS.bone.min).toBeLessThan(STAGE_LIMITS.ear.min);
     expect(STAGE_LIMITS.ear.min).toBeLessThan(STAGE_LIMITS.body.min);
@@ -129,6 +130,46 @@ describe('zoom anchor', () => {
     expect(next.target).toEqual(target);
     const start = Math.hypot(camera[0] - target[0], camera[1] - target[1], camera[2] - target[2]);
     expect(next.distance).toBeCloseTo(start * 0.5, 4);
+  });
+
+  it('does not jump outward when a later pinch hits a surface against the camera', () => {
+    const camera: Vec3 = [0, 0, 40];
+    const target: Vec3 = [0, 0, 0];
+    const anchor: Vec3 = [0, 0, 38];
+    const next = zoomAboutAnchor({
+      camera,
+      target,
+      anchor,
+      scale: 0.5,
+      minDistance: 40,
+      maxDistance: 500,
+      stopDistance: 40,
+    });
+    expect(next.distance).toBeLessThanOrEqual(40 + 1e-6);
+    expect(next.distance).toBeGreaterThanOrEqual(20 - 1e-6);
+  });
+
+  it('holds a rotation outside the last surface point', () => {
+    const held = holdOrbit({
+      camera: [0, 0, -40],
+      target: [0, 0, 0],
+      anchor: [0, 0, 0],
+      outward: [0, 0, 1],
+      minDistance: 40,
+      stopDistance: 40,
+    });
+    expect(held.held).toBe(true);
+    expect(held.camera[2]).toBeGreaterThan(0);
+    expect(held.target).toEqual([0, 0, 0]);
+    const safe = holdOrbit({
+      camera: [0, 0, 50],
+      target: [0, 0, 0],
+      anchor: [0, 0, 0],
+      outward: [0, 0, 1],
+      minDistance: 40,
+      stopDistance: 40,
+    });
+    expect(safe.held).toBe(false);
   });
 
   it('does not move the camera into the mesh', () => {

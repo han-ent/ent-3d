@@ -674,8 +674,7 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
 
 .sheet-head { touch-action: none; }
 
-@media (max-width: 959px) and (orientation: landscape),
-       (min-width: 768px) and (max-width: 959px) {
+@media (min-width: 768px) and (max-width: 959px) and (orientation: portrait) {
   .workspace { flex-direction: row; }
   .stage { flex: 1 1 auto; min-width: 0; }
   .sheet {
@@ -689,12 +688,134 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
   .sheet-handle { display: none; }
   .sheet .sheet-body { display: block; }
   .phone-only { display: none !important; }
-  .modebar button,
-  .labelbar button,
-  .crumbs button,
-  #ct-planes button,
-  .checkline {
+}
+
+@media (max-width: 959px) and (orientation: landscape),
+       (max-height: 500px) and (max-width: 959px) {
+  body.app-body { display: block; height: 100dvh; height: 100svh; }
+  .topbar {
+    position: absolute;
+    height: 0;
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    z-index: 8;
+  }
+  .topbar .brand,
+  .topbar .nav,
+  .modebar,
+  .crumbs,
+  .labelbar,
+  .stage-caption { display: none; }
+  .workspace,
+  .stage { position: absolute; inset: 0; }
+  .phone-only { display: block; }
+  .phone-dock.phone-only { display: flex; }
+  button.phone-only { display: inline-flex; }
+  .phone-only[hidden] { display: none !important; }
+  .menu-btn,
+  .lang-btn {
+    position: fixed;
+    top: calc(8px + env(safe-area-inset-top));
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(34, 34, 34, 0.72);
+    color: var(--paper);
+  }
+  .menu-btn { left: 8px; font-size: 20px; }
+  .lang-btn { right: calc(23vw + 8px); margin: 0; }
+  #structure-search {
+    position: fixed;
+    top: calc(8px + env(safe-area-inset-top));
+    left: 64px;
+    right: calc(23vw + 64px);
+    z-index: 10;
+    height: 48px;
+    margin: 0;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(247, 245, 240, 0.94);
+    font-size: 16px;
+    visibility: visible;
+  }
+  .sheet,
+  .sheet.is-open {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    z-index: 6;
+    width: 23vw;
+    height: auto;
+    max-height: none;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    border-radius: 0;
+    background: rgba(247, 245, 240, 0.97);
+  }
+  .sheet-handle,
+  .phone-peek { display: none; }
+  .sheet .sheet-body,
+  .sheet .peek { display: block; visibility: visible; height: auto; overflow: auto; }
+  .phone-dock {
+    position: absolute;
+    z-index: 7;
+    left: 8px;
+    right: auto;
+    width: max-content;
+    max-width: calc(75vw - 16px);
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .stage-seg { pointer-events: auto; flex: 1; display: flex; min-height: 50px; background: rgba(247, 245, 240, 0.94); border-radius: 14px; }
+  .stage-seg button { flex: 1; min-height: 50px; min-width: 44px; border: 0; background: transparent; font-size: 14px; }
+  .stage-seg button.is-active { background: var(--accent); color: var(--paper); font-weight: 600; }
+  .fab-col { pointer-events: auto; display: flex; gap: 8px; }
+  .fab {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(247, 245, 240, 0.94);
+    font-size: 14px;
+  }
+  .back-chip {
+    position: absolute;
+    z-index: 8;
+    top: calc(64px + env(safe-area-inset-top));
+    left: 12px;
     min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 22px;
+    background: rgba(247, 245, 240, 0.94);
+    font-size: 14px;
+  }
+  .gizmo,
+  .scale-hud { top: calc(64px + env(safe-area-inset-top)); }
+}
+
+@media (max-width: 959px) {
+  .hide-btn,
+  .peek-actions button,
+  #ct-planes button {
+    min-height: 44px;
+    min-width: 44px;
     font-size: 14px;
   }
 }

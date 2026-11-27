@@ -117,6 +117,7 @@
   "sheet.emptyLine": "뼈 안의 구조가 먼저 선택됩니다.",
   "bone.transparent": "뼈 투명",
   "bone.solid": "뼈 불투명",
+  "bone.short": "뼈",
   "update.title": "새 버전이 있습니다.",
   "update.reload": "새로고침",
   "labels.basic": "기본",

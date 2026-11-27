@@ -6,7 +6,7 @@ export const STAGE_LIMITS: Record<ViewStage, { min: number; max: number }> = {
   body: { min: 300, max: 1500 },
   ear: { min: 40, max: 500 },
   bone: { min: 15, max: 400 },
-  inner: { min: 4, max: 150 },
+  inner: { min: 7, max: 150 },
 };
 
 /**
@@ -91,12 +91,13 @@ export function zoomAboutAnchor(input: {
   const minS = minD / current;
   const maxS = maxD / current;
   const stopS = stop / anchorDist;
-  const floor = Math.max(minS, stopS);
   let s = requested;
-  if (s < floor) s = floor;
+  if (s < Math.max(minS, stopS)) s = Math.max(minS, stopS);
   if (s > maxS) s = maxS;
-  // A zoom-in that would enter the mesh stops short, even past the far limit.
-  if (requested < 1 && floor > maxS) s = floor;
+  // A zoom-in may stop early. It must not jump farther than the current distance
+  // when the new anchor happens to sit against the camera.
+  if (requested < 1 && s > 1) s = 1;
+  if (requested > 1 && s < 1) s = 1;
 
   const camera = add(input.anchor, mul(fromAnchor, s));
   const target = add(input.anchor, mul(sub(input.target, input.anchor), s));
@@ -106,6 +107,43 @@ export function zoomAboutAnchor(input: {
 /** Pan so `anchor` becomes the orbit centre without changing distance or direction. */
 export function orbitAbout(camera: Vec3, target: Vec3, anchor: Vec3): { camera: Vec3; target: Vec3 } {
   return { camera: add(anchor, sub(camera, target)), target: [anchor[0], anchor[1], anchor[2]] };
+}
+
+/**
+ * Keep the camera outside the last surface point while it rotates.
+ * The orbit centre stays on that point. A swing that faces away from the
+ * outward direction, or that comes closer than the stop, is put back.
+ */
+export function holdOrbit(input: {
+  camera: Vec3;
+  target: Vec3;
+  anchor: Vec3;
+  outward: Vec3;
+  minDistance: number;
+  stopDistance: number;
+}): { camera: Vec3; target: Vec3; held: boolean } {
+  const minKeep = Math.max(input.minDistance, input.stopDistance, 0.5);
+  const offset = sub(input.camera, input.anchor);
+  const dist = len(offset);
+  const dir = dist > 1e-4 ? mul(offset, 1 / dist) : norm(input.outward);
+  const outward = len(input.outward) > 1e-4 ? norm(input.outward) : dir;
+  const facing = dir[0] * outward[0] + dir[1] * outward[1] + dir[2] * outward[2];
+  const tooClose = dist < minKeep - 0.05;
+  const swungThrough = facing < 0.34;
+  if (!tooClose && !swungThrough) {
+    return {
+      camera: [input.camera[0], input.camera[1], input.camera[2]],
+      target: [input.anchor[0], input.anchor[1], input.anchor[2]],
+      held: false,
+    };
+  }
+  const keep = tooClose ? minKeep : Math.max(dist, minKeep);
+  const aim = swungThrough ? outward : dir;
+  return {
+    camera: add(input.anchor, mul(aim, keep)),
+    target: [input.anchor[0], input.anchor[1], input.anchor[2]],
+    held: true,
+  };
 }
 
 /**

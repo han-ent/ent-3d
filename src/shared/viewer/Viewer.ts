@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { ContourSource } from '../ct-slice';
-import { displayOpacity, chooseTap, isEnvelope, overlapChoices, touchSampleOffsets, type PickCandidate } from '../picking';
+import { displayOpacity, chooseTap, isEnvelope, isNavShell, overlapChoices, touchSampleOffsets, type PickCandidate } from '../picking';
 import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
@@ -17,6 +17,7 @@ import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM } from '.
 import {
   STAGE_LIMITS,
   fitDistanceMm,
+  holdOrbit,
   orbitAbout,
   stopDistanceMm,
   viewOffsetFor,
@@ -229,6 +230,10 @@ export class EntViewer {
   private lastTapX = 0;
   private lastTapY = 0;
   private onDoubleHandler: ((hit: PickHit) => void) | null = null;
+  private lastAnchor: THREE.Vector3 | null = null;
+  private outward = new THREE.Vector3();
+  private applyingZoom = false;
+  private lastStop = 0;
   private pose = new THREE.Vector3();
   private poseTarget = new THREE.Vector3();
   private poseQuat = new THREE.Quaternion();
@@ -347,6 +352,7 @@ export class EntViewer {
     });
     this.controls.addEventListener('change', () => {
       if (this.drawing) return;
+      this.guardOrbit();
       this.invalidate();
     });
     this.frameDefault(true);
@@ -443,6 +449,7 @@ export class EntViewer {
       anchor,
     );
     this.moveCamera(next.camera, next.target, [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
+    this.rememberAnchor(new THREE.Vector3(...anchor), this.distanceLimits.min);
   }
 
   /** Fit a small sphere, used for a landmark segment such as the IAC. */
@@ -1465,6 +1472,7 @@ export class EntViewer {
   }
 
   private moveCamera(position: Vec3, target: Vec3, up: Vec3, fov: number, immediate: boolean): void {
+    this.lastAnchor = null;
     const toP = new THREE.Vector3(...position);
     const toT = new THREE.Vector3(...target);
     const toU = new THREE.Vector3(...up).normalize();
@@ -2252,8 +2260,12 @@ export class EntViewer {
       if (button.hidden) continue;
       const rect = button.getBoundingClientRect();
       if (rect.width < 2 || rect.height < 2) continue;
-      const pad = this.canvas.clientWidth < 768 ? 14 : 2;
-      if (clientX >= rect.left - pad && clientX <= rect.right + pad && clientY >= rect.top - pad && clientY <= rect.bottom + pad) {
+      const minHit = this.canvas.clientWidth < 960 ? 44 : 0;
+      const hitW = Math.max(rect.width, minHit);
+      const hitH = Math.max(rect.height, minHit);
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      if (Math.abs(clientX - cx) <= hitW / 2 && Math.abs(clientY - cy) <= hitH / 2) {
         return button.dataset.labelId ?? null;
       }
     }
@@ -2359,7 +2371,74 @@ export class EntViewer {
     this.onPickHandler?.(hit);
   };
 
+  private rememberAnchor(anchor: THREE.Vector3, stop: number): void {
+    this.lastAnchor = anchor.clone();
+    this.outward.copy(this.camera.position).sub(anchor);
+    if (this.outward.lengthSq() < 1e-6) this.outward.set(0, 0, 1);
+    else this.outward.normalize();
+    this.lastStop = stop;
+  }
+
+  /** Rotation stays outside the last zoomed surface instead of swinging into it. */
+  private guardOrbit(): void {
+    if (this.applyingZoom || this.tween || !this.lastAnchor || this.outward.lengthSq() < 1e-6) return;
+    const anchor = this.lastAnchor;
+    const held = holdOrbit({
+      camera: [this.camera.position.x, this.camera.position.y, this.camera.position.z],
+      target: [this.controls.target.x, this.controls.target.y, this.controls.target.z],
+      anchor: [anchor.x, anchor.y, anchor.z],
+      outward: [this.outward.x, this.outward.y, this.outward.z],
+      minDistance: this.distanceLimits.min,
+      stopDistance: Math.max(this.lastStop, this.distanceLimits.min),
+    });
+    if (!held.held && !this.cameraBuried()) return;
+    this.applyingZoom = true;
+    if (!held.held) {
+      const stop = Math.max(this.lastStop, this.distanceLimits.min);
+      this.camera.position.copy(anchor).addScaledVector(this.outward, stop);
+      this.controls.target.copy(anchor);
+    } else {
+      this.camera.position.set(held.camera[0], held.camera[1], held.camera[2]);
+      this.controls.target.set(held.target[0], held.target[1], held.target[2]);
+    }
+    this.controls.update();
+    this.applyingZoom = false;
+  }
+
+  /** True when the camera sits in a pocket with a wall close behind it and another in front. */
+  private cameraBuried(): boolean {
+    const objects: THREE.Object3D[] = [];
+    for (const record of this.records.values()) {
+      if (!record.object.visible || record.aggregate) continue;
+      const opacity = record.materials[0]?.opacity ?? 1;
+      if (opacity < 0.35) continue;
+      for (const mesh of record.meshes) if (isShown(mesh)) objects.push(mesh);
+    }
+    for (const mesh of [this.skinMesh, this.upperBody, this.skullLayer]) {
+      if (!mesh?.visible) continue;
+      const opacity = (mesh.material as THREE.Material).opacity ?? 1;
+      if (opacity < 0.35) continue;
+      objects.push(mesh);
+    }
+    if (objects.length === 0) return false;
+    this.camera.getWorldDirection(this.rayDir);
+    const nearest = (dir: THREE.Vector3, far: number) => {
+      this.raycaster.near = 0;
+      this.raycaster.far = far;
+      this.raycaster.set(this.camera.position, dir);
+      const hit = this.raycaster.intersectObjects(objects, false).find((item) => isShown(item.object));
+      return hit?.distance ?? Infinity;
+    };
+    const ahead = nearest(this.rayDir, 50);
+    const behind = nearest(this.rayDir.clone().negate(), 16);
+    return behind < 8 && ahead < 50;
+  }
+
   private beginZoomAt(clientX: number, clientY: number): void {
+    const damp = this.controls.enableDamping;
+    this.controls.enableDamping = false;
+    this.controls.update();
+    this.controls.enableDamping = damp;
     const hit = this.surfaceAt(clientX, clientY);
     this.tween = null;
     this.zoomGesture = {
@@ -2374,6 +2453,7 @@ export class EntViewer {
   private applyZoomScale(scale: number): void {
     const gesture = this.zoomGesture;
     if (!gesture) return;
+    const stop = stopDistanceMm(gesture.radius, this.distanceLimits.min);
     const next = zoomAboutAnchor({
       camera: [gesture.cam.x, gesture.cam.y, gesture.cam.z],
       target: [gesture.target.x, gesture.target.y, gesture.target.z],
@@ -2381,11 +2461,14 @@ export class EntViewer {
       scale,
       minDistance: this.distanceLimits.min,
       maxDistance: this.distanceLimits.max,
-      stopDistance: stopDistanceMm(gesture.radius, this.distanceLimits.min),
+      stopDistance: stop,
     });
+    this.applyingZoom = true;
     this.camera.position.set(next.camera[0], next.camera[1], next.camera[2]);
     this.controls.target.set(next.target[0], next.target[1], next.target[2]);
     this.controls.update();
+    if (gesture.anchor) this.rememberAnchor(gesture.anchor, stop);
+    this.applyingZoom = false;
     this.interacting = true;
     this.gestureUntil = performance.now() + 180;
     this.applyPixelRatio(true);
@@ -2445,12 +2528,19 @@ export class EntViewer {
         const structureId = String(hit.object.userData.structureId ?? '');
         if (!structureId) continue;
         const record = this.records.get(structureId);
+        const shell = isNavShell(structureId);
+        if (shell && (this.viewStage === 'bone' || this.viewStage === 'inner')) continue;
+        if (shell && structureId !== 'ear-hotspot') {
+          const material = (hit.object as THREE.Mesh).material;
+          const opacity = Array.isArray(material) ? 1 : material?.opacity ?? 1;
+          if (opacity < 0.25) continue;
+        }
         gathered.push({
           structureId,
           distance: hit.distance,
           size: record?.size ?? 1e6,
           central: sample.central,
-          envelope: record?.envelope,
+          envelope: record?.envelope || shell,
           point: hit.point.clone(),
           kind: 'structure',
         });

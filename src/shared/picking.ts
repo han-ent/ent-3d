@@ -1,6 +1,25 @@
 /** Structures that wrap the middle and inner ear. A tap should prefer what is inside them. */
 export const ENVELOPE_IDS = new Set(['bone', 'external-auditory-canal', 'sinus-dura']);
 
+/** Skin, skull, and the invisible ear hotspot. They navigate between stages; they are not anatomy picks. */
+export const NAV_SHELLS = new Set(['skin', 'upper-body', 'skull-layer', 'ear-hotspot']);
+
+export function isNavShell(id: string): boolean {
+  return NAV_SHELLS.has(id);
+}
+
+export type StageJump = 'body' | 'ear' | 'bone' | 'inner';
+
+/**
+ * A tap on the skin or the ear hotspot moves to the next stage only when the
+ * finger did not also hit a real structure, and only from the body or the ear.
+ */
+export function shouldStageJump(hitId: string, otherIds: readonly string[], stage: StageJump): boolean {
+  if (!isNavShell(hitId)) return false;
+  if (stage === 'bone' || stage === 'inner') return false;
+  return !otherIds.some((id) => id !== hitId && !isNavShell(id));
+}
+
 /** Finger slop on a phone. Rays inside this radius still count. */
 export const TOUCH_TOLERANCE_PX = 12;
 
@@ -56,7 +75,7 @@ export function chooseTap<T extends PickCandidate>(candidates: readonly T[]): T 
     ...candidate,
     envelope: candidate.envelope ?? isEnvelope(candidate.structureId),
   }));
-  const centralInner = tagged.filter((candidate) => candidate.central && !candidate.envelope);
+  const centralInner = tagged.filter((candidate) => candidate.central && !candidate.envelope && !isNavShell(candidate.structureId));
   if (centralInner.length > 0) return byDistance(centralInner);
   return choosePick(candidates);
 }
@@ -69,10 +88,10 @@ export function overlapChoices<T extends PickCandidate>(candidates: readonly T[]
     ...candidate,
     envelope: candidate.envelope ?? isEnvelope(candidate.structureId),
   }));
-  const centralInner = tagged.filter((candidate) => candidate.central && !candidate.envelope);
+  const centralInner = tagged.filter((candidate) => candidate.central && !candidate.envelope && !isNavShell(candidate.structureId));
   if (centralInner.length === 0) return [front];
   const nearest = Math.min(...centralInner.map((candidate) => candidate.distance));
-  const slack = Math.min(12, Math.max(slackMm, nearest * 0.06));
+  const slack = Math.min(16, Math.max(slackMm, nearest * 0.15));
   const byId = new Map<string, T>();
   for (const candidate of centralInner) {
     if (candidate.distance > nearest + slack) continue;
