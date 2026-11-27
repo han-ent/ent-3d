@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { choosePick, displayOpacity, TOUCH_TOLERANCE_PX, touchSampleOffsets } from '../src/shared/picking';
+import { choosePick, chooseTap, displayOpacity, overlapChoices, rankTapChoices, shouldStageJump, TOUCH_TOLERANCE_PX, touchSampleOffsets } from '../src/shared/picking';
+import { groupPickId } from '../src/shared/zoom-fit';
 import type { Manifest } from '../src/shared/types';
 import { DEFAULT_CAMERA } from '../src/shared/view-pose';
 
@@ -44,6 +45,62 @@ describe('pick ranking', () => {
 
   it('selects nothing when the rays miss', () => {
     expect(choosePick([])).toBeNull();
+  });
+
+  it('does not let the ear hotspot steal a tap that also hits the cochlea', () => {
+    const chosen = chooseTap([
+      { structureId: 'ear-hotspot', distance: 4, size: 28, central: true, envelope: true },
+      { structureId: 'scala-vestibuli', distance: 30, size: 16, central: true },
+    ]);
+    expect(chosen?.structureId).toBe('scala-vestibuli');
+    expect(shouldStageJump('ear-hotspot', ['scala-vestibuli'], 'inner')).toBe(false);
+    expect(shouldStageJump('ear-hotspot', [], 'inner')).toBe(false);
+    expect(shouldStageJump('skin', [], 'body')).toBe(true);
+    expect(shouldStageJump('ear-hotspot', ['scala-vestibuli'], 'ear')).toBe(false);
+  });
+
+  it('keeps the front cochlear surface ahead of the vestibule behind it', () => {
+    const chosen = chooseTap([
+      { structureId: 'scala-vestibuli', distance: 12, size: 16, central: true },
+      { structureId: 'vestibule', distance: 20, size: 6, central: true },
+    ]);
+    expect(chosen?.structureId).toBe('scala-vestibuli');
+    const band = overlapChoices([
+      { structureId: 'scala-vestibuli', distance: 12, size: 16, central: true },
+      { structureId: 'vestibule', distance: 14, size: 6, central: true },
+    ]);
+    expect(band.map((item) => item.structureId)).toEqual(['scala-vestibuli', 'vestibule']);
+    const cochleaFirst = overlapChoices([
+      { structureId: 'facial-nerve', distance: 10, size: 20, central: true },
+      { structureId: 'scala-vestibuli', distance: 13, size: 16, central: true },
+    ]);
+    expect(cochleaFirst.map((item) => item.structureId)[0]).toBe('facial-nerve');
+    const nerveFirst = overlapChoices([
+      { structureId: 'facial-nerve', distance: 10, size: 20, central: true },
+      { structureId: 'scala-vestibuli', distance: 30, size: 16, central: true },
+    ]);
+    expect(nerveFirst[0]?.structureId).toBe('facial-nerve');
+  });
+
+  it('ranks a vestibule tap and a cochlea tap from the screen neighbourhood', () => {
+    // Vestibule anchor under the finger. The cochlea is still inside the tap radius.
+    const vestibuleTap = rankTapChoices([
+      { structureId: 'vestibule', distance: 11, size: 8, central: true, screenPx: 4 },
+      { structureId: 'cochleovestibular-nerve', distance: 13, size: 18, central: true, screenPx: 20 },
+      { structureId: 'scala-vestibuli', distance: 30, size: 16, central: true, screenPx: 18 },
+    ]);
+    expect(vestibuleTap.map((item) => item.structureId)[0]).toBe('vestibule');
+    expect(vestibuleTap.map((item) => groupPickId(item.structureId))).toContain('cochlea');
+
+    // Finger on the cochlea anchor, as at (217, 396) and (223, 402). The first mesh is not the cochlea.
+    const cochleaTap = rankTapChoices([
+      { structureId: 'facial-nerve', distance: 10, size: 20, central: true, screenPx: 22 },
+      { structureId: 'vestibule', distance: 12, size: 8, central: true, screenPx: 16 },
+      { structureId: 'scala-vestibuli', distance: 26, size: 16, central: true, screenPx: 6 },
+    ]);
+    expect(groupPickId(cochleaTap[0]!.structureId)).toBe('cochlea');
+    expect(cochleaTap.map((item) => groupPickId(item.structureId))).toContain('cochlea');
+    expect(cochleaTap.map((item) => item.structureId)).toContain('vestibule');
   });
 
   it('dims bone further than the other structures', () => {

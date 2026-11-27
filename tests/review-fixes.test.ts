@@ -200,8 +200,11 @@ describe('bottom sheet snaps', () => {
   it('moves between peek, half, and full', () => {
     expect(nextSnap('peek')).toBe('half');
     expect(nextSnap('full')).toBe('peek');
-    expect(snapAfterDrag('peek', -400, 844)).toBe('full');
-    expect(snapAfterDrag('full', 400, 844)).toBe('peek');
+    expect(snapAfterDrag('peek', -150, 667)).toBe('half');
+    expect(snapAfterDrag('peek', -200, 844)).toBe('half');
+    expect(snapAfterDrag('peek', -400, 844)).toBe('half');
+    expect(snapAfterDrag('full', 400, 844)).toBe('half');
+    expect(snapAfterDrag('peek', -40, 844, -1.2)).toBe('half');
     expect(sheetCoverPx('half', 844)).toBeGreaterThan(sheetCoverPx('peek', 844));
     expect(sheetCoverPx('peek', 844)).toBeLessThan(200);
   });

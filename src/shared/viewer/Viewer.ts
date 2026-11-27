@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { ContourSource } from '../ct-slice';
-import { displayOpacity, choosePick, isEnvelope, touchSampleOffsets, type PickCandidate } from '../picking';
+import { displayOpacity, chooseTap, isEnvelope, isNavShell, rankTapChoices, TAP_SCREEN_RADIUS_PX, touchSampleOffsets, type PickCandidate } from '../picking';
 import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
@@ -14,6 +14,18 @@ import type { ViewStage } from '../stage-frame';
 import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { labelAnchorPoint } from '../surface-anchor';
 import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM } from '../view-pose';
+import {
+  COCHLEA_PARTS,
+  STAGE_LIMITS,
+  fitDistanceMm,
+  holdOrbit,
+  orbitAbout,
+  stopDistanceMm,
+  viewOffsetFor,
+  zoomAboutAnchor,
+  zoomStructureSize,
+  type VisibleRect,
+} from '../zoom-fit';
 import { choosePixelRatio, coveredBySphere } from './budget';
 import {
   ATLAS_BACKGROUND,
@@ -31,6 +43,8 @@ export type PickHit = {
   structureId: string;
   pointMm: Vec3;
   kind: 'structure' | 'ct';
+  /** Other structures under the same finger, closest first, including this one. */
+  overlaps?: { structureId: string; pointMm: Vec3 }[];
 };
 
 type StructureRecord = {
@@ -201,6 +215,28 @@ export class EntViewer {
   private pointerDown = false;
   private drawing = false;
   private gestureUntil = 0;
+  private distanceLimits: { min: number; max: number } = { ...STAGE_LIMITS.body };
+  private visibleRect: VisibleRect | null = null;
+  private zoomGesture: {
+    cam: THREE.Vector3;
+    target: THREE.Vector3;
+    anchor: THREE.Vector3 | null;
+    radius: number;
+    scale: number;
+  } | null = null;
+  private pinching = false;
+  private pinchStart = 0;
+  private suppressTap = false;
+  private lastTapAt = 0;
+  private lastTapX = 0;
+  private lastTapY = 0;
+  private onDoubleHandler: ((hit: PickHit) => void) | null = null;
+  private lastAnchor: THREE.Vector3 | null = null;
+  private outward = new THREE.Vector3();
+  private applyingZoom = false;
+  private lastStop = 0;
+  private pendingTap = 0;
+  private lastTouchAt = 0;
   private pose = new THREE.Vector3();
   private poseTarget = new THREE.Vector3();
   private poseQuat = new THREE.Quaternion();
@@ -242,9 +278,12 @@ export class EntViewer {
     this.controls.dampingFactor = 0.08;
     this.controls.rotateSpeed = 0.85;
     this.controls.zoomSpeed = 0.85;
-    this.controls.minDistance = 2;
-    this.controls.maxDistance = 1600;
-    this.controls.zoomToCursor = true;
+    this.controls.enableZoom = false;
+    this.controls.zoomToCursor = false;
+    // A second finger cancels OrbitControls' rotate. Pinch zoom is our own.
+    this.controls.touches.TWO = -1 as typeof this.controls.touches.TWO;
+    this.controls.minDistance = this.distanceLimits.min;
+    this.controls.maxDistance = this.distanceLimits.max;
 
     this.world.name = 'specimen';
     this.world.position.set(this.offset[0], this.offset[1], this.offset[2]);
@@ -316,20 +355,21 @@ export class EntViewer {
     });
     this.controls.addEventListener('change', () => {
       if (this.drawing) return;
+      this.guardOrbit();
       this.invalidate();
     });
     this.frameDefault(true);
 
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointerup', this.onPointerUp);
-    canvas.addEventListener('wheel', () => {
-      this.interacting = true;
-      this.gestureUntil = performance.now() + 180;
-      this.applyPixelRatio(true);
-      this.invalidate();
-    }, { passive: true });
+    canvas.addEventListener('touchstart', this.onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', this.onTouchEnd);
+    canvas.addEventListener('touchcancel', this.onTouchEnd);
+    canvas.addEventListener('wheel', this.onWheel, { passive: false });
     canvas.addEventListener('pointercancel', () => {
       this.down = null;
+      this.pinching = false;
     });
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -381,8 +421,76 @@ export class EntViewer {
     this.onShiftHandler = handler;
   }
 
+  onDoublePick(handler: (hit: PickHit) => void): void {
+    this.onDoubleHandler = handler;
+  }
+
+  /** Stage camera-target limits. Shell zooms stop at the minimum; smaller meshes stop sooner. */
+  setDistanceLimits(min: number, max: number): void {
+    this.distanceLimits = { min, max: Math.max(max, min) };
+    this.controls.minDistance = this.distanceLimits.min;
+    this.controls.maxDistance = this.distanceLimits.max;
+  }
+
+  /**
+   * Shift the projection so the orbit centre sits in the unobscured rectangle.
+   * Pass null on desktop, where the canvas itself is the view.
+   */
+  setVisibleRect(rect: VisibleRect | null): void {
+    if (!rect || rect.width < 48 || rect.height < 48) this.visibleRect = null;
+    else this.visibleRect = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    this.applyViewOffset();
+    this.invalidate();
+  }
+
+  /** Move the orbit centre onto a tapped surface point. Distance and direction stay. */
+  focusSurface(specimen: Vec3): void {
+    const anchor = this.worldPoint(specimen);
+    const next = orbitAbout(
+      [this.camera.position.x, this.camera.position.y, this.camera.position.z],
+      [this.controls.target.x, this.controls.target.y, this.controls.target.z],
+      anchor,
+    );
+    this.moveCamera(next.camera, next.target, [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
+    this.rememberAnchor(new THREE.Vector3(...anchor), this.distanceLimits.min);
+  }
+
+  /** Fit a small sphere, used for a landmark segment such as the IAC. */
+  frameSphere(center: Vec3, radiusMm: number): void {
+    const world = new THREE.Vector3(...this.worldPoint(center));
+    const size = Math.max(radiusMm, 1) * 2;
+    const box = new THREE.Box3().setFromCenterAndSize(world, new THREE.Vector3(size, size, size));
+    this.frameWorldBox(box, Math.max(radiusMm, 1));
+  }
+
+  /** Fit the union of several meshes, used for the cochlea. */
+  frameIds(ids: readonly string[]): void {
+    const box = new THREE.Box3();
+    for (const id of ids) {
+      const record = this.records.get(id);
+      if (!record || record.aggregate) continue;
+      record.object.updateWorldMatrix(true, true);
+      const visible = record.object.visible;
+      record.object.visible = true;
+      box.expandByObject(record.object);
+      record.object.visible = visible;
+    }
+    this.frameWorldBox(box);
+  }
+
   cameraDistance(): number {
     return this.camera.position.distanceTo(this.controls.target);
+  }
+
+  /** Screen position of the orbit target, in canvas pixels. */
+  targetOnScreen(): { x: number; y: number; visible: boolean } {
+    const width = Math.max(this.canvas.clientWidth, 1);
+    const height = Math.max(this.canvas.clientHeight, 1);
+    this.ndc.copy(this.controls.target).project(this.camera);
+    const x = (this.ndc.x * 0.5 + 0.5) * width;
+    const y = (-this.ndc.y * 0.5 + 0.5) * height;
+    const visible = this.ndc.z < 1 && x >= -8 && y >= -8 && x <= width + 8 && y <= height + 8;
+    return { x, y, visible };
   }
 
   cameraPose(): { position: Vec3; target: Vec3 } {
@@ -758,17 +866,57 @@ export class EntViewer {
       record.object.visible = visible;
     }
     if (box.isEmpty()) return;
+    const radius = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
+    if (this.visibleRect) {
+      this.frameWorldBox(box, radius);
+      return;
+    }
     const center = box.getCenter(new THREE.Vector3());
     const direction = this.camera.position.clone().sub(this.controls.target);
     if (direction.lengthSq() < 1e-4) direction.set(1, -0.05, 0.15);
     direction.normalize();
-    const radius = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
     const framed = framingSpanMm(radius, this.canvas.clientWidth, this.canvas.clientHeight);
     const span = fit ? Math.min(spanMm, Math.max(16, radius * 7)) : framed;
     const fov = (this.camera.fov * Math.PI) / 180;
-    const distance = span / (2 * Math.tan(fov / 2));
+    let distance = span / (2 * Math.tan(fov / 2));
+    distance = this.clampFrameDistance(distance, radius);
     const position = center.clone().add(direction.multiplyScalar(distance));
     this.moveCamera([position.x, position.y, position.z], [center.x, center.y, center.z], [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
+  }
+
+  private frameWorldBox(box: THREE.Box3, radiusHint?: number): void {
+    if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
+    const radius = radiusHint ?? Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
+    const direction = this.camera.position.clone().sub(this.controls.target);
+    if (direction.lengthSq() < 1e-4) direction.set(0.2, -0.2, -1);
+    direction.normalize();
+    const width = Math.max(this.canvas.clientWidth, 1);
+    const height = Math.max(this.canvas.clientHeight, 1);
+    let distance: number;
+    if (this.visibleRect) {
+      distance = fitDistanceMm({
+        radiusMm: radius,
+        fovDeg: this.camera.fov,
+        canvasWidth: width,
+        canvasHeight: height,
+        visibleWidth: this.visibleRect.width,
+        visibleHeight: this.visibleRect.height,
+        margin: 1.55,
+      });
+    } else {
+      const framed = framingSpanMm(radius, width, height);
+      const fov = (this.camera.fov * Math.PI) / 180;
+      distance = framed / (2 * Math.tan(fov / 2));
+    }
+    distance = this.clampFrameDistance(distance, radius);
+    const position = center.clone().add(direction.multiplyScalar(distance));
+    this.moveCamera([position.x, position.y, position.z], [center.x, center.y, center.z], [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
+  }
+
+  private clampFrameDistance(distance: number, radius: number): number {
+    const stop = stopDistanceMm(zoomStructureSize('framed', radius), this.distanceLimits.min);
+    return Math.min(this.distanceLimits.max, Math.max(distance, this.distanceLimits.min, stop));
   }
 
   applyPreset(preset: Pick<DissectionStep, 'camera' | 'clipping' | 'visible' | 'hidden' | 'ghosted' | 'highlight'>): void {
@@ -910,6 +1058,11 @@ export class EntViewer {
     this.resizeObserver.disconnect();
     this.canvas.removeEventListener('pointerdown', this.onPointerDown);
     this.canvas.removeEventListener('pointerup', this.onPointerUp);
+    this.canvas.removeEventListener('touchstart', this.onTouchStart);
+    this.canvas.removeEventListener('touchmove', this.onTouchMove);
+    this.canvas.removeEventListener('touchend', this.onTouchEnd);
+    this.canvas.removeEventListener('touchcancel', this.onTouchEnd);
+    this.canvas.removeEventListener('wheel', this.onWheel);
     this.controls.dispose();
     this.draco.dispose();
     this.outlineMaterial.dispose();
@@ -1009,7 +1162,8 @@ export class EntViewer {
     const height = parent.clientHeight;
     if (width < 2 || height < 2) return;
     this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
+    this.applyViewOffset();
+    if (!this.visibleRect) this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
     const resolution = this.hullMaterial?.uniforms.uResolution.value as THREE.Vector2 | undefined;
     if (resolution) resolution.set(this.renderer.domElement.width, this.renderer.domElement.height);
@@ -1321,6 +1475,7 @@ export class EntViewer {
   }
 
   private moveCamera(position: Vec3, target: Vec3, up: Vec3, fov: number, immediate: boolean): void {
+    this.lastAnchor = null;
     const toP = new THREE.Vector3(...position);
     const toT = new THREE.Vector3(...target);
     const toU = new THREE.Vector3(...up).normalize();
@@ -1834,11 +1989,11 @@ export class EntViewer {
         this.studyButtons.set(item.id, button);
       }
       const conceal = this.interacting && secondary;
-      button.hidden = conceal;
+      button.hidden = false;
+      button.style.visibility = conceal ? 'hidden' : '';
       if (conceal) {
         const hiddenLine = this.leaderLines.get(item.id);
         if (hiddenLine) hiddenLine.style.display = 'none';
-        continue;
       }
       const modeClass = item.mode === 'dot' ? 'study-dot' : 'study-label';
       if (button.className !== modeClass) button.className = modeClass;
@@ -1931,7 +2086,7 @@ export class EntViewer {
         if (!label) continue;
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
-        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        const size = this.labelSize(label.en || label.text, Boolean(label.ko));
         column.push({
           id: label.id,
           anchorX: anchor.x,
@@ -1949,7 +2104,7 @@ export class EntViewer {
         if (!parts.includes(label.id)) continue;
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
-        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        const size = this.labelSize(label.en || label.text, Boolean(label.ko));
         column.push({
           id: label.id,
           anchorX: anchor.x,
@@ -1972,7 +2127,7 @@ export class EntViewer {
         }
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
-        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        const size = this.labelSize(label.en || label.text, Boolean(label.ko));
         column.push({
           id: label.id,
           anchorX: anchor.x,
@@ -1993,7 +2148,7 @@ export class EntViewer {
       if (label.tier === 'surface' && (this.shellForced || this.cutRadius.value > 8) && this.viewStage !== 'body' && this.viewStage !== 'ear') continue;
       const anchor = this.projectSpecimen(label.position, width, height);
       if (!anchor || anchor.behind) continue;
-      const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+      const size = this.labelSize(label.en || label.text, Boolean(label.ko));
       const occluded = this.anchorOccluded(label.position);
       let priority = label.priority;
       if (label.id === this.selected) priority += 40;
@@ -2102,27 +2257,137 @@ export class EntViewer {
     }
   }
 
+  /** Pixels from the finger to each study anchor. Region dots are not structures. */
+  private anchorScreenPx(clientX: number, clientY: number): Map<string, number> {
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    const rect = this.canvas.getBoundingClientRect();
+    const shown = new Set(
+      [...this.studyButtons.values()]
+        .filter((button) => button.classList.contains('study-label') && !button.hidden)
+        .map((button) => button.dataset.labelId),
+    );
+    const distances = new Map<string, number>();
+    for (const label of this.studyLabels) {
+      if (!shown.has(label.id)) continue;
+      const anchor = this.projectSpecimen(label.position, width, height);
+      if (!anchor || anchor.behind) continue;
+      const dist = Math.hypot(clientX - rect.left - anchor.x, clientY - rect.top - anchor.y);
+      distances.set(label.id, dist);
+      if (label.id === 'cochlea') {
+        for (const part of COCHLEA_PARTS) distances.set(part, dist);
+      }
+    }
+    return distances;
+  }
+
   private labelAt(clientX: number, clientY: number): string | null {
     const buttons = [...this.studyButtons.values(), ...this.calloutButtons.values()];
+    const hits: { id: string; inside: boolean; area: number; dist: number; dot: boolean }[] = [];
+    const minHit = this.canvas.clientWidth < 960 ? 44 : 0;
     for (const button of buttons) {
       if (button.hidden) continue;
       const rect = button.getBoundingClientRect();
       if (rect.width < 2 || rect.height < 2) continue;
-      if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
-        return button.dataset.labelId ?? null;
-      }
+      const id = button.dataset.labelId;
+      if (!id) continue;
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const inside = Math.abs(clientX - cx) <= rect.width / 2 && Math.abs(clientY - cy) <= rect.height / 2;
+      const padded =
+        Math.abs(clientX - cx) <= Math.max(rect.width, minHit) / 2 &&
+        Math.abs(clientY - cy) <= Math.max(rect.height, minHit) / 2;
+      if (!inside && !padded) continue;
+      hits.push({
+        id,
+        inside,
+        area: rect.width * rect.height,
+        dist: Math.hypot(clientX - cx, clientY - cy),
+        dot: button.classList.contains('study-dot'),
+      });
     }
-    return null;
+    const dotHit = hits.filter((hit) => hit.dot && hit.inside).sort((a, b) => a.dist - b.dist)[0];
+    if (dotHit) return dotHit.id;
+    const visual = hits.filter((hit) => hit.inside).sort((a, b) => a.area - b.area || a.dist - b.dist);
+    if (visual[0]) return visual[0].id;
+    hits.sort((a, b) => a.dist - b.dist);
+    return hits[0]?.id ?? null;
   }
 
+  private labelSize(text: string, twoLines: boolean): { width: number; height: number } {
+    const size = estimateLabelSize(text, twoLines);
+    if (this.canvas.clientWidth >= 768) return size;
+    return { width: Math.max(size.width, 52), height: Math.max(twoLines ? 40 : 28, size.height) };
+  }
+
+  private applyViewOffset(): void {
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    if (!this.visibleRect || width < 2 || height < 2) {
+      this.camera.clearViewOffset();
+      return;
+    }
+    const offset = viewOffsetFor(width, height, this.visibleRect);
+    this.camera.setViewOffset(offset.fullWidth, offset.fullHeight, offset.x, offset.y, offset.width, offset.height);
+  }
+
+  private onWheel = (event: WheelEvent): void => {
+    event.preventDefault();
+    const now = performance.now();
+    if (!this.zoomGesture || now > this.gestureUntil + 40) this.beginZoomAt(event.clientX, event.clientY);
+    if (!this.zoomGesture) return;
+    const pixels = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaMode === 2 ? event.deltaY * this.canvas.clientHeight : event.deltaY;
+    this.zoomGesture.scale *= Math.exp(pixels * 0.0015);
+    this.applyZoomScale(this.zoomGesture.scale);
+    this.gestureUntil = now + 220;
+  };
+
   private onPointerDown = (event: PointerEvent): void => {
+    if (event.pointerType === 'touch') this.lastTouchAt = performance.now();
+    if (this.syntheticMouse(event)) return;
     this.down = { x: event.clientX, y: event.clientY };
   };
 
+  /** Chrome's touch emulation follows a touch with a mouse pointer that would clear the tap. */
+  private syntheticMouse(event: PointerEvent): boolean {
+    return event.pointerType === 'mouse' && performance.now() - this.lastTouchAt < 700;
+  }
+
+  private onTouchStart = (event: TouchEvent): void => {
+    if (event.touches.length < 2) return;
+    event.preventDefault();
+    this.pinching = true;
+    this.suppressTap = true;
+    if (this.pendingTap) window.clearTimeout(this.pendingTap);
+    this.pendingTap = 0;
+    const a = event.touches[0]!;
+    const b = event.touches[1]!;
+    this.pinchStart = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+    this.beginZoomAt((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+  };
+
+  private onTouchMove = (event: TouchEvent): void => {
+    if (!this.pinching || event.touches.length < 2 || !this.zoomGesture) return;
+    event.preventDefault();
+    const a = event.touches[0]!;
+    const b = event.touches[1]!;
+    const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+    this.applyZoomScale(this.pinchStart / dist);
+  };
+
+  private onTouchEnd = (event: TouchEvent): void => {
+    if (event.touches.length >= 2) return;
+    if (this.pinching) this.zoomGesture = null;
+    this.pinching = false;
+    if (event.touches.length === 0) this.suppressTap = false;
+  };
+
   private onPointerUp = (event: PointerEvent): void => {
+    if (this.syntheticMouse(event)) return;
     if (!this.down) return;
     const moved = Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y);
     this.down = null;
+    if (this.pinching || this.suppressTap) return;
     if (moved > 10) return;
     const labelId = this.labelAt(event.clientX, event.clientY);
     if (labelId) {
@@ -2143,8 +2408,199 @@ export class EntViewer {
       this.onMeasureHandler?.(this.measurementPoints());
       return;
     }
-    this.onPickHandler?.(hit);
+    const now = performance.now();
+    const double =
+      hit !== null &&
+      now - this.lastTapAt < 450 &&
+      Math.hypot(event.clientX - this.lastTapX, event.clientY - this.lastTapY) < 28;
+    this.lastTapAt = now;
+    this.lastTapX = event.clientX;
+    this.lastTapY = event.clientY;
+    if (double && hit && this.mode === 'view') {
+      if (this.pendingTap) window.clearTimeout(this.pendingTap);
+      this.pendingTap = 0;
+      this.onDoubleHandler?.(hit);
+      return;
+    }
+    if (this.pendingTap) window.clearTimeout(this.pendingTap);
+    const picked = hit;
+    this.pendingTap = window.setTimeout(() => {
+      this.pendingTap = 0;
+      this.onPickHandler?.(picked);
+    }, 470);
   };
+
+  private rememberAnchor(anchor: THREE.Vector3, stop: number): void {
+    this.lastAnchor = anchor.clone();
+    this.outward.copy(this.camera.position).sub(anchor);
+    if (this.outward.lengthSq() < 1e-6) this.outward.set(0, 0, 1);
+    else this.outward.normalize();
+    this.lastStop = stop;
+  }
+
+  /** Rotation stays outside the last zoomed surface instead of swinging into it. */
+  private guardOrbit(): void {
+    if (this.applyingZoom || this.tween || !this.lastAnchor || this.outward.lengthSq() < 1e-6) return;
+    const anchor = this.lastAnchor;
+    const held = holdOrbit({
+      camera: [this.camera.position.x, this.camera.position.y, this.camera.position.z],
+      target: [this.controls.target.x, this.controls.target.y, this.controls.target.z],
+      anchor: [anchor.x, anchor.y, anchor.z],
+      outward: [this.outward.x, this.outward.y, this.outward.z],
+      minDistance: this.distanceLimits.min,
+      stopDistance: this.distanceLimits.min,
+    });
+    if (!held.held && !this.cameraBuried()) return;
+    this.applyingZoom = true;
+    if (!held.held) {
+      const stop = this.distanceLimits.min;
+      if (this.camera.position.distanceTo(anchor) >= stop - 0.05) {
+        this.applyingZoom = false;
+        return;
+      }
+      this.camera.position.copy(anchor).addScaledVector(this.outward, stop);
+      this.controls.target.copy(anchor);
+    } else {
+      this.camera.position.set(held.camera[0], held.camera[1], held.camera[2]);
+      this.controls.target.set(held.target[0], held.target[1], held.target[2]);
+    }
+    this.controls.update();
+    this.applyingZoom = false;
+  }
+
+  /** True when the camera sits in a pocket with a wall close behind it and another in front. */
+  private cameraBuried(): boolean {
+    const objects: THREE.Object3D[] = [];
+    for (const record of this.records.values()) {
+      if (!record.object.visible || record.aggregate) continue;
+      const opacity = record.materials[0]?.opacity ?? 1;
+      if (opacity < 0.35) continue;
+      for (const mesh of record.meshes) if (isShown(mesh)) objects.push(mesh);
+    }
+    for (const mesh of [this.skinMesh, this.upperBody, this.skullLayer]) {
+      if (!mesh?.visible) continue;
+      const opacity = (mesh.material as THREE.Material).opacity ?? 1;
+      if (opacity < 0.35) continue;
+      objects.push(mesh);
+    }
+    if (objects.length === 0) return false;
+    this.camera.getWorldDirection(this.rayDir);
+    const nearest = (dir: THREE.Vector3, far: number) => {
+      this.raycaster.near = 0;
+      this.raycaster.far = far;
+      this.raycaster.set(this.camera.position, dir);
+      const hit = this.raycaster.intersectObjects(objects, false).find((item) => isShown(item.object));
+      return hit?.distance ?? Infinity;
+    };
+    const ahead = nearest(this.rayDir, 50);
+    const behind = nearest(this.rayDir.clone().negate(), 16);
+    return behind < 8 && ahead < 50;
+  }
+
+  private beginZoomAt(clientX: number, clientY: number): void {
+    const hit = this.cursorPoint(clientX, clientY);
+    this.tween = null;
+    this.zoomGesture = {
+      cam: this.camera.position.clone(),
+      target: this.controls.target.clone(),
+      anchor: hit ? hit.point.clone() : null,
+      radius: hit?.radius ?? 0,
+      scale: 1,
+    };
+  }
+
+  private applyZoomScale(scale: number): void {
+    const gesture = this.zoomGesture;
+    if (!gesture) return;
+    const stop = stopDistanceMm(gesture.radius, this.distanceLimits.min);
+    const next = zoomAboutAnchor({
+      camera: [gesture.cam.x, gesture.cam.y, gesture.cam.z],
+      target: [gesture.target.x, gesture.target.y, gesture.target.z],
+      anchor: gesture.anchor ? [gesture.anchor.x, gesture.anchor.y, gesture.anchor.z] : null,
+      scale,
+      minDistance: this.distanceLimits.min,
+      maxDistance: this.distanceLimits.max,
+      stopDistance: stop,
+    });
+    this.applyingZoom = true;
+    this.camera.position.set(next.camera[0], next.camera[1], next.camera[2]);
+    this.controls.target.set(next.target[0], next.target[1], next.target[2]);
+    this.controls.update();
+    if (gesture.anchor) this.rememberAnchor(gesture.anchor, stop);
+    this.applyingZoom = false;
+    this.interacting = true;
+    this.gestureUntil = performance.now() + 180;
+    this.applyPixelRatio(true);
+    this.invalidate();
+  }
+
+  /** Closest opaque surface under a screen point. Faint bone is skipped so inner structures can be the anchor. */
+  private surfaceAt(clientX: number, clientY: number): { point: THREE.Vector3; id: string; radius: number } | null {
+    const rect = this.canvas.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return null;
+    this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    const objects: THREE.Object3D[] = [];
+    for (const record of this.records.values()) {
+      if (!record.object.visible || record.aggregate) continue;
+      const opacity = record.materials[0]?.opacity ?? 1;
+      if (opacity < 0.35) continue;
+      for (const mesh of record.meshes) if (isShown(mesh)) objects.push(mesh);
+    }
+    for (const mesh of [this.skinMesh, this.upperBody, this.skullLayer]) {
+      if (!mesh?.visible) continue;
+      const opacity = (mesh.material as THREE.Material).opacity ?? 1;
+      if (opacity < 0.35) continue;
+      objects.push(mesh);
+    }
+    const hits = this.raycaster.intersectObjects(objects, false).filter((hit) => isShown(hit.object));
+    const hit = hits[0];
+    if (!hit) return null;
+    const id = String(hit.object.userData.structureId ?? hit.object.name ?? '');
+    let radius = 0;
+    const record = this.records.get(id);
+    if (record) {
+      const box = new THREE.Box3().setFromObject(record.object);
+      if (!box.isEmpty()) radius = box.getBoundingSphere(new THREE.Sphere()).radius;
+    } else {
+      const mesh = hit.object as THREE.Mesh;
+      const sphere = mesh.geometry?.boundingSphere;
+      if (sphere) radius = sphere.radius;
+    }
+    return { point: hit.point.clone(), id, radius: zoomStructureSize(id, radius) };
+  }
+
+  /**
+   * Point that should stay under the finger. A surface hit wins. A miss uses
+   * the finger ray where it crosses the orbit-target plane, so an empty pinch
+   * does not slide the view toward the screen centre.
+   */
+  private cursorPoint(clientX: number, clientY: number): { point: THREE.Vector3; radius: number } | null {
+    const hit = this.surfaceAt(clientX, clientY);
+    if (hit) return { point: hit.point, radius: hit.radius };
+    let nearest: { point: THREE.Vector3; radius: number; px: number } | null = null;
+    for (const dx of [-16, 0, 16]) {
+      for (const dy of [-16, 0, 16]) {
+        if (dx === 0 && dy === 0) continue;
+        const found = this.surfaceAt(clientX + dx, clientY + dy);
+        if (!found) continue;
+        const px = Math.hypot(dx, dy);
+        if (!nearest || px < nearest.px) nearest = { point: found.point, radius: found.radius, px };
+      }
+    }
+    if (nearest) return nearest;
+    const rect = this.canvas.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return null;
+    this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    this.camera.getWorldDirection(this.rayDir);
+    const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(this.rayDir, this.controls.target);
+    const point = new THREE.Vector3();
+    if (!this.raycaster.ray.intersectPlane(plane, point)) return null;
+    return { point, radius: 0 };
+  }
 
   private cast(clientX: number, clientY: number): PickHit | null {
     const rect = this.canvas.getBoundingClientRect();
@@ -2162,28 +2618,62 @@ export class EntViewer {
         const structureId = String(hit.object.userData.structureId ?? '');
         if (!structureId) continue;
         const record = this.records.get(structureId);
+        const shell = isNavShell(structureId);
+        if (shell && (this.viewStage === 'bone' || this.viewStage === 'inner')) continue;
+        if (shell && structureId !== 'ear-hotspot') {
+          const material = (hit.object as THREE.Mesh).material;
+          const opacity = Array.isArray(material) ? 1 : material?.opacity ?? 1;
+          if (opacity < 0.25) continue;
+        }
         gathered.push({
           structureId,
           distance: hit.distance,
           size: record?.size ?? 1e6,
           central: sample.central,
-          envelope: record?.envelope,
+          envelope: record?.envelope || shell,
           point: hit.point.clone(),
           kind: 'structure',
         });
       }
     }
-    const chosen = choosePick(gathered);
+    const screenPx = this.anchorScreenPx(clientX, clientY);
+    for (const item of gathered) item.screenPx = screenPx.get(item.structureId);
+    const cochleaPx = screenPx.get('cochlea');
+    const scalaHit = gathered.some((item) => item.central && (item.structureId === 'cochlea' || item.structureId.startsWith('scala-')));
+    if (cochleaPx != null && cochleaPx <= TAP_SCREEN_RADIUS_PX && !scalaHit) {
+      const closest = gathered
+        .filter((item) => item.central && !item.envelope && !isNavShell(item.structureId))
+        .sort((a, b) => a.distance - b.distance)[0];
+      gathered.push({
+        structureId: 'scala-vestibuli',
+        distance: (closest?.distance ?? 1) + 50,
+        size: closest?.size ?? 12,
+        central: true,
+        envelope: false,
+        screenPx: cochleaPx,
+        point: closest?.point.clone() ?? this.raycaster.ray.at(1, new THREE.Vector3()),
+        kind: 'structure',
+      });
+    }
+    const chosen = chooseTap(gathered);
     if (!chosen) return null;
+    const pointOf = (item: Gathered): Vec3 => {
+      const local = this.world.worldToLocal(item.point.clone());
+      return [local.x, local.y, local.z];
+    };
+    const overlaps = rankTapChoices(gathered).map((item) => {
+      const gatheredHit = gathered.find((entry) => entry.structureId === item.structureId && entry.central) ?? item;
+      return { structureId: item.structureId, pointMm: pointOf(gatheredHit as Gathered) };
+    });
     const same = gathered.filter((item) => item.structureId === chosen.structureId);
     const central = same.filter((item) => item.central).sort((a, b) => a.distance - b.distance)[0];
     const pointHit = central ?? same.sort((a, b) => a.distance - b.distance)[0];
     if (!pointHit) return null;
-    const local = this.world.worldToLocal(pointHit.point.clone());
     return {
       structureId: chosen.structureId,
-      pointMm: [local.x, local.y, local.z],
+      pointMm: pointOf(pointHit),
       kind: pointHit.kind,
+      overlaps: overlaps.length > 1 ? overlaps : undefined,
     };
   }
 }

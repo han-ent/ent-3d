@@ -117,6 +117,7 @@
   "sheet.emptyLine": "Structures inside the bone are chosen first.",
   "bone.transparent": "Bone clear",
   "bone.solid": "Bone solid",
+  "bone.short": "Bone",
   "update.title": "A new version is ready.",
   "update.reload": "Reload",
   "labels.basic": "Basic",
@@ -134,5 +135,12 @@
   "dev.title": "Build details",
   "dev.registration": "Registration",
   "style.atlas": "Atlas",
-  "style.model": "Model"
+  "style.model": "Model",
+  "menu.open": "Menu",
+  "menu.overview": "Upper body",
+  "menu.labels": "Labels",
+  "stage.fit": "Fit this stage",
+  "stage.back": "← All {stage}",
+  "sheet.list": "Structure list",
+  "sheet.ctView": "View on CT"
 }
