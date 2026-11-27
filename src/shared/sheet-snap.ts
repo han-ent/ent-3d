@@ -19,9 +19,9 @@ export function snapAfterDrag(start: SheetSnap, deltaY: number, viewportHeight: 
 }
 
 export function sheetCoverPx(snap: SheetSnap, viewportHeight: number): number {
-  if (snap === 'peek') return 108;
-  if (snap === 'half') return Math.round(Math.max(220, viewportHeight * 0.46));
-  return Math.round(Math.min(viewportHeight * 0.86, Math.max(280, viewportHeight - 56)));
+  if (snap === 'peek') return 130;
+  if (snap === 'half') return Math.round(Math.max(220, viewportHeight * 0.42));
+  return Math.round(Math.min(viewportHeight * 0.92, Math.max(280, viewportHeight - 48)));
 }
 
 /** True when the CT block in the sheet can be seen. */

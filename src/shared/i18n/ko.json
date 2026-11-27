@@ -134,5 +134,12 @@
   "dev.title": "개발 정보",
   "dev.registration": "정합",
   "style.atlas": "도판",
-  "style.model": "기본"
+  "style.model": "기본",
+  "menu.open": "메뉴",
+  "menu.overview": "상반신",
+  "menu.labels": "이름",
+  "stage.fit": "이 단계 처음 보기",
+  "stage.back": "← {stage} 전체",
+  "sheet.list": "구조 목록",
+  "sheet.ctView": "CT에서 보기"
 }

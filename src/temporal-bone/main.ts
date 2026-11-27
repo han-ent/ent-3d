@@ -9,10 +9,12 @@ import {
   STAGE_VIEW,
   stagesForLandmark,
   stepsForLabel,
+  placeAlong,
   structureStages,
   SURGICAL_STRUCTURES,
   type ViewStage,
 } from '../shared/stage-frame';
+import { COCHLEA_PARTS, STAGE_LIMITS, groupPickId, labelAction, visibleFovDeg } from '../shared/zoom-fit';
 import { CANAL_WALL } from '../shared/surface-anchor';
 import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
 import { sliceFile, slicePose, clampIndex } from '../shared/ct';
@@ -20,7 +22,7 @@ import { firstLine, isPendingText, paragraphLines, sentenceNeedsSourceCheck } fr
 import { installFonts } from '../shared/fonts';
 import { applyI18n, getLang, initI18n, onLangChange, t, text } from '../shared/i18n';
 import { distanceMm, formatDistanceMm } from '../shared/measurement';
-import { assetUrl, fetchJson, publicUrl } from '../shared/paths';
+import { assetUrl, fetchJson, pageUrl, publicUrl } from '../shared/paths';
 import { registerServiceWorker } from '../shared/pwa';
 import { grade, makeLocateQuestion, makeNameQuestion, type QuizQuestion } from '../shared/quiz';
 import { formatIssues, validateContent, validateManifest, validatePresets, validateVolume } from '../shared/schema';
@@ -71,6 +73,17 @@ workspace.innerHTML = `
       <button type="button" id="measure-clear" data-i18n="measure.clear"></button>
     </div>
     <p class="stage-caption" id="stage-caption"></p>
+    <button type="button" id="back-chip" class="back-chip phone-only" hidden></button>
+    <div id="pick-chip" class="pick-chip" hidden></div>
+    <div class="phone-dock phone-only" id="phone-dock">
+      <div class="stage-seg" id="stage-seg" role="tablist"></div>
+      <div class="fab-col">
+        <button type="button" class="fab" id="fit-btn">↺</button>
+        <button type="button" class="fab" id="bone-fab"></button>
+        <button type="button" class="fab" id="label-fab">Aa</button>
+      </div>
+    </div>
+    <div id="label-pop" class="pop-menu phone-only" hidden></div>
     <div class="modebar" role="toolbar">
       <button type="button" data-mode="view" data-dev-only data-i18n="mode.view"></button>
       <button type="button" data-mode="measure" data-dev-only data-i18n="mode.measure"></button>
@@ -81,31 +94,41 @@ workspace.innerHTML = `
     </div>
   </div>
   <section class="sheet" id="sheet">
+    <div class="sheet-head" id="sheet-head">
     <button type="button" class="sheet-handle" id="sheet-toggle" aria-expanded="false">
       <span class="grip"></span>
       <span class="sr-only" data-i18n="sheet.expand"></span>
     </button>
+    <div class="phone-peek phone-only" id="phone-peek">
+      <h2 id="phone-stage"></h2>
+      <div class="section-row">
+        <button type="button" data-section="presets" data-i18n="presets.title"></button>
+        <button type="button" data-section="ct" data-i18n="ct.title"></button>
+        <button type="button" data-section="list" data-i18n="sheet.list"></button>
+      </div>
+    </div>
     <div class="peek">
       <h2 id="peek-title"></h2>
       <p id="peek-line"></p>
       <div class="peek-actions" id="peek-actions"></div>
     </div>
+    </div>
     <div class="sheet-body" id="sheet-body">
       <p class="review-line" data-i18n="sheet.reviewLine"></p>
       <div id="info-body"></div>
-      <section>
+      <section id="list-section">
         <h3 data-i18n="sheet.structures"></h3>
         <input class="struct-search" id="structure-search" type="search" data-i18n-aria="sheet.search" />
         <div id="structure-list"></div>
       </section>
-      <section>
+      <section id="presets-section">
         <h3 data-i18n="presets.title"></h3>
         <p class="hint" data-i18n="presets.note"></p>
         <div class="btn-row" id="sequence-row"></div>
         <div id="step-list"></div>
         <div id="step-detail"></div>
       </section>
-      <section>
+      <section id="ct-section">
         <h3 data-i18n="ct.title"></h3>
         <p class="hint" data-i18n="ct.hint"></p>
         <div class="btn-row" id="ct-planes"></div>
@@ -134,6 +157,7 @@ workspace.innerHTML = `
       </section>
     </div>
   </section>
+  <div id="safe-probe" aria-hidden="true"></div>
 `;
 
   document.body.className = 'app-body';
@@ -219,6 +243,7 @@ let stageName = '';
 let devLandmark: string | null = null;
 let mode: 'view' | 'measure' | 'quiz' = 'view';
 let selected: string | null = null;
+let selectionTitle: { ko: string; en: string } | null = null;
 let activeSequence = '';
 let activeStep: string | null = null;
 let quiz: QuizState | null = null;
@@ -267,22 +292,52 @@ function desktopLayout(): boolean {
   return window.matchMedia('(min-width: 960px)').matches;
 }
 
+function layoutKind(): 'desktop' | 'side' | 'phone' {
+  if (desktopLayout()) return 'desktop';
+  if (window.matchMedia('(max-width: 767px) and (orientation: portrait)').matches) return 'phone';
+  return 'side';
+}
+
+function safeInset(edge: 'top' | 'bottom'): number {
+  const probe = document.getElementById('safe-probe');
+  if (!probe) return 0;
+  const style = getComputedStyle(probe);
+  return parseFloat(edge === 'top' ? style.paddingTop : style.paddingBottom) || 0;
+}
+
+function phoneVisible(): { x: number; y: number; width: number; height: number } | null {
+  if (layoutKind() !== 'phone') return null;
+  const width = Math.max(canvas.clientWidth, window.innerWidth, 1);
+  const height = Math.max(canvas.clientHeight, window.innerHeight, 1);
+  const top = safeInset('top') + 64;
+  const bottom = sheetCoverPx(sheetSnap, window.innerHeight) + safeInset('bottom') + 62;
+  return {
+    x: 10,
+    y: top,
+    width: Math.max(80, width - 86),
+    height: Math.max(80, height - top - bottom),
+  };
+}
+
+function syncVisibleRect(): void {
+  viewer?.setVisibleRect(phoneVisible());
+}
+
 function applySnap(snap: SheetSnap): void {
-  sheetSnap = snap;
-  const desktop = desktopLayout();
-  const cover = desktop ? 0 : sheetCoverPx(snap, window.innerHeight);
+  const phone = layoutKind() === 'phone';
+  if (phone) sheetSnap = snap;
+  const cover = phone ? sheetCoverPx(sheetSnap, window.innerHeight) + safeInset('bottom') : 0;
   document.documentElement.style.setProperty('--sheet-cover', `${cover}px`);
-  sheet.dataset.snap = desktop ? 'full' : snap;
-  document.body.classList.toggle('is-sheet-full', !desktop && snap === 'full');
-  const open = desktop || snap !== 'peek';
+  sheet.dataset.snap = phone ? sheetSnap : 'full';
+  document.body.classList.toggle('is-sheet-full', phone && sheetSnap === 'full');
+  document.body.classList.toggle('is-phone', phone);
+  const open = !phone || sheetSnap !== 'peek';
   sheet.classList.toggle('is-open', open);
   sheetToggle.setAttribute('aria-expanded', String(open));
   sheetToggle.setAttribute('aria-label', open ? t('sheet.collapse') : t('sheet.expand'));
   syncCrosshair();
-  requestAnimationFrame(() => {
-    syncLabelInset();
-    refitForSheet();
-  });
+  syncVisibleRect();
+  syncLabelInset();
 }
 
 function openSheet(open: boolean): void {
@@ -290,7 +345,7 @@ function openSheet(open: boolean): void {
 }
 
 function syncCrosshair(): void {
-  const show = ctPanelVisible(sheetSnap, desktopLayout()) && crosshair ? crosshair : null;
+  const show = ctPanelVisible(sheetSnap, layoutKind() !== 'phone') && crosshair ? crosshair : null;
   viewer?.setCrosshair(show);
 }
 
@@ -303,7 +358,7 @@ function syncLabelInset(): void {
   let freeRight = stageRect.right;
   let freeBottom = stageRect.bottom;
   let freeLeft = stageRect.left;
-    for (const node of workspace.querySelectorAll('.labelbar, .gizmo, .modebar, .crumbs, .scale-hud, .stage-caption, #sheet')) {
+    for (const node of workspace.querySelectorAll('.labelbar, .gizmo, .modebar, .crumbs, .scale-hud, .stage-caption, #sheet, .phone-dock, .back-chip, #structure-search')) {
     const rect = node.getBoundingClientRect();
     if (rect.width < 2 || rect.height < 2) continue;
     if (rect.right < stageRect.left + 8 || rect.left > stageRect.right - 8) continue;
@@ -336,6 +391,7 @@ function paintStatic(): void {
   });
   boneBtn.textContent = viewer?.boneIsTransparent() ? t('bone.solid') : t('bone.transparent');
   boneBtn.setAttribute('aria-label', boneBtn.textContent ?? '');
+  syncPhoneFabs();
   workspace.querySelectorAll<HTMLButtonElement>('[data-labels]').forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.labels === labelMode));
   });
@@ -353,6 +409,8 @@ function paintStatic(): void {
   renderQuiz();
   renderDev();
   renderOrient();
+  renderBackChip();
+  renderPhoneMenu();
 }
 
 function renderMeasure(points: Vec3[]): void {
@@ -370,7 +428,7 @@ function renderPeek(): void {
     peekTitle.textContent = t('quiz.title');
     peekLine.textContent = quiz?.question.mode === 'locate' ? quiz.question.label : t('quiz.promptName');
   } else if (structure) {
-    peekTitle.textContent = structureLabel(structure.id);
+    peekTitle.textContent = selectionTitle ? text(selectionTitle) : structureLabel(structure.id);
     const fn = content ? text(content.function) : '';
     peekLine.textContent = isPendingText(fn) ? t('sheet.pending') : firstLine(fn);
   } else if (step) {
@@ -405,6 +463,13 @@ function renderPeek(): void {
     renderChips();
   });
   peekActions.append(isolate, hide);
+  if (layoutKind() === 'phone') {
+    const ct = document.createElement('button');
+    ct.type = 'button';
+    ct.textContent = t('sheet.ctView');
+    ct.addEventListener('click', () => viewSelectionOnCt());
+    peekActions.append(ct);
+  }
 }
 
 function paragraphHtml(value: string, review: StructureContent['review']): string {
@@ -537,7 +602,11 @@ function renderChips(): void {
       button.addEventListener('click', () => {
         if (mode === 'quiz') return;
         setMode('view');
-        const parent = hit.id === 'cochlea' ? 'scala-vestibuli' : hit.parentId;
+        if (hit.id === 'cochlea') {
+          focusCochlea();
+          return;
+        }
+        const parent = hit.parentId;
         if (parent && structureById(parent)) selectStructure(parent, true);
       });
       structureList.append(button);
@@ -558,6 +627,10 @@ function renderChips(): void {
       button.addEventListener('click', () => {
         if (mode === 'quiz') return;
         setMode('view');
+        if (hit.id === 'iac') {
+          focusIac();
+          return;
+        }
         if (hit.parentId && structureById(hit.parentId)) selectStructure(hit.parentId, true);
       });
       structureList.append(button);
@@ -692,17 +765,201 @@ function setMode(next: 'view' | 'measure' | 'quiz'): void {
   renderInfo();
 }
 
-function selectStructure(id: string, frame: boolean): void {
+function selectStructure(id: string, frame: boolean, title?: { ko: string; en: string } | null): void {
   selected = id;
+  selectionTitle = title ?? null;
   const structure = structureById(id);
   if (structure) viewer?.setHidden(id, false);
   viewer?.flash(id);
+  if (layoutKind() === 'phone') applySnap(frame && sheetSnap === 'full' ? 'half' : frame ? sheetSnap : 'peek');
   viewer?.select(id, frame);
   const sheetBody = document.querySelector<HTMLElement>('#sheet-body');
   if (sheetBody) sheetBody.scrollTop = 0;
   renderPeek();
   renderInfo();
   renderChips();
+  renderBackChip();
+}
+
+function lowerSheetAfterFit(): void {
+  if (layoutKind() === 'phone' && sheetSnap === 'full') applySnap('half');
+}
+
+function focusCochlea(): void {
+  selectStructure('scala-vestibuli', false, { ko: '와우', en: 'Cochlea' });
+  viewer?.frameIds(COCHLEA_PARTS);
+  lowerSheetAfterFit();
+}
+
+function focusIac(): void {
+  const point = landmarks.find((item) => item.id === 'iac')?.xyz_mm;
+  selectStructure('cochleovestibular-nerve', false, { ko: '내이도', en: 'IAC' });
+  if (point) viewer?.frameSphere(point, 8);
+  lowerSheetAfterFit();
+}
+
+function viewSelectionOnCt(): void {
+  if (!selected) return;
+  const center = viewer?.structureCenter(selected);
+  if (center) orientPoint(center);
+  openSection('ct');
+}
+
+function openSection(id: 'presets' | 'ct' | 'list'): void {
+  applySnap('full');
+  const section = document.getElementById(`${id === 'list' ? 'list' : id}-section`);
+  requestAnimationFrame(() => section?.scrollIntoView({ block: 'start' }));
+}
+
+function hidePicker(): void {
+  const chip = workspace.querySelector<HTMLElement>('#pick-chip');
+  if (chip) chip.hidden = true;
+}
+
+function groupedOverlaps(hit: PickHit): { key: string; structureId: string; point: Vec3 }[] {
+  const items = hit.overlaps?.length ? hit.overlaps : [{ structureId: hit.structureId, pointMm: hit.pointMm }];
+  const groups = new Map<string, { key: string; structureId: string; point: Vec3 }>();
+  for (const item of items) {
+    const key = groupPickId(item.structureId);
+    if (!groups.has(key)) groups.set(key, { key, structureId: item.structureId, point: item.pointMm });
+  }
+  return [...groups.values()];
+}
+
+function pickLabel(key: string): string {
+  if (key === 'cochlea') return getLang() === 'ko' ? '와우' : 'Cochlea';
+  const structure = structureById(key);
+  if (structure) return getLang() === 'ko' ? structure.name.ko : structure.name.en;
+  return key;
+}
+
+function showPicker(choices: { key: string; structureId: string; point: Vec3 }[]): void {
+  const chip = workspace.querySelector<HTMLElement>('#pick-chip');
+  if (!chip) return;
+  chip.replaceChildren();
+  for (const choice of choices) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = pickLabel(choice.key);
+    button.addEventListener('click', () => {
+      hidePicker();
+      if (choice.key === 'cochlea') focusCochlea();
+      else {
+        orientPoint(choice.point);
+        selectStructure(choice.structureId, false);
+        viewer?.focusSurface(choice.point);
+      }
+    });
+    chip.append(button);
+  }
+  chip.hidden = false;
+}
+
+function syncPhoneFabs(): void {
+  const boneFab = workspace.querySelector<HTMLButtonElement>('#bone-fab');
+  if (boneFab) {
+    boneFab.textContent = viewer?.boneIsTransparent() ? '●' : '○';
+    boneFab.setAttribute('aria-label', boneBtn.textContent || t('bone.transparent'));
+    boneFab.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
+  }
+  workspace.querySelector('#fit-btn')?.setAttribute('aria-label', t('stage.fit'));
+  workspace.querySelector('#label-fab')?.setAttribute('aria-label', t('menu.labels'));
+}
+
+function renderLabelPop(): void {
+  const pop = workspace.querySelector<HTMLElement>('#label-pop');
+  if (!pop) return;
+  pop.replaceChildren();
+  for (const modeName of ['basic', 'surgical', 'all'] as const) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = t(`labels.${modeName}`);
+    button.setAttribute('aria-pressed', String(labelMode === modeName));
+    button.addEventListener('click', () => {
+      labelMode = modeName;
+      viewer?.setLabelMode(labelMode);
+      pop.hidden = true;
+      paintStatic();
+    });
+    pop.append(button);
+  }
+}
+
+function renderPhoneMenu(): void {
+  let button = document.querySelector<HTMLButtonElement>('#menu-btn');
+  if (!button) {
+    button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'menu-btn';
+    button.className = 'menu-btn phone-only';
+    button.textContent = '☰';
+    header.append(button);
+    const menu = document.createElement('div');
+    menu.id = 'app-menu';
+    menu.className = 'app-menu phone-only';
+    menu.hidden = true;
+    document.body.append(menu);
+    button.addEventListener('click', () => {
+      menu.hidden = !menu.hidden;
+      if (!menu.hidden) fillMenu(menu);
+    });
+    menu.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement | null;
+      const action = target?.closest<HTMLElement>('[data-menu]')?.dataset.menu;
+      if (action === 'overview') {
+        menu.hidden = true;
+        flyStage('body');
+        renderPeek();
+        renderInfo();
+        renderChips();
+      } else if (action === 'style') {
+        menu.hidden = true;
+        styleBtn.click();
+      }
+    });
+  }
+  button.setAttribute('aria-label', t('menu.open'));
+  const menu = document.querySelector<HTMLElement>('#app-menu');
+  if (menu && !menu.hidden) fillMenu(menu);
+}
+
+function fillMenu(menu: HTMLElement): void {
+  menu.innerHTML = `
+    <a href="${pageUrl('')}">${escapeHtml(t('nav.home'))}</a>
+    <a href="${pageUrl('about')}">${escapeHtml(t('nav.about'))}</a>
+    <button type="button" data-menu="overview">${escapeHtml(t('menu.overview'))}</button>
+    <button type="button" data-menu="style">${escapeHtml(renderStyle === 'atlas' ? t('style.model') : t('style.atlas'))}</button>
+  `;
+}
+
+function renderBackChip(): void {
+  const chip = workspace.querySelector<HTMLButtonElement>('#back-chip');
+  if (!chip) return;
+  const stage = (['body', 'ear', 'bone', 'inner'] as const).find((id) => stageName === id);
+  const show = layoutKind() === 'phone' && Boolean(selected) && Boolean(stage);
+  chip.hidden = !show;
+  if (show && stage) chip.textContent = t('stage.back', { stage: t(`crumbs.${stage}`) });
+}
+
+function currentStage(): ViewStage {
+  return (['body', 'ear', 'bone', 'inner'] as const).find((id) => stageName === id) ?? 'body';
+}
+
+function refitStage(): void {
+  selected = null;
+  selectionTitle = null;
+  activeStep = null;
+  crosshair = null;
+  viewer?.setCrosshair(null);
+  viewer?.select(null, false);
+  hidePicker();
+  flyStage(currentStage());
+  if (layoutKind() === 'phone') applySnap('peek');
+  renderPeek();
+  renderInfo();
+  renderChips();
+  renderPresets();
+  void drawCt();
 }
 
 function answerQuiz(id: string): void {
@@ -1003,10 +1260,32 @@ function onPick(hit: PickHit | null): void {
   if (mode !== 'view') return;
   if (!hit) {
     selected = null;
+    selectionTitle = null;
     viewer?.select(null, false);
+    hidePicker();
     renderPeek();
     renderInfo();
     renderChips();
+    renderBackChip();
+    return;
+  }
+  const choices = groupedOverlaps(hit);
+  if (choices.length > 1) {
+    showPicker(choices);
+    viewer?.focusSurface(hit.pointMm);
+    return;
+  }
+  hidePicker();
+  orientPoint(hit.pointMm);
+  selectStructure(hit.structureId, false);
+  viewer?.focusSurface(hit.pointMm);
+}
+
+function onDouble(hit: PickHit): void {
+  if (mode !== 'view') return;
+  hidePicker();
+  if (hit.structureId === 'upper-body' || hit.structureId === 'skin' || hit.structureId === 'ear-hotspot' || hit.structureId === 'skull-layer') {
+    onPick(hit);
     return;
   }
   orientPoint(hit.pointMm);
@@ -1040,18 +1319,21 @@ workspace.querySelector('#measure-clear')?.addEventListener('click', () => {
 workspace.querySelector('#quiz-name')?.addEventListener('click', () => startQuiz('name'));
 workspace.querySelector('#quiz-locate')?.addEventListener('click', () => startQuiz('locate'));
 workspace.querySelector('#quiz-exit')?.addEventListener('click', () => setMode('view'));
-workspace.querySelector('#frame-btn')?.addEventListener('click', () => {
-  viewer?.frameDefault();
-  selected = null;
-  activeStep = null;
-  crosshair = null;
-  viewer?.setCrosshair(null);
-  flyStage('body');
-  renderPeek();
-  renderInfo();
-  renderChips();
-  renderPresets();
-  void drawCt();
+workspace.querySelector('#frame-btn')?.addEventListener('click', () => refitStage());
+workspace.querySelector('#fit-btn')?.addEventListener('click', () => refitStage());
+workspace.querySelector('#back-chip')?.addEventListener('click', () => refitStage());
+workspace.querySelector('#bone-fab')?.addEventListener('click', () => boneBtn.click());
+workspace.querySelector('#label-fab')?.addEventListener('click', () => {
+  const pop = workspace.querySelector<HTMLElement>('#label-pop');
+  if (!pop) return;
+  pop.hidden = !pop.hidden;
+  if (!pop.hidden) renderLabelPop();
+});
+workspace.querySelectorAll<HTMLButtonElement>('[data-section]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const id = button.dataset.section;
+    if (id === 'presets' || id === 'ct' || id === 'list') openSection(id);
+  });
 });
 styleBtn.addEventListener('click', () => {
   renderStyle = renderStyle === 'atlas' ? 'model' : 'atlas';
@@ -1064,16 +1346,21 @@ boneBtn.addEventListener('click', () => {
   boneBtn.textContent = viewer?.boneIsTransparent() ? t('bone.solid') : t('bone.transparent');
   boneBtn.setAttribute('aria-label', boneBtn.textContent ?? '');
   boneBtn.setAttribute('aria-pressed', String(viewer?.boneIsTransparent() === true));
+  syncPhoneFabs();
 });
-let sheetDrag: { y: number; snap: SheetSnap; pointer: number } | null = null;
+let sheetDrag: { y: number; snap: SheetSnap; pointer: number; interactive: boolean } | null = null;
+let sheetMoved = false;
+const sheetHead = workspace.querySelector<HTMLElement>('#sheet-head') ?? sheetToggle;
+sheetHead.style.touchAction = 'none';
 sheetToggle.style.touchAction = 'none';
-sheetToggle.addEventListener('pointerdown', (event) => {
-  if (desktopLayout()) return;
-  event.preventDefault();
-  sheetDrag = { y: event.clientY, snap: sheetSnap, pointer: event.pointerId };
-  sheetToggle.setPointerCapture(event.pointerId);
+sheetHead.addEventListener('pointerdown', (event) => {
+  if (layoutKind() !== 'phone') return;
+  const target = event.target as HTMLElement | null;
+  const interactive = Boolean(target?.closest('button')) && !target?.closest('.sheet-handle');
+  sheetDrag = { y: event.clientY, snap: sheetSnap, pointer: event.pointerId, interactive };
+  sheetHead.setPointerCapture(event.pointerId);
 });
-sheetToggle.addEventListener(
+sheetHead.addEventListener(
   'touchmove',
   (event) => {
     if (!sheetDrag) return;
@@ -1081,26 +1368,41 @@ sheetToggle.addEventListener(
   },
   { passive: false },
 );
-sheetToggle.addEventListener('pointermove', (event) => {
-  if (!sheetDrag || event.pointerId !== sheetDrag.pointer || desktopLayout()) return;
-  const next = Math.max(72, sheetCoverPx(sheetDrag.snap, window.innerHeight) - (event.clientY - sheetDrag.y));
+sheetHead.addEventListener('pointermove', (event) => {
+  if (!sheetDrag || event.pointerId !== sheetDrag.pointer || layoutKind() !== 'phone') return;
+  if (Math.abs(event.clientY - sheetDrag.y) > 8) sheetMoved = true;
+  const next = Math.max(72, sheetCoverPx(sheetDrag.snap, window.innerHeight) + safeInset('bottom') - (event.clientY - sheetDrag.y));
   document.documentElement.style.setProperty('--sheet-cover', `${next}px`);
   syncLabelInset();
 });
-sheetToggle.addEventListener('pointerup', (event) => {
+sheetHead.addEventListener(
+  'click',
+  (event) => {
+    if (!sheetMoved) return;
+    event.preventDefault();
+    event.stopPropagation();
+    sheetMoved = false;
+  },
+  true,
+);
+sheetHead.addEventListener('pointerup', (event) => {
   if (!sheetDrag || event.pointerId !== sheetDrag.pointer) return;
   const delta = event.clientY - sheetDrag.y;
-  const start = sheetDrag.snap;
+  const start = sheetDrag;
   sheetDrag = null;
-  if (desktopLayout()) return;
-  if (Math.abs(delta) < 10) applySnap(nextSnap(start));
-  else applySnap(snapAfterDrag(start, delta, window.innerHeight));
+  if (layoutKind() !== 'phone') return;
+  if (Math.abs(delta) < 10) {
+    if (!start.interactive) applySnap(nextSnap(start.snap));
+  } else applySnap(snapAfterDrag(start.snap, delta, window.innerHeight));
 });
-sheetToggle.addEventListener('pointercancel', () => {
+sheetHead.addEventListener('pointercancel', () => {
   sheetDrag = null;
   applySnap(sheetSnap);
 });
-searchInput.addEventListener('input', () => renderChips());
+searchInput.addEventListener('input', () => {
+  renderChips();
+  if (layoutKind() === 'phone' && searchInput.value.trim()) openSection('list');
+});
 
 onLangChange(() => {
   if (quiz && !quiz.finished && manifest) {
@@ -1175,9 +1477,31 @@ function renderCrumbs(): void {
     button.type = 'button';
     button.textContent = t(step.key);
     button.classList.toggle('is-active', stageName.startsWith(step.id));
-    button.addEventListener('click', () => flyStage(step.id));
+    button.addEventListener('click', () => {
+      if (stageName === step.id) refitStage();
+      else flyStage(step.id);
+    });
     crumbs.append(button);
   });
+  const seg = workspace.querySelector<HTMLElement>('#stage-seg');
+  const stageTitle = workspace.querySelector<HTMLElement>('#phone-stage');
+  const current = steps.find((step) => stageName === step.id);
+  if (stageTitle) stageTitle.textContent = current ? t(current.key) : '';
+  if (!seg) return;
+  seg.replaceChildren();
+  for (const step of steps) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('role', 'tab');
+    button.textContent = t(step.key);
+    button.classList.toggle('is-active', stageName === step.id);
+    button.setAttribute('aria-selected', String(stageName === step.id));
+    button.addEventListener('click', () => {
+      if (stageName === step.id) refitStage();
+      else flyStage(step.id);
+    });
+    seg.append(button);
+  }
 }
 
 function stageBox(stage: ViewStage): { min: [number, number, number]; max: [number, number, number] } | null {
@@ -1208,59 +1532,53 @@ function flyStage(stage: ViewStage): void {
   if (!viewer || !manifest) return;
   activeStep = null;
   stageName = stage;
+  selected = null;
+  selectionTitle = null;
+  hidePicker();
   viewer.clearPreset();
+  viewer.select(null, false);
   viewer.setMarker(null, '');
   viewer.setViewContext(stage, null);
   viewer.setBoneTransparent(stage === 'inner');
   viewer.setShellOpen(stage === 'bone' || stage === 'inner');
   viewer.setStageHidden(hiddenForStage(stage, manifest.structures.map((item) => item.id)));
   viewer.setCutaway(0, 1);
+  const limits = STAGE_LIMITS[stage];
+  viewer.setDistanceLimits(limits.min, limits.max);
+  syncVisibleRect();
   const box = stageBox(stage);
   const view = STAGE_VIEW[stage];
   if (box) {
+    const width = Math.max(canvas.clientWidth, 1);
+    const height = Math.max(canvas.clientHeight, 1);
+    const visible = phoneVisible();
     const pose = frameAabb({
       box,
       direction: view.direction,
       up: view.up,
-      fovDeg: view.fov,
-      viewWidthPx: Math.max(canvas.clientWidth, 1),
-      viewHeightPx: Math.max(canvas.clientHeight, 1),
+      fovDeg: visible ? visibleFovDeg(view.fov, height, visible.height) : view.fov,
+      viewWidthPx: visible ? visible.width : width,
+      viewHeightPx: visible ? visible.height : height,
       margin: view.margin,
     });
-    viewer.flyTo(pose.position, pose.target, view.up, view.fov);
+    let position = pose.position;
+    if (pose.distance < limits.min || pose.distance > limits.max) {
+      const distance = Math.min(limits.max, Math.max(limits.min, pose.distance));
+      position = placeAlong(pose.target, view.direction, distance);
+    }
+    viewer.flyTo(position, pose.target, view.up, view.fov);
   }
   boneBtn.textContent = viewer.boneIsTransparent() ? t('bone.solid') : t('bone.transparent');
   boneBtn.setAttribute('aria-label', boneBtn.textContent);
   boneBtn.setAttribute('aria-pressed', String(viewer.boneIsTransparent()));
+  syncPhoneFabs();
   renderCrumbs();
   renderPresets();
+  renderPeek();
+  renderInfo();
+  renderChips();
+  renderBackChip();
   syncLabelInset();
-}
-
-function refitForSheet(): void {
-  if (!viewer || !manifest || desktopLayout()) return;
-  const width = Math.max(canvas.clientWidth, 1);
-  const height = Math.max(canvas.clientHeight, 1);
-  if (activeStep) {
-    const step = findStep(activeStep);
-    if (step) viewer.applyPreset(step);
-    return;
-  }
-  const stage = (['body', 'ear', 'bone', 'inner'] as const).find((id) => stageName === id);
-  if (!stage) return;
-  const box = stageBox(stage);
-  const view = STAGE_VIEW[stage];
-  if (!box) return;
-  const pose = frameAabb({
-    box,
-    direction: view.direction,
-    up: view.up,
-    fovDeg: view.fov,
-    viewWidthPx: width,
-    viewHeightPx: height,
-    margin: view.margin,
-  });
-  viewer.flyTo(pose.position, pose.target, view.up, view.fov);
 }
 
 function applyStage(distance: number): void {
@@ -1530,16 +1848,30 @@ async function boot(): Promise<void> {
     }
   });
   viewer.onLabel((id) => {
-    openSheet(true);
     if (mode === 'quiz') return;
-    if (structureById(id)) {
-      viewer?.flash(id);
-      selectStructure(id, true);
+    hidePicker();
+    const action = labelAction(id);
+    if (action.kind === 'cochlea') {
+      focusCochlea();
+      return;
+    }
+    if (action.kind === 'iac') {
+      focusIac();
+      return;
+    }
+    if (structureById(action.structureId)) {
+      viewer?.flash(action.structureId);
+      selectStructure(action.structureId, true);
+      lowerSheetAfterFit();
       return;
     }
     const point = landmarks.find((item) => item.id === id);
-    if (point?.parent && structureById(point.parent)) selectStructure(point.parent, true);
+    if (point?.parent && structureById(point.parent)) {
+      selectStructure(point.parent, true);
+      lowerSheetAfterFit();
+    }
   });
+  viewer.onDoublePick(onDouble);
 
   const parents = new Set(manifest.structures.map((item) => item.parent).filter((id): id is string => Boolean(id)));
   const failures: string[] = [];
@@ -1596,6 +1928,7 @@ async function boot(): Promise<void> {
       },
       distance: () => viewer?.cameraDistance() ?? 0,
       pose: () => viewer?.cameraPose() ?? null,
+      targetOnScreen: () => viewer?.targetOnScreen() ?? null,
       crosshair: () => viewer?.crosshairVisible() ?? false,
       shellHidden: () => viewer?.shellHidden() ?? false,
       eac: () => eacMm,
@@ -1618,8 +1951,9 @@ async function boot(): Promise<void> {
 
 applySnap('peek');
 window.addEventListener('resize', () => {
-  applySnap(desktopLayout() ? sheetSnap : sheetSnap);
+  applySnap(sheetSnap);
   syncLabelInset();
+  renderBackChip();
 });
 const blockPinch = (event: Event) => event.preventDefault();
 document.addEventListener('gesturestart', blockPinch, { passive: false });

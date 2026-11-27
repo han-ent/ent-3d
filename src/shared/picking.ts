@@ -45,6 +45,43 @@ function byDistance<T extends PickCandidate>(items: readonly T[]): T {
  * If the finger only lands on an envelope, an inner structure within the tolerance still wins.
  * Envelopes are selected only when no inner structure was hit.
  */
+/**
+ * The surface actually under the finger. A smaller structure behind another
+ * does not steal the tap (that was selecting the vestibule through the cochlea).
+ * Envelopes still lose to an inner structure, including one inside the touch slop.
+ */
+export function chooseTap<T extends PickCandidate>(candidates: readonly T[]): T | null {
+  if (candidates.length === 0) return null;
+  const tagged = candidates.map((candidate) => ({
+    ...candidate,
+    envelope: candidate.envelope ?? isEnvelope(candidate.structureId),
+  }));
+  const centralInner = tagged.filter((candidate) => candidate.central && !candidate.envelope);
+  if (centralInner.length > 0) return byDistance(centralInner);
+  return choosePick(candidates);
+}
+
+/** Central hits close enough to the front surface that the user should choose. */
+export function overlapChoices<T extends PickCandidate>(candidates: readonly T[], slackMm = 4): T[] {
+  const front = chooseTap(candidates);
+  if (!front) return [];
+  const tagged = candidates.map((candidate) => ({
+    ...candidate,
+    envelope: candidate.envelope ?? isEnvelope(candidate.structureId),
+  }));
+  const centralInner = tagged.filter((candidate) => candidate.central && !candidate.envelope);
+  if (centralInner.length === 0) return [front];
+  const nearest = Math.min(...centralInner.map((candidate) => candidate.distance));
+  const slack = Math.min(12, Math.max(slackMm, nearest * 0.06));
+  const byId = new Map<string, T>();
+  for (const candidate of centralInner) {
+    if (candidate.distance > nearest + slack) continue;
+    const prev = byId.get(candidate.structureId);
+    if (!prev || candidate.distance < prev.distance) byId.set(candidate.structureId, candidate);
+  }
+  return [...byId.values()].sort((a, b) => a.distance - b.distance || a.structureId.localeCompare(b.structureId));
+}
+
 export function choosePick<T extends PickCandidate>(candidates: readonly T[]): T | null {
   if (candidates.length === 0) return null;
   const tagged = candidates.map((candidate) => ({

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { choosePick, displayOpacity, TOUCH_TOLERANCE_PX, touchSampleOffsets } from '../src/shared/picking';
+import { choosePick, chooseTap, displayOpacity, overlapChoices, TOUCH_TOLERANCE_PX, touchSampleOffsets } from '../src/shared/picking';
 import type { Manifest } from '../src/shared/types';
 import { DEFAULT_CAMERA } from '../src/shared/view-pose';
 
@@ -44,6 +44,19 @@ describe('pick ranking', () => {
 
   it('selects nothing when the rays miss', () => {
     expect(choosePick([])).toBeNull();
+  });
+
+  it('keeps the front cochlear surface ahead of the vestibule behind it', () => {
+    const chosen = chooseTap([
+      { structureId: 'scala-vestibuli', distance: 12, size: 16, central: true },
+      { structureId: 'vestibule', distance: 20, size: 6, central: true },
+    ]);
+    expect(chosen?.structureId).toBe('scala-vestibuli');
+    const band = overlapChoices([
+      { structureId: 'scala-vestibuli', distance: 12, size: 16, central: true },
+      { structureId: 'vestibule', distance: 14, size: 6, central: true },
+    ]);
+    expect(band.map((item) => item.structureId)).toEqual(['scala-vestibuli', 'vestibule']);
   });
 
   it('dims bone further than the other structures', () => {

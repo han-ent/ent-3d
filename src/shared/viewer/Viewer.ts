@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { ContourSource } from '../ct-slice';
-import { displayOpacity, choosePick, isEnvelope, touchSampleOffsets, type PickCandidate } from '../picking';
+import { displayOpacity, chooseTap, isEnvelope, overlapChoices, touchSampleOffsets, type PickCandidate } from '../picking';
 import { publicUrl } from '../paths';
 import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
@@ -14,6 +14,16 @@ import type { ViewStage } from '../stage-frame';
 import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { labelAnchorPoint } from '../surface-anchor';
 import { DEFAULT_CAMERA, DEFAULT_FOV, framingSpanMm, SELECTION_SPAN_MM } from '../view-pose';
+import {
+  STAGE_LIMITS,
+  fitDistanceMm,
+  orbitAbout,
+  stopDistanceMm,
+  viewOffsetFor,
+  zoomAboutAnchor,
+  zoomStructureSize,
+  type VisibleRect,
+} from '../zoom-fit';
 import { choosePixelRatio, coveredBySphere } from './budget';
 import {
   ATLAS_BACKGROUND,
@@ -31,6 +41,8 @@ export type PickHit = {
   structureId: string;
   pointMm: Vec3;
   kind: 'structure' | 'ct';
+  /** Other structures under the same finger, closest first, including this one. */
+  overlaps?: { structureId: string; pointMm: Vec3 }[];
 };
 
 type StructureRecord = {
@@ -201,6 +213,22 @@ export class EntViewer {
   private pointerDown = false;
   private drawing = false;
   private gestureUntil = 0;
+  private distanceLimits: { min: number; max: number } = { ...STAGE_LIMITS.body };
+  private visibleRect: VisibleRect | null = null;
+  private zoomGesture: {
+    cam: THREE.Vector3;
+    target: THREE.Vector3;
+    anchor: THREE.Vector3 | null;
+    radius: number;
+    scale: number;
+  } | null = null;
+  private pinching = false;
+  private pinchStart = 0;
+  private suppressTap = false;
+  private lastTapAt = 0;
+  private lastTapX = 0;
+  private lastTapY = 0;
+  private onDoubleHandler: ((hit: PickHit) => void) | null = null;
   private pose = new THREE.Vector3();
   private poseTarget = new THREE.Vector3();
   private poseQuat = new THREE.Quaternion();
@@ -242,9 +270,12 @@ export class EntViewer {
     this.controls.dampingFactor = 0.08;
     this.controls.rotateSpeed = 0.85;
     this.controls.zoomSpeed = 0.85;
-    this.controls.minDistance = 2;
-    this.controls.maxDistance = 1600;
-    this.controls.zoomToCursor = true;
+    this.controls.enableZoom = false;
+    this.controls.zoomToCursor = false;
+    // A second finger cancels OrbitControls' rotate. Pinch zoom is our own.
+    this.controls.touches.TWO = -1 as typeof this.controls.touches.TWO;
+    this.controls.minDistance = this.distanceLimits.min;
+    this.controls.maxDistance = this.distanceLimits.max;
 
     this.world.name = 'specimen';
     this.world.position.set(this.offset[0], this.offset[1], this.offset[2]);
@@ -322,14 +353,14 @@ export class EntViewer {
 
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointerup', this.onPointerUp);
-    canvas.addEventListener('wheel', () => {
-      this.interacting = true;
-      this.gestureUntil = performance.now() + 180;
-      this.applyPixelRatio(true);
-      this.invalidate();
-    }, { passive: true });
+    canvas.addEventListener('touchstart', this.onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', this.onTouchEnd);
+    canvas.addEventListener('touchcancel', this.onTouchEnd);
+    canvas.addEventListener('wheel', this.onWheel, { passive: false });
     canvas.addEventListener('pointercancel', () => {
       this.down = null;
+      this.pinching = false;
     });
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -381,8 +412,75 @@ export class EntViewer {
     this.onShiftHandler = handler;
   }
 
+  onDoublePick(handler: (hit: PickHit) => void): void {
+    this.onDoubleHandler = handler;
+  }
+
+  /** Stage camera-target limits. Shell zooms stop at the minimum; smaller meshes stop sooner. */
+  setDistanceLimits(min: number, max: number): void {
+    this.distanceLimits = { min, max: Math.max(max, min) };
+    this.controls.minDistance = this.distanceLimits.min;
+    this.controls.maxDistance = this.distanceLimits.max;
+  }
+
+  /**
+   * Shift the projection so the orbit centre sits in the unobscured rectangle.
+   * Pass null on desktop, where the canvas itself is the view.
+   */
+  setVisibleRect(rect: VisibleRect | null): void {
+    if (!rect || rect.width < 48 || rect.height < 48) this.visibleRect = null;
+    else this.visibleRect = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    this.applyViewOffset();
+    this.invalidate();
+  }
+
+  /** Move the orbit centre onto a tapped surface point. Distance and direction stay. */
+  focusSurface(specimen: Vec3): void {
+    const anchor = this.worldPoint(specimen);
+    const next = orbitAbout(
+      [this.camera.position.x, this.camera.position.y, this.camera.position.z],
+      [this.controls.target.x, this.controls.target.y, this.controls.target.z],
+      anchor,
+    );
+    this.moveCamera(next.camera, next.target, [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
+  }
+
+  /** Fit a small sphere, used for a landmark segment such as the IAC. */
+  frameSphere(center: Vec3, radiusMm: number): void {
+    const world = new THREE.Vector3(...this.worldPoint(center));
+    const size = Math.max(radiusMm, 1) * 2;
+    const box = new THREE.Box3().setFromCenterAndSize(world, new THREE.Vector3(size, size, size));
+    this.frameWorldBox(box, Math.max(radiusMm, 1));
+  }
+
+  /** Fit the union of several meshes, used for the cochlea. */
+  frameIds(ids: readonly string[]): void {
+    const box = new THREE.Box3();
+    for (const id of ids) {
+      const record = this.records.get(id);
+      if (!record || record.aggregate) continue;
+      record.object.updateWorldMatrix(true, true);
+      const visible = record.object.visible;
+      record.object.visible = true;
+      box.expandByObject(record.object);
+      record.object.visible = visible;
+    }
+    this.frameWorldBox(box);
+  }
+
   cameraDistance(): number {
     return this.camera.position.distanceTo(this.controls.target);
+  }
+
+  /** Screen position of the orbit target, in canvas pixels. */
+  targetOnScreen(): { x: number; y: number; visible: boolean } {
+    const width = Math.max(this.canvas.clientWidth, 1);
+    const height = Math.max(this.canvas.clientHeight, 1);
+    this.ndc.copy(this.controls.target).project(this.camera);
+    const x = (this.ndc.x * 0.5 + 0.5) * width;
+    const y = (-this.ndc.y * 0.5 + 0.5) * height;
+    const visible = this.ndc.z < 1 && x >= -8 && y >= -8 && x <= width + 8 && y <= height + 8;
+    return { x, y, visible };
   }
 
   cameraPose(): { position: Vec3; target: Vec3 } {
@@ -758,17 +856,57 @@ export class EntViewer {
       record.object.visible = visible;
     }
     if (box.isEmpty()) return;
+    const radius = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
+    if (this.visibleRect) {
+      this.frameWorldBox(box, radius);
+      return;
+    }
     const center = box.getCenter(new THREE.Vector3());
     const direction = this.camera.position.clone().sub(this.controls.target);
     if (direction.lengthSq() < 1e-4) direction.set(1, -0.05, 0.15);
     direction.normalize();
-    const radius = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
     const framed = framingSpanMm(radius, this.canvas.clientWidth, this.canvas.clientHeight);
     const span = fit ? Math.min(spanMm, Math.max(16, radius * 7)) : framed;
     const fov = (this.camera.fov * Math.PI) / 180;
-    const distance = span / (2 * Math.tan(fov / 2));
+    let distance = span / (2 * Math.tan(fov / 2));
+    distance = this.clampFrameDistance(distance, radius);
     const position = center.clone().add(direction.multiplyScalar(distance));
     this.moveCamera([position.x, position.y, position.z], [center.x, center.y, center.z], [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
+  }
+
+  private frameWorldBox(box: THREE.Box3, radiusHint?: number): void {
+    if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
+    const radius = radiusHint ?? Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, 1.2);
+    const direction = this.camera.position.clone().sub(this.controls.target);
+    if (direction.lengthSq() < 1e-4) direction.set(0.2, -0.2, -1);
+    direction.normalize();
+    const width = Math.max(this.canvas.clientWidth, 1);
+    const height = Math.max(this.canvas.clientHeight, 1);
+    let distance: number;
+    if (this.visibleRect) {
+      distance = fitDistanceMm({
+        radiusMm: radius,
+        fovDeg: this.camera.fov,
+        canvasWidth: width,
+        canvasHeight: height,
+        visibleWidth: this.visibleRect.width,
+        visibleHeight: this.visibleRect.height,
+        margin: 1.55,
+      });
+    } else {
+      const framed = framingSpanMm(radius, width, height);
+      const fov = (this.camera.fov * Math.PI) / 180;
+      distance = framed / (2 * Math.tan(fov / 2));
+    }
+    distance = this.clampFrameDistance(distance, radius);
+    const position = center.clone().add(direction.multiplyScalar(distance));
+    this.moveCamera([position.x, position.y, position.z], [center.x, center.y, center.z], [this.camera.up.x, this.camera.up.y, this.camera.up.z], this.camera.fov, false);
+  }
+
+  private clampFrameDistance(distance: number, radius: number): number {
+    const stop = stopDistanceMm(zoomStructureSize('framed', radius), this.distanceLimits.min);
+    return Math.min(this.distanceLimits.max, Math.max(distance, this.distanceLimits.min, stop));
   }
 
   applyPreset(preset: Pick<DissectionStep, 'camera' | 'clipping' | 'visible' | 'hidden' | 'ghosted' | 'highlight'>): void {
@@ -910,6 +1048,11 @@ export class EntViewer {
     this.resizeObserver.disconnect();
     this.canvas.removeEventListener('pointerdown', this.onPointerDown);
     this.canvas.removeEventListener('pointerup', this.onPointerUp);
+    this.canvas.removeEventListener('touchstart', this.onTouchStart);
+    this.canvas.removeEventListener('touchmove', this.onTouchMove);
+    this.canvas.removeEventListener('touchend', this.onTouchEnd);
+    this.canvas.removeEventListener('touchcancel', this.onTouchEnd);
+    this.canvas.removeEventListener('wheel', this.onWheel);
     this.controls.dispose();
     this.draco.dispose();
     this.outlineMaterial.dispose();
@@ -1009,7 +1152,8 @@ export class EntViewer {
     const height = parent.clientHeight;
     if (width < 2 || height < 2) return;
     this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
+    this.applyViewOffset();
+    if (!this.visibleRect) this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
     const resolution = this.hullMaterial?.uniforms.uResolution.value as THREE.Vector2 | undefined;
     if (resolution) resolution.set(this.renderer.domElement.width, this.renderer.domElement.height);
@@ -1931,7 +2075,7 @@ export class EntViewer {
         if (!label) continue;
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
-        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        const size = this.labelSize(label.en || label.text, Boolean(label.ko));
         column.push({
           id: label.id,
           anchorX: anchor.x,
@@ -1949,7 +2093,7 @@ export class EntViewer {
         if (!parts.includes(label.id)) continue;
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
-        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        const size = this.labelSize(label.en || label.text, Boolean(label.ko));
         column.push({
           id: label.id,
           anchorX: anchor.x,
@@ -1972,7 +2116,7 @@ export class EntViewer {
         }
         const anchor = this.projectSpecimen(label.position, width, height);
         if (!anchor || anchor.behind) continue;
-        const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+        const size = this.labelSize(label.en || label.text, Boolean(label.ko));
         column.push({
           id: label.id,
           anchorX: anchor.x,
@@ -1993,7 +2137,7 @@ export class EntViewer {
       if (label.tier === 'surface' && (this.shellForced || this.cutRadius.value > 8) && this.viewStage !== 'body' && this.viewStage !== 'ear') continue;
       const anchor = this.projectSpecimen(label.position, width, height);
       if (!anchor || anchor.behind) continue;
-      const size = estimateLabelSize(label.en || label.text, Boolean(label.ko));
+      const size = this.labelSize(label.en || label.text, Boolean(label.ko));
       const occluded = this.anchorOccluded(label.position);
       let priority = label.priority;
       if (label.id === this.selected) priority += 40;
@@ -2108,21 +2252,78 @@ export class EntViewer {
       if (button.hidden) continue;
       const rect = button.getBoundingClientRect();
       if (rect.width < 2 || rect.height < 2) continue;
-      if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+      const pad = this.canvas.clientWidth < 768 ? 14 : 2;
+      if (clientX >= rect.left - pad && clientX <= rect.right + pad && clientY >= rect.top - pad && clientY <= rect.bottom + pad) {
         return button.dataset.labelId ?? null;
       }
     }
     return null;
   }
 
+  private labelSize(text: string, twoLines: boolean): { width: number; height: number } {
+    const size = estimateLabelSize(text, twoLines);
+    if (this.canvas.clientWidth >= 768) return size;
+    return { width: Math.max(size.width, 52), height: Math.max(twoLines ? 40 : 28, size.height) };
+  }
+
+  private applyViewOffset(): void {
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    if (!this.visibleRect || width < 2 || height < 2) {
+      this.camera.clearViewOffset();
+      return;
+    }
+    const offset = viewOffsetFor(width, height, this.visibleRect);
+    this.camera.setViewOffset(offset.fullWidth, offset.fullHeight, offset.x, offset.y, offset.width, offset.height);
+  }
+
+  private onWheel = (event: WheelEvent): void => {
+    event.preventDefault();
+    const now = performance.now();
+    if (!this.zoomGesture || now > this.gestureUntil + 40) this.beginZoomAt(event.clientX, event.clientY);
+    if (!this.zoomGesture) return;
+    const pixels = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaMode === 2 ? event.deltaY * this.canvas.clientHeight : event.deltaY;
+    this.zoomGesture.scale *= Math.exp(pixels * 0.0015);
+    this.applyZoomScale(this.zoomGesture.scale);
+    this.gestureUntil = now + 220;
+  };
+
   private onPointerDown = (event: PointerEvent): void => {
     this.down = { x: event.clientX, y: event.clientY };
+  };
+
+  private onTouchStart = (event: TouchEvent): void => {
+    if (event.touches.length < 2) return;
+    event.preventDefault();
+    this.pinching = true;
+    this.suppressTap = true;
+    const a = event.touches[0]!;
+    const b = event.touches[1]!;
+    this.pinchStart = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+    this.beginZoomAt((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+  };
+
+  private onTouchMove = (event: TouchEvent): void => {
+    if (!this.pinching || event.touches.length < 2 || !this.zoomGesture) return;
+    event.preventDefault();
+    const a = event.touches[0]!;
+    const b = event.touches[1]!;
+    const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+    this.applyZoomScale(this.pinchStart / dist);
+  };
+
+  private onTouchEnd = (event: TouchEvent): void => {
+    if (event.touches.length >= 2) return;
+    if (this.pinching) this.zoomGesture = null;
+    this.pinching = false;
+    if (event.touches.length === 0) this.suppressTap = false;
   };
 
   private onPointerUp = (event: PointerEvent): void => {
     if (!this.down) return;
     const moved = Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y);
     this.down = null;
+    if (this.pinching || this.suppressTap) return;
     if (moved > 10) return;
     const labelId = this.labelAt(event.clientX, event.clientY);
     if (labelId) {
@@ -2143,8 +2344,90 @@ export class EntViewer {
       this.onMeasureHandler?.(this.measurementPoints());
       return;
     }
+    const now = performance.now();
+    const double =
+      hit !== null &&
+      now - this.lastTapAt < 320 &&
+      Math.hypot(event.clientX - this.lastTapX, event.clientY - this.lastTapY) < 28;
+    this.lastTapAt = now;
+    this.lastTapX = event.clientX;
+    this.lastTapY = event.clientY;
+    if (double && hit && this.mode === 'view') {
+      this.onDoubleHandler?.(hit);
+      return;
+    }
     this.onPickHandler?.(hit);
   };
+
+  private beginZoomAt(clientX: number, clientY: number): void {
+    const hit = this.surfaceAt(clientX, clientY);
+    this.tween = null;
+    this.zoomGesture = {
+      cam: this.camera.position.clone(),
+      target: this.controls.target.clone(),
+      anchor: hit ? hit.point.clone() : null,
+      radius: hit?.radius ?? 0,
+      scale: 1,
+    };
+  }
+
+  private applyZoomScale(scale: number): void {
+    const gesture = this.zoomGesture;
+    if (!gesture) return;
+    const next = zoomAboutAnchor({
+      camera: [gesture.cam.x, gesture.cam.y, gesture.cam.z],
+      target: [gesture.target.x, gesture.target.y, gesture.target.z],
+      anchor: gesture.anchor ? [gesture.anchor.x, gesture.anchor.y, gesture.anchor.z] : null,
+      scale,
+      minDistance: this.distanceLimits.min,
+      maxDistance: this.distanceLimits.max,
+      stopDistance: stopDistanceMm(gesture.radius, this.distanceLimits.min),
+    });
+    this.camera.position.set(next.camera[0], next.camera[1], next.camera[2]);
+    this.controls.target.set(next.target[0], next.target[1], next.target[2]);
+    this.controls.update();
+    this.interacting = true;
+    this.gestureUntil = performance.now() + 180;
+    this.applyPixelRatio(true);
+    this.invalidate();
+  }
+
+  /** Closest opaque surface under a screen point. Faint bone is skipped so inner structures can be the anchor. */
+  private surfaceAt(clientX: number, clientY: number): { point: THREE.Vector3; id: string; radius: number } | null {
+    const rect = this.canvas.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return null;
+    this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    const objects: THREE.Object3D[] = [];
+    for (const record of this.records.values()) {
+      if (!record.object.visible || record.aggregate) continue;
+      const opacity = record.materials[0]?.opacity ?? 1;
+      if (opacity < 0.35) continue;
+      for (const mesh of record.meshes) if (isShown(mesh)) objects.push(mesh);
+    }
+    for (const mesh of [this.skinMesh, this.upperBody, this.skullLayer]) {
+      if (!mesh?.visible) continue;
+      const opacity = (mesh.material as THREE.Material).opacity ?? 1;
+      if (opacity < 0.35) continue;
+      objects.push(mesh);
+    }
+    const hits = this.raycaster.intersectObjects(objects, false).filter((hit) => isShown(hit.object));
+    const hit = hits[0];
+    if (!hit) return null;
+    const id = String(hit.object.userData.structureId ?? hit.object.name ?? '');
+    let radius = 0;
+    const record = this.records.get(id);
+    if (record) {
+      const box = new THREE.Box3().setFromObject(record.object);
+      if (!box.isEmpty()) radius = box.getBoundingSphere(new THREE.Sphere()).radius;
+    } else {
+      const mesh = hit.object as THREE.Mesh;
+      const sphere = mesh.geometry?.boundingSphere;
+      if (sphere) radius = sphere.radius;
+    }
+    return { point: hit.point.clone(), id, radius: zoomStructureSize(id, radius) };
+  }
 
   private cast(clientX: number, clientY: number): PickHit | null {
     const rect = this.canvas.getBoundingClientRect();
@@ -2173,17 +2456,25 @@ export class EntViewer {
         });
       }
     }
-    const chosen = choosePick(gathered);
+    const chosen = chooseTap(gathered);
     if (!chosen) return null;
+    const pointOf = (item: Gathered): Vec3 => {
+      const local = this.world.worldToLocal(item.point.clone());
+      return [local.x, local.y, local.z];
+    };
+    const overlaps = overlapChoices(gathered).map((item) => {
+      const gatheredHit = gathered.find((entry) => entry.structureId === item.structureId && entry.central) ?? item;
+      return { structureId: item.structureId, pointMm: pointOf(gatheredHit as Gathered) };
+    });
     const same = gathered.filter((item) => item.structureId === chosen.structureId);
     const central = same.filter((item) => item.central).sort((a, b) => a.distance - b.distance)[0];
     const pointHit = central ?? same.sort((a, b) => a.distance - b.distance)[0];
     if (!pointHit) return null;
-    const local = this.world.worldToLocal(pointHit.point.clone());
     return {
       structureId: chosen.structureId,
-      pointMm: [local.x, local.y, local.z],
+      pointMm: pointOf(pointHit),
       kind: pointHit.kind,
+      overlaps: overlaps.length > 1 ? overlaps : undefined,
     };
   }
 }
