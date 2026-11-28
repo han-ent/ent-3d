@@ -571,16 +571,17 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
 .pacs-mark.left { left: 6px; top: 50%; transform: translateY(-50%); }
 .pacs-mark.top { top: 6px; left: 50%; transform: translateX(-50%); }
 .pacs-mark.right { right: 6px; top: 50%; transform: translateY(-50%); }
-.pacs-mark.bottom { bottom: 28px; left: 50%; transform: translateX(-50%); }
+.pacs-mark.bottom { bottom: 46px; left: 50%; transform: translateX(-50%); }
 
 .pacs-slider {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 2px;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
   z-index: 2;
-  height: 24px;
+  height: 44px;
   margin: 0;
+  background: transparent;
   accent-color: #c4553a;
 }
 
@@ -1456,7 +1457,7 @@ body.is-pacs:not(.is-phone) .view-slot {
   grid-row: 2;
   min-width: 0;
   min-height: 0;
-  margin: 52px 6px 76px;
+  margin: 60px 6px 76px;
 }
 
 body.is-pacs:not(.is-phone) .labelbar {
@@ -1466,7 +1467,7 @@ body.is-pacs:not(.is-phone) .labelbar {
 }
 
 body.is-pacs:not(.is-phone) .scale-hud {
-  top: calc(50% + 58px);
+  top: calc(50% + 34px);
   left: calc(50% + 12px);
 }
 
@@ -1560,11 +1561,29 @@ body.is-pacs.is-tablet:not(.is-tablet-portrait) .pacs-slider {
   min-width: 44px;
 }
 
-body.is-pacs.is-tablet:not(.is-tablet-portrait) .crumbs { bottom: 52px; }
+body.is-pacs.is-tablet:not(.is-tablet-portrait) .stage {
+  grid-template-rows: 1fr 1fr 1fr;
+}
 
-body.is-pacs.is-tablet:not(.is-tablet-portrait) .view-slot { margin: 100px 6px 100px; }
+body.is-pacs.is-tablet:not(.is-tablet-portrait) .pacs-pane[data-anatomical="axial"] { grid-column: 1; grid-row: 1; }
+body.is-pacs.is-tablet:not(.is-tablet-portrait) .pacs-pane[data-anatomical="coronal"] { grid-column: 1; grid-row: 2; }
+body.is-pacs.is-tablet:not(.is-tablet-portrait) .pacs-pane[data-anatomical="sagittal"] { grid-column: 1; grid-row: 3; }
 
-body.is-pacs.is-tablet:not(.is-tablet-portrait) .scale-hud { top: calc(50% + 108px); }
+body.is-pacs.is-tablet:not(.is-tablet-portrait) .view-slot {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  margin: 80px 6px 88px;
+}
+
+body.is-pacs.is-tablet:not(.is-tablet-portrait) .labelbar {
+  top: 4px;
+  left: calc(50% + 6px);
+  right: 6px;
+}
+
+body.is-pacs.is-tablet:not(.is-tablet-portrait) .crumbs { bottom: 52px; left: calc(50% + 6px); right: 6px; }
+
+body.is-pacs.is-tablet:not(.is-tablet-portrait) .scale-hud { top: 52px; left: calc(50% + 12px); }
 
 body.is-pacs.is-tablet:not(.is-tablet-portrait) .pacs-mark.bottom { bottom: 48px; }
 

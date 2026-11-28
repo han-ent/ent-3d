@@ -434,6 +434,10 @@ function phoneVisible(): { x: number; y: number; width: number; height: number }
 }
 
 function syncVisibleRect(): void {
+  if (pacsOpen && layoutKind() === 'tablet') {
+    viewer?.setVisibleRect(null);
+    return;
+  }
   viewer?.setVisibleRect(phoneVisible());
 }
 
@@ -1402,6 +1406,7 @@ function setPacs(open: boolean): void {
   pacsOpen = open;
   document.body.classList.toggle('is-pacs', open);
   pacsRoot.hidden = !open;
+  syncVisibleRect();
   const openBtn = workspace.querySelector<HTMLButtonElement>('#ct-open');
   if (openBtn) {
     openBtn.dataset.i18n = open ? 'ct.pacsClose' : 'ct.pacsOpen';
@@ -2297,7 +2302,7 @@ function flyStage(stage: ViewStage): void {
   if (box) {
     const width = Math.max(canvas.clientWidth, 1);
     const height = Math.max(canvas.clientHeight, 1);
-    const visible = phoneVisible();
+    const visible = pacsOpen ? null : phoneVisible();
     const pose = frameAabb({
       box,
       direction: view.direction,
