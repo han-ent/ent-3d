@@ -850,7 +850,9 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
     line-height: 1.35;
     min-height: 44px;
   }
-  .sheet[data-snap="half"] .review-line { display: none; }
+  .sheet[data-snap="half"] .review-line,
+  .sheet[data-snap="half"] .peek p,
+  .sheet[data-snap="half"] #list-section > h3 { display: none; }
   .scale-hud,
   .gizmo span,
   .study-en,
@@ -1107,6 +1109,11 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
     overflow: auto;
   }
 
+  .sheet[data-snap="half"] .peek { padding-bottom: 0; }
+  .sheet[data-snap="half"] .peek h2 { margin: 0; line-height: 1.25; }
+  .sheet[data-snap="half"] .sheet-tabs { padding-top: 4px; padding-bottom: 0; }
+  .sheet[data-snap="half"] #list-section > h3 { display: none; }
+
   .sheet[data-snap="half"] #structure-search,
   .sheet[data-snap="full"] #structure-search {
     position: static;
@@ -1119,6 +1126,8 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
     margin: 8px 16px;
     z-index: auto;
   }
+
+  .sheet[data-snap="half"] #structure-search { margin: 4px 12px; }
 
   body.is-sheet-full .phone-dock,
   body.is-sheet-full .back-chip { display: none !important; }
@@ -1253,6 +1262,19 @@ body.is-tablet .meta,
 body.is-tablet .review-line,
 body.is-tablet .chip,
 body.is-tablet .source-line,
+body.is-tablet .study-label {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 6px 8px;
+}
+
+body.is-tablet .hide-btn {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 14px;
+  padding: 0 8px;
+}
+
 body.is-tablet .study-en,
 body.is-tablet .study-ko,
 body.is-tablet .crumbs,

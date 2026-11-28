@@ -27,7 +27,7 @@ import {
   type VisibleRect,
 } from '../zoom-fit';
 import { choosePixelRatio, coveredBySphere } from './budget';
-import { MAX_DRAG_STEP_RAD } from '../orbit-guard';
+import { easeOrbitOffset, MAX_DRAG_STEP_RAD, MAX_HOLD_STEP_RAD } from '../orbit-guard';
 import {
   ATLAS_BACKGROUND,
   MODEL_BACKGROUND,
@@ -2396,10 +2396,13 @@ export class EntViewer {
 
   private onTouchEnd = (event: TouchEvent): void => {
     if (event.touches.length >= 2) return;
+    const wasPinch = this.pinching;
     if (this.pinching) this.zoomGesture = null;
     this.pinching = false;
-    this.clearOrbitInertia();
-    this.hasDragOffset = false;
+    if (wasPinch && event.touches.length === 1) {
+      this.clearOrbitInertia();
+      this.hasDragOffset = false;
+    }
     if (event.touches.length === 0) this.suppressTap = false;
   };
 
@@ -2515,8 +2518,20 @@ export class EntViewer {
       this.camera.position.copy(anchor).addScaledVector(this.outward, stop);
       this.controls.target.copy(anchor);
     } else {
-      this.camera.position.set(held.camera[0], held.camera[1], held.camera[2]);
-      this.controls.target.set(held.target[0], held.target[1], held.target[2]);
+      const desired: [number, number, number] = [
+        held.camera[0] - held.target[0],
+        held.camera[1] - held.target[1],
+        held.camera[2] - held.target[2],
+      ];
+      const currentOff = this.camera.position.clone().sub(this.controls.target);
+      const eased = easeOrbitOffset([currentOff.x, currentOff.y, currentOff.z], desired, MAX_HOLD_STEP_RAD);
+      const turn = currentOff.angleTo(new THREE.Vector3(...desired));
+      if (turn > MAX_HOLD_STEP_RAD) {
+        this.camera.position.copy(this.controls.target).add(new THREE.Vector3(...eased));
+      } else {
+        this.camera.position.set(held.camera[0], held.camera[1], held.camera[2]);
+        this.controls.target.set(held.target[0], held.target[1], held.target[2]);
+      }
     }
     this.controls.update();
     this.applyingZoom = false;

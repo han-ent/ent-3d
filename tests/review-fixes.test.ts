@@ -206,6 +206,8 @@ describe('bottom sheet snaps', () => {
     expect(snapAfterDrag('full', 400, 844)).toBe('half');
     expect(snapAfterDrag('peek', -40, 844, -1.2)).toBe('half');
     expect(sheetCoverPx('half', 844)).toBeGreaterThan(sheetCoverPx('peek', 844));
+    expect(sheetCoverPx('half', 667)).toBe(360);
+    expect(sheetCoverPx('half', 844)).toBe(Math.round(844 * 0.42));
     expect(sheetCoverPx('peek', 844)).toBeLessThan(200);
   });
 });
