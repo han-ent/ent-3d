@@ -5,6 +5,7 @@ import type { Vec3 } from '../src/shared/types';
 import {
   COCHLEA_PARTS,
   STAGE_LIMITS,
+  listSelectionId,
   fitDistanceMm,
   groupPickId,
   holdOrbit,
@@ -54,6 +55,12 @@ describe('stage distance limits', () => {
     expect(STAGE_LIMITS.inner.min).toBeLessThan(STAGE_LIMITS.bone.min);
     expect(STAGE_LIMITS.bone.min).toBeLessThan(STAGE_LIMITS.ear.min);
     expect(STAGE_LIMITS.ear.min).toBeLessThan(STAGE_LIMITS.body.min);
+  });
+
+  it('highlights Cochlea in the list when a scala was chosen as the cochlea', () => {
+    expect(listSelectionId('scala-vestibuli', 'Cochlea')).toBe('cochlea');
+    expect(listSelectionId('scala-vestibuli', 'Scala vestibuli')).toBe('scala-vestibuli');
+    expect(listSelectionId('vestibule', null)).toBe('vestibule');
   });
 
   it('stops at 0.6 × the structure size or the stage minimum, whichever is farther', () => {

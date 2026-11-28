@@ -242,6 +242,11 @@ export function declutterLabels(labels: readonly StudyLabel[], mode: LabelMode, 
   return picked;
 }
 
+/** Phone label thinning and the larger hit boxes apply only below the desktop breakpoint. */
+export function usesPhoneLabelLayout(windowWidthPx: number): boolean {
+  return windowWidthPx < 960;
+}
+
 /** How many floating names a phone can show without stacking on top of each other. */
 export function phoneLabelCap(distanceMm: number): number {
   if (distanceMm > 500) return 4;

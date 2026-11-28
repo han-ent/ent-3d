@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chooseStudyLabels, columnPlacements, dedupeStudyLabels, englishFirst, focusPartList, labelAllowed, phoneLabelCap, placeLabels, relayoutOnTweenEnd, thinForPhone, tiersForDistance, type StudyLabel } from '../src/shared/labels';
+import { chooseStudyLabels, columnPlacements, dedupeStudyLabels, englishFirst, focusPartList, labelAllowed, phoneLabelCap, placeLabels, relayoutOnTweenEnd, thinForPhone, tiersForDistance, usesPhoneLabelLayout, type StudyLabel } from '../src/shared/labels';
 
 const label = (patch: Partial<StudyLabel>): StudyLabel => ({
   id: 'malleus-umbo',
@@ -87,6 +87,12 @@ describe('label collision', () => {
       const current = placed[index]!;
       expect(current.y).toBeGreaterThanOrEqual(previous.y + 34);
     }
+  });
+
+  it('keeps desktop label layout on a 1280px window', () => {
+    expect(usesPhoneLabelLayout(1280)).toBe(false);
+    expect(usesPhoneLabelLayout(959)).toBe(true);
+    expect(usesPhoneLabelLayout(390)).toBe(true);
   });
 
   it('keeps the selected name on a phone and thins the rest when far', () => {

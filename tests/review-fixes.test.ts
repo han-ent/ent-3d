@@ -231,6 +231,14 @@ describe('dissection steps', () => {
     expect(INNER_CORE).toEqual(['cochlea', 'vestibule', 'scc-lateral', 'scc-superior', 'scc-posterior', 'iac', 'facial-nerve']);
     expect(structureStages('tm-pars-flaccida', 'membrane')).toEqual(['bone']);
     const css = readFileSync(resolve(root, 'src/styles/app.css'), 'utf8');
+    const portrait = css.slice(css.indexOf('(max-width: 767px) and (orientation: portrait)'));
+    const halfBody = portrait.slice(portrait.indexOf('.sheet[data-snap="half"] .sheet-body'));
+    expect(halfBody.slice(0, 280)).toMatch(/visibility:\s*visible/);
+    expect(halfBody.slice(0, 400)).toMatch(/height:\s*auto/);
+    const searchRule = portrait.slice(portrait.indexOf('.sheet[data-snap="half"] #structure-search'));
+    expect(searchRule.slice(0, 240)).toMatch(/position:\s*static/);
+    expect(portrait).toMatch(/\.study-label\s*\{\s*min-height:\s*44px/);
+    expect(css).toMatch(/\.sheet-tabs button[\s\S]*min-width:\s*44px/);
     const handle = css.slice(css.indexOf('.sheet-handle'), css.indexOf('.sheet-handle') + 320);
     expect(handle).toMatch(/touch-action:\s*none/);
     expect(antrum?.clipping?.constant).not.toBe(facial?.clipping?.constant);

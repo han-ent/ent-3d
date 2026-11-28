@@ -9,7 +9,7 @@ import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
-import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, thinForPhone, type Placement, type StudyLabel } from '../labels';
+import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, thinForPhone, usesPhoneLabelLayout, type Placement, type StudyLabel } from '../labels';
 import type { ViewStage } from '../stage-frame';
 import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { labelAnchorPoint } from '../surface-anchor';
@@ -1959,7 +1959,7 @@ export class EntViewer {
     if (!this.interacting && due) {
       this.labelPlanAt = now;
       this.labelPlan = this.layoutStudyLabels(width, height).map((item) =>
-        this.canvas.clientWidth < 960 && item.id === this.selected ? { ...item, mode: 'label' as const } : item,
+        this.phoneLayout() && item.id === this.selected ? { ...item, mode: 'label' as const } : item,
       );
       this.rememberOffsets(width, height);
     }
@@ -2121,7 +2121,7 @@ export class EntViewer {
       if (column.length) return columnPlacements(column, width, height, inset);
     }
     const chosenAll = chooseStudyLabels(this.studyLabels, this.labelMode, distance, this.selected, this.viewStage, this.viewStep);
-    const chosen = this.canvas.clientWidth < 960 ? thinForPhone(chosenAll, distance, this.selected) : chosenAll;
+    const chosen = this.phoneLayout() ? thinForPhone(chosenAll, distance, this.selected) : chosenAll;
     if (this.viewStep) {
       const column = [];
       for (const label of chosen) {
@@ -2146,6 +2146,7 @@ export class EntViewer {
     }
     const inputs = [];
     for (const label of chosen) {
+      if (!this.phoneLayout() && label.id === 'tm-pars-flaccida') continue;
       if (label.tier !== 'subpart') {
         const owner = this.records.get(label.id);
         if (owner && !owner.object.visible) continue;
@@ -2319,9 +2320,13 @@ export class EntViewer {
     return hits[0]?.id ?? null;
   }
 
+  private phoneLayout(): boolean {
+    return usesPhoneLabelLayout(window.innerWidth);
+  }
+
   private labelSize(text: string, twoLines: boolean): { width: number; height: number } {
     const size = estimateLabelSize(text, twoLines);
-    if (this.canvas.clientWidth >= 960) return size;
+    if (!this.phoneLayout()) return size;
     return { width: Math.max(size.width, 88), height: Math.max(twoLines ? 48 : 44, size.height) };
   }
 
@@ -2555,9 +2560,9 @@ export class EntViewer {
     this.camera.position.set(next.camera[0], next.camera[1], next.camera[2]);
     this.controls.target.set(next.target[0], next.target[1], next.target[2]);
     this.camera.lookAt(this.controls.target);
-    if (gesture.anchor && gesture.at) this.pinAnchorToScreen(gesture.anchor, gesture.at);
+    if (this.phoneLayout() && gesture.anchor && gesture.at) this.pinAnchorToScreen(gesture.anchor, gesture.at);
     this.controls.update();
-    if (gesture.anchor && gesture.at) this.pinAnchorToScreen(gesture.anchor, gesture.at);
+    if (this.phoneLayout() && gesture.anchor && gesture.at) this.pinAnchorToScreen(gesture.anchor, gesture.at);
     if (gesture.anchor) this.rememberAnchor(gesture.anchor, stop);
     this.applyingZoom = false;
     this.interacting = true;

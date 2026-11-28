@@ -15,7 +15,7 @@ import {
   type ViewStage,
 } from '../shared/stage-frame';
 import { isNavShell, shouldStageJump } from '../shared/picking';
-import { COCHLEA_PARTS, STAGE_LIMITS, groupPickId, labelAction, visibleFovDeg } from '../shared/zoom-fit';
+import { COCHLEA_PARTS, STAGE_LIMITS, groupPickId, labelAction, listSelectionId, visibleFovDeg } from '../shared/zoom-fit';
 import { CANAL_WALL } from '../shared/surface-anchor';
 import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
 import { sliceFile, slicePose, clampIndex } from '../shared/ct';
@@ -622,6 +622,8 @@ function renderChips(): void {
   const structureHits = hits ? new Set(hits.filter((hit) => hit.kind === 'structure').map((hit) => hit.id)) : null;
   structureList.replaceChildren();
   const hidden = new Set(viewer?.hiddenIds() ?? []);
+  const activeId = listSelectionId(selected, selectionTitle?.en ?? null);
+  let cochleaRow = false;
   for (const system of STRUCTURE_SYSTEMS) {
     const items = manifest.structures.filter((structure) => {
       if (!system.ids.includes(structure.id)) return false;
@@ -640,7 +642,24 @@ function renderChips(): void {
       button.type = 'button';
       button.className = 'chip';
       button.dataset.select = structure.id;
-      if (structure.id === selected) button.classList.add('is-active');
+      if (activeId === 'cochlea' && structure.id.startsWith('scala-') && !cochleaRow) {
+        cochleaRow = true;
+        const cochlea = document.createElement('button');
+        cochlea.type = 'button';
+        cochlea.className = 'chip is-active';
+        cochlea.dataset.select = 'cochlea';
+        cochlea.innerHTML = `<i class="swatch" style="background:${structure.color}"></i><span>${escapeHtml(englishFirst('Cochlea', '와우'))}</span>`;
+        cochlea.addEventListener('click', () => {
+          if (mode === 'quiz') return;
+          setMode('view');
+          focusCochlea();
+        });
+        const cochleaRowEl = document.createElement('div');
+        cochleaRowEl.className = 'chip-row';
+        cochleaRowEl.append(cochlea);
+        structureList.append(cochleaRowEl);
+      }
+      if (structure.id === activeId) button.classList.add('is-active');
       button.innerHTML = `<i class="swatch" style="background:${structure.color}"></i><span>${escapeHtml(structureLabel(structure.id))}</span>`;
       button.addEventListener('click', () => {
         if (mode === 'quiz') return;

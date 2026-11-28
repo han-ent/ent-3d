@@ -1027,6 +1027,8 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
     right: 0;
     bottom: 0;
     z-index: 6;
+    display: flex;
+    flex-direction: column;
     height: var(--sheet-cover, 130px);
     max-height: var(--sheet-cover, 130px);
     border-top: 0;
@@ -1042,8 +1044,7 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
 
   .sheet[data-snap="peek"] .phone-peek { display: block; }
 
-  .sheet[data-snap="peek"] .sheet-body,
-  .sheet[data-snap="half"] .sheet-body {
+  .sheet[data-snap="peek"] .sheet-body {
     display: block;
     height: 0;
     margin: 0;
@@ -1052,11 +1053,45 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
     visibility: hidden;
   }
 
+  .sheet[data-snap="half"] .sheet-body,
   .sheet[data-snap="full"] .sheet-body {
-    display: block;
+    display: flex;
+    flex-direction: column;
     visibility: visible;
+    flex: 1 1 auto;
+    min-height: 0;
     height: auto;
+    overflow: hidden;
+    padding: 0 0 8px;
+  }
+
+  .sheet[data-snap="half"] .sheet-tabs,
+  .sheet[data-snap="full"] .sheet-tabs { flex: none; }
+
+  .sheet[data-snap="half"] #list-section,
+  .sheet[data-snap="full"] #list-section,
+  .sheet[data-snap="half"] #presets-section,
+  .sheet[data-snap="full"] #presets-section,
+  .sheet[data-snap="half"] #ct-section,
+  .sheet[data-snap="full"] #ct-section,
+  .sheet[data-snap="half"] #info-body,
+  .sheet[data-snap="full"] #info-body {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: auto;
+  }
+
+  .sheet[data-snap="half"] #structure-search,
+  .sheet[data-snap="full"] #structure-search {
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: auto;
+    height: 44px;
+    min-height: 44px;
+    margin: 8px 16px;
+    z-index: auto;
   }
 
   body.is-sheet-full .phone-dock,
@@ -1099,7 +1134,7 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
   .study-en,
   .study-ko { font-size: 14px; line-height: 1.35; }
 
-  .study-label { min-height: 28px; }
+  .study-label { min-height: 44px; box-sizing: border-box; }
 
   .app-menu,
   .pop-menu {
@@ -1143,7 +1178,8 @@ body.is-compact .sheet-tabs {
 }
 
 body.is-compact .sheet-tabs button {
-  flex: 1;
+  flex: 1 1 44px;
+  min-width: 44px;
   min-height: 44px;
   border: 0;
   border-radius: 12px;
@@ -1151,6 +1187,8 @@ body.is-compact .sheet-tabs button {
   color: var(--ink);
   font-size: 15px;
 }
+
+body.is-landscape-phone .sheet-tabs { flex-wrap: wrap; }
 
 body.is-compact .sheet-tabs button[aria-pressed="true"] {
   background: var(--accent);
@@ -1173,6 +1211,25 @@ body.is-compact .peek-actions button,
 body.is-compact .chip,
 body.is-compact #help-btn {
   min-height: 44px;
+  min-width: 44px;
+}
+
+body.is-tablet #help-btn,
+body.is-tablet .labelbar button {
+  min-height: 44px;
+  min-width: 44px;
+  font-size: 14px;
+}
+
+body.is-tablet .group-label,
+body.is-tablet .hint,
+body.is-tablet .meta,
+body.is-tablet .review-line,
+body.is-tablet .chip,
+body.is-tablet .source-line,
+body.is-tablet .study-en,
+body.is-tablet .study-ko {
+  font-size: 14px;
 }
 
 body.is-tablet .workspace,
