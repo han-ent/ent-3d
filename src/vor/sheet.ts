@@ -25,6 +25,8 @@ export function renderSheet(host: HTMLElement, model: SheetModel, t: (key: strin
       <p class="vor-sheet-kicker" data-i18n="vor.kicker"></p>
       <h2 data-i18n="vor.sheetEmpty"></h2>
       <p class="vor-sheet-lead" data-i18n="vor.body"></p>
+    <p class="vor-phone-hint" data-i18n="vor.frameNote"></p>
+    <p class="vor-gain" data-gain hidden></p>
       ${controlsHtml()}
     `;
     applyStatic(host, t);
@@ -61,6 +63,8 @@ export function renderSheet(host: HTMLElement, model: SheetModel, t: (key: strin
     <h2 class="vor-name-main">${escapeHtml(lines.main)}</h2>
     ${lines.sub ? `<p class="vor-name-sub">${escapeHtml(lines.sub)}</p>` : ''}
     <p class="vor-meters" data-meters></p>
+    <p class="vor-phone-hint" data-i18n="vor.frameNote"></p>
+    <p class="vor-gain" data-gain hidden></p>
     ${canalBlock}
     <h3>${escapeHtml(t('vor.pathway'))}</h3>
     <ul class="vor-names">${list}</ul>

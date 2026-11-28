@@ -208,5 +208,8 @@
   "vor.fast": "속상",
   "vor.slow": "서상",
   "vor.resetHead": "머리 되돌리기",
-  "vor.showInhibition": "억제 포함"
+  "vor.showInhibition": "억제 포함",
+  "vor.more": "더보기",
+  "vor.gainRaw": "자발안진 포함(보정 전)",
+  "vor.gainCorrected": "보정 후"
 }

@@ -56,6 +56,7 @@ export type ModelNumbers = {
   fastStop: number;
   inhibitorySaturation: number;
   staticImbalanceGain: number;
+  verticalRestingScale: number;
   torsionalVorGain: number;
   torsionalStorage: number;
   catchUpThreshold: number;
@@ -97,6 +98,7 @@ export function modelNumbers(params: ParamsFile): ModelNumbers {
     fastStop: params.fastPhaseStopDeg.value,
     inhibitorySaturation: params.inhibitorySaturationDegPerSec.value,
     staticImbalanceGain: params.staticImbalanceGain.value,
+    verticalRestingScale: params.verticalRestingScale.value,
     torsionalVorGain: params.torsionalVorGain.value,
     torsionalStorage: params.torsionalStorageSec.value,
     catchUpThreshold: params.catchUpThresholdDeg.value,
@@ -216,10 +218,10 @@ function canalSignals(
   return { dynamic: driven + nextStored, tonic };
 }
 
-/** Vertical-canal resting loss is scaled down with torsional sensitivity so spontaneous nystagmus stays horizontal-dominant. */
-function restingWeight(id: string, gain: number): number {
+/** Vertical-canal resting loss is scaled again so spontaneous nystagmus stays horizontal-dominant. */
+function restingWeight(id: string, gain: number, verticalScale: number): number {
   const vertical = id === 'rac' || id === 'lac' || id === 'rpc' || id === 'lpc';
-  return vertical ? gain * 0.45 : gain;
+  return vertical ? gain * verticalScale : gain;
 }
 
 /** Excitatory afferent carries the velocity; a saturated inhibitory partner does not pull it down. */
@@ -345,8 +347,9 @@ export function step(bundle: VorBundle, state: VorState, input: StepInput, order
   const k = numbers.staticImbalanceGain;
   for (const [first, second] of PAIRS) {
     const estimate = pairEstimate(dynamic[first] ?? 0, dynamic[second] ?? 0, alive[first] === true, alive[second] === true);
-    signal[first] = estimate + restingWeight(first, k) * (tonic[first] ?? 0);
-    signal[second] = -estimate + restingWeight(second, k) * (tonic[second] ?? 0);
+    const verticalScale = numbers.verticalRestingScale;
+    signal[first] = estimate + restingWeight(first, k, verticalScale) * (tonic[first] ?? 0);
+    signal[second] = -estimate + restingWeight(second, k, verticalScale) * (tonic[second] ?? 0);
   }
 
   const incoming = new Map<string, { from: string; sign: number; weight: number }[]>();

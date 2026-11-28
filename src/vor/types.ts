@@ -92,6 +92,8 @@ export type ParamsFile = {
   inhibitorySaturationDegPerSec: CitedNumber;
   /** Scales a constant resting-rate loss before it reaches the eye. */
   staticImbalanceGain: CitedNumber;
+  /** Extra scale on vertical-canal resting loss. Tuning value, not a measured constant. */
+  verticalRestingScale: CitedNumber;
   /** Multiplies the roll component of slow-phase eye velocity. */
   torsionalVorGain: CitedNumber;
   /** Velocity-storage time constant for the vertical canals (roll / pitch). */

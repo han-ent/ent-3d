@@ -37,8 +37,12 @@ workspace.innerHTML = `
       <a href="${pageUrl('vor')}" class="is-active" data-i18n="nav.vor"></a>
     </nav>
     <div class="vor-toolbar" id="vor-toolbar">
-      <div class="vor-scroll" id="vor-maneuvers"></div>
+      <div class="vor-bar">
+        <div class="vor-scroll" id="vor-maneuvers"></div>
+        <button type="button" id="vor-more" class="vor-more" data-i18n="vor.more" aria-expanded="false"></button>
+      </div>
       <div class="vor-scroll" id="vor-tools">
+        <div class="vor-extra" id="vor-extra"></div>
         <label class="vor-slider"><span data-i18n="vor.velocity"></span><input type="range" id="vor-velocity" min="10" max="300" step="10" value="60"></label>
         <div class="vor-inline" id="vor-views"></div>
         <div class="vor-inline" id="vor-drag"></div>
@@ -77,9 +81,14 @@ const MANEUVERS: { id: string; key: string; axis: Vec3 | 'lac' | 'rac' }[] = [
 ];
 
 const maneuverHost = workspace.querySelector<HTMLElement>('#vor-maneuvers')!;
-maneuverHost.innerHTML = MANEUVERS.map(
+const extraHost = workspace.querySelector<HTMLElement>('#vor-extra')!;
+const maneuverButtons = MANEUVERS.map(
   (item) => `<button type="button" data-maneuver="${item.id}" data-i18n="${item.key}"></button>`,
 ).join('');
+maneuverHost.innerHTML = maneuverButtons;
+extraHost.innerHTML = MANEUVERS.slice(4)
+  .map((item) => `<button type="button" data-maneuver="${item.id}" data-i18n="${item.key}"></button>`)
+  .join('');
 const viewHost = workspace.querySelector<HTMLElement>('#vor-views')!;
 viewHost.innerHTML = (['head', 'labyrinth', 'brainstem', 'eyes'] as const)
   .map((id) => `<button type="button" data-view="${id}" data-i18n="vor.view.${id}"></button>`)
@@ -348,7 +357,8 @@ sheet.addEventListener('change', (event) => {
   refreshSheet();
 });
 
-maneuverHost.addEventListener('pointerdown', (event) => {
+const toolbar = workspace.querySelector<HTMLElement>('#vor-toolbar')!;
+toolbar.addEventListener('pointerdown', (event) => {
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-maneuver]');
   if (!button) return;
   event.preventDefault();
@@ -362,8 +372,15 @@ const releaseManeuver = (event: PointerEvent) => {
   if (maneuver === button.dataset.maneuver && !(SHOT && DEMO)) maneuver = null;
   paintChrome();
 };
-maneuverHost.addEventListener('pointerup', releaseManeuver);
-maneuverHost.addEventListener('pointercancel', releaseManeuver);
+toolbar.addEventListener('pointerup', releaseManeuver);
+toolbar.addEventListener('pointercancel', releaseManeuver);
+workspace.querySelector('#vor-more')?.addEventListener('click', () => {
+  const tools = workspace.querySelector('#vor-tools');
+  const more = workspace.querySelector('#vor-more');
+  if (!tools || !more) return;
+  const open = tools.classList.toggle('is-open');
+  more.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
 
 viewHost.addEventListener('click', (event) => {
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-view]');
@@ -497,19 +514,34 @@ function frame(now: number): void {
       sheetBox.right > stageBox.left &&
       sheetBox.top < stageBox.bottom &&
       sheetBox.bottom > stageBox.top;
-    view.setLabelObstacle(
-      overlaps
-        ? {
-            left: sheetBox.left - stageBox.left,
-            top: sheetBox.top - stageBox.top,
-            right: sheetBox.right - stageBox.left,
-            bottom: sheetBox.bottom - stageBox.top,
-          }
-        : null,
-    );
+    const toolbarBox = toolbar.getBoundingClientRect();
+    const toolsBox = workspace.querySelector('#vor-tools')?.getBoundingClientRect();
+    const menuBottom = workspace.querySelector('#vor-tools')?.classList.contains('is-open') && toolsBox ? toolsBox.bottom : toolbarBox.bottom;
+    const sparkBox = spark.getBoundingClientRect();
+    const blocks: { left: number; top: number; right: number; bottom: number }[] = [];
+    if (overlaps) {
+      blocks.push({
+        left: sheetBox.left - stageBox.left,
+        top: sheetBox.top - stageBox.top,
+        right: sheetBox.right - stageBox.left,
+        bottom: sheetBox.bottom - stageBox.top,
+      });
+    }
+    if (sparkBox.width > 0 && sparkBox.bottom > stageBox.top && sparkBox.top < stageBox.bottom) {
+      blocks.push({
+        left: sparkBox.left - stageBox.left,
+        top: sparkBox.top - stageBox.top,
+        right: sparkBox.right - stageBox.left,
+        bottom: sparkBox.bottom - stageBox.top,
+      });
+    }
+    const topInset = Math.max(0, menuBottom - stageBox.top);
+    const bottomInset = overlaps ? Math.max(0, stageBox.bottom - sheetBox.top) : 8;
+    view.setLabelFrame({ top: topInset, bottom: bottomInset, blocks });
     view.applyState(state, selected ? new Set(connected()) : null, baseline);
     view.render(now);
     renderMeters(sheet, bundle, state, selected, t);
+    paintGain();
     drawSpark();
     drawDev();
   }
@@ -536,7 +568,7 @@ async function boot(): Promise<void> {
     state = createState(bundle);
     view = new VorScene(canvas, labels, bundle);
     status.hidden = true;
-    if (window.innerWidth < 700) view.flyTo({ ...ORBIT_VIEWS.head, radius: 560, polar: 1.08 }, false);
+    if (window.innerWidth < 520) view.flyTo({ ...ORBIT_VIEWS.head, radius: 500, polar: 1.12 }, false);
     if (SHOT && DEMO === 'highlight-rhc') {
       selected = 'rhc';
       preset = 'labyrinth';
@@ -567,4 +599,30 @@ void boot();
 
 function speedText(value: number): string {
   return `${Number(value.toFixed(2))}×`;
+}
+
+let restingSlow: Vec3 = [0, 0, 0];
+
+function paintGain(): void {
+  const el = sheet.querySelector<HTMLElement>('[data-gain]');
+  if (!el || !state) return;
+  const omega = omegaNow();
+  const speed = Math.hypot(omega[0], omega[1], omega[2]);
+  if (hypo !== 'off' && speed < 8) restingSlow = [...state.slowOmega.right];
+  if (hypo === 'off' || speed < 40) {
+    el.hidden = true;
+    return;
+  }
+  const eye = state.slowOmega.right;
+  const raw = -dot3(eye, omega) / (speed * speed);
+  const corrected = -dot3(
+    [eye[0] - restingSlow[0], eye[1] - restingSlow[1], eye[2] - restingSlow[2]],
+    omega,
+  ) / (speed * speed);
+  el.hidden = false;
+  el.textContent = `${t('vor.gainRaw')} ${raw.toFixed(2)} · ${t('vor.gainCorrected')} ${corrected.toFixed(2)}`;
+}
+
+function dot3(a: Vec3, b: Vec3): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }

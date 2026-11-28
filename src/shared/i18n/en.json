@@ -208,5 +208,8 @@
   "vor.fast": "Fast phase",
   "vor.slow": "Slow phase",
   "vor.resetHead": "Reset head",
-  "vor.showInhibition": "Show inhibition"
+  "vor.showInhibition": "Show inhibition",
+  "vor.more": "More",
+  "vor.gainRaw": "Includes spontaneous nystagmus (before correction)",
+  "vor.gainCorrected": "Corrected"
 }

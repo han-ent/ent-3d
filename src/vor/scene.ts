@@ -61,7 +61,11 @@ export class VorScene {
   private fly: { from: OrbitView; to: OrbitView; start: number } | null = null;
   private interacting = false;
   private shown: string[] = [];
-  private obstacle: { left: number; top: number; right: number; bottom: number } | null = null;
+  private frame: { top: number; bottom: number; blocks: { left: number; top: number; right: number; bottom: number }[] } = {
+    top: 8,
+    bottom: 8,
+    blocks: [],
+  };
   private scratch = new THREE.Vector3();
   private scratchB = new THREE.Vector3();
   private scratchC = new THREE.Vector3();
@@ -126,9 +130,9 @@ export class VorScene {
     this.head.quaternion.identity();
   }
 
-  /** Canvas-local rectangle the labels should stay out of (the info sheet). */
-  setLabelObstacle(rect: { left: number; top: number; right: number; bottom: number } | null): void {
-    this.obstacle = rect;
+  /** Visible band for labels, in canvas pixels. `blocks` are holes such as the sparkline. */
+  setLabelFrame(frame: { top: number; bottom: number; blocks: { left: number; top: number; right: number; bottom: number }[] }): void {
+    this.frame = frame;
   }
 
   /** Integrate head pose from the same angular velocity the canals see. */
@@ -259,6 +263,7 @@ export class VorScene {
       this.orbit.target[2] - this.orbit.radius * sp * Math.cos(this.orbit.azimuth),
     );
     this.camera.lookAt(this.orbit.target[0], this.orbit.target[1], this.orbit.target[2]);
+    this.fitFreeBand();
     this.head.updateMatrixWorld();
     this.placeLabels();
     this.renderer.render(this.scene, this.camera);
@@ -510,56 +515,87 @@ export class VorScene {
     }
   }
 
+  /** Shift the picture so the head sits in the open band between the toolbar and the sheet. */
+  private fitFreeBand(): void {
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+    const top = this.frame.top;
+    const bottom = this.frame.bottom;
+    if (width < 2 || height < 2 || top + bottom < 24 || top + bottom > height * 0.8) {
+      this.camera.clearViewOffset();
+      return;
+    }
+    const freeMid = (top + (height - bottom)) / 2;
+    const offsetY = Math.round(height / 2 - freeMid);
+    this.camera.setViewOffset(width, height, 0, offsetY, width, height);
+    this.camera.updateProjectionMatrix();
+  }
+
   private placeLabels(): void {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
-    const cap = width < 800 ? 8 : 12;
+    const cap = width < 800 ? 10 : 12;
     const allow = this.shown.slice(0, cap);
+    const minX = 4;
+    const maxX = width - 4;
+    const minY = this.frame.top + 4;
+    const maxY = height - this.frame.bottom - 4;
     for (const el of this.labelNodes.values()) el.hidden = true;
-    const placed: { x: number; y: number; w: number; h: number }[] = [];
+    if (maxY - minY < 36) return;
+    const placed: { left: number; top: number; right: number; bottom: number }[] = [];
+    const hits = (left: number, top: number, right: number, bottom: number) => {
+      if (left < minX - 1 || right > maxX + 1 || top < minY - 1 || bottom > maxY + 1) return true;
+      if (placed.some((item) => left < item.right && right > item.left && top < item.bottom && bottom > item.top)) return true;
+      return this.frame.blocks.some((block) => left < block.right && right > block.left && top < block.bottom && bottom > block.top);
+    };
     for (const id of allow) {
       const el = this.labelNodes.get(id);
       const anchor = this.anchors.get(id);
       if (!el || !anchor) continue;
       this.scratchC.copy(anchor.position).applyMatrix4(this.head.matrixWorld).project(this.camera);
-      if (this.scratchC.z > 1 || this.scratchC.z < -1) {
-        el.hidden = true;
-        continue;
-      }
-      const x = (this.scratchC.x * 0.5 + 0.5) * width;
-      const y = (-this.scratchC.y * 0.5 + 0.5) * height;
-      if (x < -40 || y < -20 || x > width + 40 || y > height - 8) {
-        el.hidden = true;
-        continue;
-      }
-      let left = x;
-      let top = y;
-      const boxW = 150;
-      const boxH = 40;
-      const blocked = (px: number, py: number) => {
-        const overlap = placed.some(
-          (item) => Math.abs(item.x - px) < (item.w + boxW) / 2 && Math.abs(item.y - py) < (item.h + boxH) / 2,
-        );
-        const obstacle = this.obstacle;
-        const hitsSheet =
-          obstacle !== null &&
-          px + boxW / 2 > obstacle.left + 2 &&
-          px - boxW / 2 < obstacle.right - 2 &&
-          py > obstacle.top + 2 &&
-          py - boxH < obstacle.bottom;
-        return overlap || hitsSheet;
-      };
-      for (let pass = 0; pass < 8 && blocked(left, top); pass += 1) {
-        if (this.obstacle && top > this.obstacle.top) top = this.obstacle.top - 6;
-        else top -= 42;
-      }
-      if (top < 72 || top > height - 8 || blocked(left, top)) {
-        el.hidden = true;
-        continue;
-      }
-      placed.push({ x: left, y: top, w: boxW, h: boxH });
+      if (this.scratchC.z > 1 || this.scratchC.z < -1) continue;
       el.hidden = false;
-      el.style.transform = `translate(${left}px, ${top}px)`;
+      el.style.left = '0px';
+      el.style.top = '0px';
+      const boxW = Math.min(148, Math.max(72, el.offsetWidth));
+      const boxH = Math.max(28, el.offsetHeight);
+      const ax = (this.scratchC.x * 0.5 + 0.5) * width;
+      const ay = (-this.scratchC.y * 0.5 + 0.5) * height;
+      let left = Math.min(Math.max(ax - boxW / 2, minX), Math.max(minX, maxX - boxW));
+      let top = Math.min(Math.max(ay - boxH, minY), Math.max(minY, maxY - boxH));
+      const shifts = [0, -boxH - 4, boxH + 4, -(boxH + 4) * 2, (boxH + 4) * 2, -boxW * 0.6, boxW * 0.6];
+      let placedOk = false;
+      for (const shift of shifts) {
+        const nextTop = Math.min(Math.max(top + (Math.abs(shift) > boxW * 0.4 ? 0 : shift), minY), Math.max(minY, maxY - boxH));
+        const nextLeft = Math.abs(shift) > boxW * 0.4 ? Math.min(Math.max(left + shift, minX), Math.max(minX, maxX - boxW)) : left;
+        if (!hits(nextLeft, nextTop, nextLeft + boxW, nextTop + boxH)) {
+          left = nextLeft;
+          top = nextTop;
+          placedOk = true;
+          break;
+        }
+      }
+      if (!placedOk) {
+        const columns = [minX, Math.max(minX, maxX - boxW)];
+        for (const column of columns) {
+          for (let y = minY; y <= maxY - boxH; y += boxH + 4) {
+            if (!hits(column, y, column + boxW, y + boxH)) {
+              left = column;
+              top = y;
+              placedOk = true;
+              break;
+            }
+          }
+          if (placedOk) break;
+        }
+      }
+      if (!placedOk) {
+        el.hidden = true;
+        continue;
+      }
+      placed.push({ left, top, right: left + boxW, bottom: top + boxH });
+      el.style.left = `${left}px`;
+      el.style.top = `${top}px`;
     }
   }
 }

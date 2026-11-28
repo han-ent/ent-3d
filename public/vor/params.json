@@ -74,7 +74,14 @@
     "value": 0.9,
     "unit": "1",
     "source": "TBD",
-    "note": "Scales a constant resting-rate loss before it moves the eyes. Without it, a dead canal looks like a continuous impulse at the full inhibitory cutoff and the spontaneous nystagmus is far too fast.",
+    "note": "Tuning value, unverified. Not copied from a table. It scales a constant resting-rate loss before the eyes move. Without it, a dead canal looks like a continuous impulse at the full inhibitory cutoff and the spontaneous nystagmus is far too fast. 0.9 was chosen so a complete right loss sits near 20 deg/s of horizontal slow phase.",
+    "reviewStatus": "unverified"
+  },
+  "verticalRestingScale": {
+    "value": 0.45,
+    "unit": "1",
+    "source": "TBD",
+    "note": "Tuning value, unverified. Not copied from a table. Vertical-canal resting loss is multiplied by staticImbalanceGain and then by this 0.45, so the resting roll does not overwhelm the horizontal beat. Dynamic head-movement responses are not multiplied by this number.",
     "reviewStatus": "unverified"
   },
   "torsionalVorGain": {
@@ -95,7 +102,7 @@
     "value": 8,
     "unit": "deg",
     "source": "TBD",
-    "note": "Gaze slip that starts a catch-up saccade when head speed is high and the slow-phase gain is low. Not copied from a checked table.",
+    "note": "Tuning value, unverified. Gaze slip that starts one catch-up saccade when head speed is high and the slow-phase gain is low. Timing is simplified: one saccade per impulse, at the fast-phase speed, ending when the slip falls or the eye passes about 35 degrees. This is not a full saccade generator.",
     "reviewStatus": "unverified"
   },
   "catchUpMinHeadDegPerSec": {
