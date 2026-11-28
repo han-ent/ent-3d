@@ -9,6 +9,7 @@ export function renderHeader(active: NavId): HTMLElement {
   const links: { id: NavId; key: string; href: string }[] = [
     { id: 'home', key: 'nav.home', href: pageUrl('') },
     { id: 'temporal', key: 'nav.temporal', href: pageUrl('temporal-bone') },
+    { id: 'vor', key: 'nav.vor', href: pageUrl('vor') },
     { id: 'about', key: 'nav.about', href: pageUrl('about') },
   ];
   const nav = links

@@ -1,6 +1,6 @@
 # ENT 3D
 
-귀 해부를 휴대폰에서 보는 학습 뷰어입니다. 지금은 측두골 페이지가 동작하고, VOR 페이지는 자리만 있습니다.
+귀 해부를 휴대폰에서 보는 학습 뷰어입니다. 측두골 페이지와 전정안반사 모식 페이지가 있습니다.
 
 공개 주소는 [https://han-ent.github.io/ent-3d/](https://han-ent.github.io/ent-3d/) 입니다. `main`에 푸시되면 `.github/workflows/pages.yml` 이 `npm ci && npm run build` 결과를 GitHub Pages에 올립니다. 베이스는 `/ent-3d/` 이라 측두골은 `/ent-3d/temporal-bone/`, VOR은 `/ent-3d/vor/` 입니다.
 
@@ -10,7 +10,7 @@
 | --- | --- |
 | `/ent-3d/` | 처음 화면 |
 | `/ent-3d/temporal-bone/` | 측두골 뷰어 |
-| `/ent-3d/vor/` | 전정안반사. 다음 작업 |
+| `/ent-3d/vor/` | 전정안반사. 모식 시뮬레이터 |
 | `/ent-3d/about/` | 출처와 라이선스 |
 
 공통 코드는 `src/shared/` 에 있습니다.
@@ -97,7 +97,7 @@ npm run preview
 
 현재 빌드는 그 기하를 포함하지 않습니다.
 
-`/vor/` 에 올릴 예정인 Z-Anatomy 자산은 CC BY-SA입니다. 동일조건변경허락이므로 그 자산이 들어간 결과도 같은 조건으로 공유해야 하고, 저작자 표시가 필요합니다. OpenEar(CC BY)와 출처를 섞지 말고 자산마다 적습니다.
+`/vor/` 는 절차적으로 만든 모식입니다. Z-Anatomy 메시는 쓰지 않습니다. 반고리관 법선은 Della Santina 등, JARO 2005 Table 1B이고, 그 밖 수치는 `public/vor/` JSON에 있습니다. `reviewStatus`가 `verified`가 아니면 화면은 `미검증 / Unverified`입니다.
 
 ## 나중 작업
 

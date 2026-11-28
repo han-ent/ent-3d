@@ -1,0 +1,120 @@
+{
+  "frame": {
+    "id": "reid",
+    "x": "+X anterior",
+    "y": "+Y left",
+    "z": "+Z superior",
+    "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+    "reviewStatus": "unverified"
+  },
+  "canals": [
+    {
+      "id": "rhc",
+      "side": "right",
+      "plane": "horizontal",
+      "nameEn": "Right horizontal canal",
+      "nameKo": "오른쪽 수평반고리관",
+      "excitatoryNormal": [
+        0.32269,
+        -0.03837,
+        -0.94573
+      ],
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Anterior canal is the superior canal. Positive head angular velocity along excitatoryNormal excites this canal (Ewald excitatory direction).",
+        "ko": "상반고리관이 anterior canal입니다. excitatoryNormal 방향의 머리 각속도가 이 반고리관을 흥분시킵니다 (Ewald 흥분 방향)."
+      }
+    },
+    {
+      "id": "lhc",
+      "side": "left",
+      "plane": "horizontal",
+      "nameEn": "Left horizontal canal",
+      "nameKo": "왼쪽 수평반고리관",
+      "excitatoryNormal": [
+        -0.32269,
+        -0.03837,
+        0.94573
+      ],
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Anterior canal is the superior canal. Positive head angular velocity along excitatoryNormal excites this canal (Ewald excitatory direction).",
+        "ko": "상반고리관이 anterior canal입니다. excitatoryNormal 방향의 머리 각속도가 이 반고리관을 흥분시킵니다 (Ewald 흥분 방향)."
+      }
+    },
+    {
+      "id": "rac",
+      "side": "right",
+      "plane": "anterior",
+      "nameEn": "Right anterior canal",
+      "nameKo": "오른쪽 상반고리관",
+      "excitatoryNormal": [
+        0.5893,
+        0.78839,
+        0.17655
+      ],
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Anterior canal is the superior canal. Positive head angular velocity along excitatoryNormal excites this canal (Ewald excitatory direction).",
+        "ko": "상반고리관이 anterior canal입니다. excitatoryNormal 방향의 머리 각속도가 이 반고리관을 흥분시킵니다 (Ewald 흥분 방향)."
+      }
+    },
+    {
+      "id": "lac",
+      "side": "left",
+      "plane": "anterior",
+      "nameEn": "Left anterior canal",
+      "nameKo": "왼쪽 상반고리관",
+      "excitatoryNormal": [
+        -0.5893,
+        0.78839,
+        -0.17655
+      ],
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Anterior canal is the superior canal. Positive head angular velocity along excitatoryNormal excites this canal (Ewald excitatory direction).",
+        "ko": "상반고리관이 anterior canal입니다. excitatoryNormal 방향의 머리 각속도가 이 반고리관을 흥분시킵니다 (Ewald 흥분 방향)."
+      }
+    },
+    {
+      "id": "rpc",
+      "side": "right",
+      "plane": "posterior",
+      "nameEn": "Right posterior canal",
+      "nameKo": "오른쪽 후반고리관",
+      "excitatoryNormal": [
+        0.69432,
+        -0.66693,
+        0.27042
+      ],
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Anterior canal is the superior canal. Positive head angular velocity along excitatoryNormal excites this canal (Ewald excitatory direction).",
+        "ko": "상반고리관이 anterior canal입니다. excitatoryNormal 방향의 머리 각속도가 이 반고리관을 흥분시킵니다 (Ewald 흥분 방향)."
+      }
+    },
+    {
+      "id": "lpc",
+      "side": "left",
+      "plane": "posterior",
+      "nameEn": "Left posterior canal",
+      "nameKo": "왼쪽 후반고리관",
+      "excitatoryNormal": [
+        -0.69432,
+        -0.66693,
+        -0.27042
+      ],
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Anterior canal is the superior canal. Positive head angular velocity along excitatoryNormal excites this canal (Ewald excitatory direction).",
+        "ko": "상반고리관이 anterior canal입니다. excitatoryNormal 방향의 머리 각속도가 이 반고리관을 흥분시킵니다 (Ewald 흥분 방향)."
+      }
+    }
+  ]
+}

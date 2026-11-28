@@ -1,0 +1,2095 @@
+{
+  "modelVersion": "vor-schematic-1",
+  "nodes": [
+    {
+      "id": "rhc",
+      "kind": "canal",
+      "nameEn": "Right horizontal canal",
+      "nameKo": "오른쪽 수평반고리관",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "note": {
+        "en": "Plane normal is in canals.json. Anterior means the superior canal.",
+        "ko": "평면 법선은 canals.json에 있습니다. Anterior는 상반고리관입니다."
+      }
+    },
+    {
+      "id": "lhc",
+      "kind": "canal",
+      "nameEn": "Left horizontal canal",
+      "nameKo": "왼쪽 수평반고리관",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "note": {
+        "en": "Plane normal is in canals.json. Anterior means the superior canal.",
+        "ko": "평면 법선은 canals.json에 있습니다. Anterior는 상반고리관입니다."
+      }
+    },
+    {
+      "id": "rac",
+      "kind": "canal",
+      "nameEn": "Right anterior canal",
+      "nameKo": "오른쪽 상반고리관",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "note": {
+        "en": "Plane normal is in canals.json. Anterior means the superior canal.",
+        "ko": "평면 법선은 canals.json에 있습니다. Anterior는 상반고리관입니다."
+      }
+    },
+    {
+      "id": "lac",
+      "kind": "canal",
+      "nameEn": "Left anterior canal",
+      "nameKo": "왼쪽 상반고리관",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "note": {
+        "en": "Plane normal is in canals.json. Anterior means the superior canal.",
+        "ko": "평면 법선은 canals.json에 있습니다. Anterior는 상반고리관입니다."
+      }
+    },
+    {
+      "id": "rpc",
+      "kind": "canal",
+      "nameEn": "Right posterior canal",
+      "nameKo": "오른쪽 후반고리관",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "note": {
+        "en": "Plane normal is in canals.json. Anterior means the superior canal.",
+        "ko": "평면 법선은 canals.json에 있습니다. Anterior는 상반고리관입니다."
+      }
+    },
+    {
+      "id": "lpc",
+      "kind": "canal",
+      "nameEn": "Left posterior canal",
+      "nameKo": "왼쪽 후반고리관",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "Della Santina CC, Potyagaylo V, Migliaccio AA, Minor LB, Carey JP. Orientation of human semicircular canals measured by three-dimensional multiplanar CT reconstruction. J Assoc Res Otolaryngol. 2005;6(3):191-206. Table 1B pooled mean unit normals, Reid frame (+X anterior, +Y left, +Z superior). Left-canal columns are the excitatory normals (table caption: a right-hand rotation about them excites). Right-canal columns in that table point in the inhibitory direction; the stored vector is their negation, so a positive dot product excites. Checked against the paper's worked examples for a nose-left yaw, a nose-down pitch, and a left-ear-up roll.",
+      "note": {
+        "en": "Plane normal is in canals.json. Anterior means the superior canal.",
+        "ko": "평면 법선은 canals.json에 있습니다. Anterior는 상반고리관입니다."
+      }
+    },
+    {
+      "id": "rhc-amp",
+      "kind": "nerve",
+      "nameEn": "Right horizontal ampullary nerve",
+      "nameKo": "오른쪽 수평반고리관 팽대부신경",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Ampullary branch. It joins the vestibular nerve. Drawn as its own tube so the three canals do not share one graph hub.",
+        "ko": "팽대부 가지입니다. 전정신경으로 모입니다. 세 반고리관이 한 꼭짓점을 공유하지 않도록 가지마다 관을 그립니다."
+      }
+    },
+    {
+      "id": "lhc-amp",
+      "kind": "nerve",
+      "nameEn": "Left horizontal ampullary nerve",
+      "nameKo": "왼쪽 수평반고리관 팽대부신경",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Ampullary branch. It joins the vestibular nerve. Drawn as its own tube so the three canals do not share one graph hub.",
+        "ko": "팽대부 가지입니다. 전정신경으로 모입니다. 세 반고리관이 한 꼭짓점을 공유하지 않도록 가지마다 관을 그립니다."
+      }
+    },
+    {
+      "id": "rac-amp",
+      "kind": "nerve",
+      "nameEn": "Right anterior ampullary nerve",
+      "nameKo": "오른쪽 상반고리관 팽대부신경",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Ampullary branch. It joins the vestibular nerve. Drawn as its own tube so the three canals do not share one graph hub.",
+        "ko": "팽대부 가지입니다. 전정신경으로 모입니다. 세 반고리관이 한 꼭짓점을 공유하지 않도록 가지마다 관을 그립니다."
+      }
+    },
+    {
+      "id": "lac-amp",
+      "kind": "nerve",
+      "nameEn": "Left anterior ampullary nerve",
+      "nameKo": "왼쪽 상반고리관 팽대부신경",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Ampullary branch. It joins the vestibular nerve. Drawn as its own tube so the three canals do not share one graph hub.",
+        "ko": "팽대부 가지입니다. 전정신경으로 모입니다. 세 반고리관이 한 꼭짓점을 공유하지 않도록 가지마다 관을 그립니다."
+      }
+    },
+    {
+      "id": "rpc-amp",
+      "kind": "nerve",
+      "nameEn": "Right posterior ampullary nerve",
+      "nameKo": "오른쪽 후반고리관 팽대부신경",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Ampullary branch. It joins the vestibular nerve. Drawn as its own tube so the three canals do not share one graph hub.",
+        "ko": "팽대부 가지입니다. 전정신경으로 모입니다. 세 반고리관이 한 꼭짓점을 공유하지 않도록 가지마다 관을 그립니다."
+      }
+    },
+    {
+      "id": "lpc-amp",
+      "kind": "nerve",
+      "nameEn": "Left posterior ampullary nerve",
+      "nameKo": "왼쪽 후반고리관 팽대부신경",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Ampullary branch. It joins the vestibular nerve. Drawn as its own tube so the three canals do not share one graph hub.",
+        "ko": "팽대부 가지입니다. 전정신경으로 모입니다. 세 반고리관이 한 꼭짓점을 공유하지 않도록 가지마다 관을 그립니다."
+      }
+    },
+    {
+      "id": "rvn-h",
+      "kind": "nucleus",
+      "nameEn": "Right medial vestibular nucleus",
+      "nameKo": "오른쪽 내측전정핵",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Horizontal-canal neurons. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "lvn-h",
+      "kind": "nucleus",
+      "nameEn": "Left medial vestibular nucleus",
+      "nameKo": "왼쪽 내측전정핵",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Horizontal-canal neurons. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "rvn-a",
+      "kind": "nucleus",
+      "nameEn": "Right superior vestibular nucleus",
+      "nameKo": "오른쪽 상전정핵",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Anterior-canal neurons. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "lvn-a",
+      "kind": "nucleus",
+      "nameEn": "Left superior vestibular nucleus",
+      "nameKo": "왼쪽 상전정핵",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Anterior-canal neurons. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "rvn-p",
+      "kind": "nucleus",
+      "nameEn": "Right inferior vestibular nucleus",
+      "nameKo": "오른쪽 하전정핵",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Posterior-canal neurons. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "lvn-p",
+      "kind": "nucleus",
+      "nameEn": "Left inferior vestibular nucleus",
+      "nameKo": "왼쪽 하전정핵",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Posterior-canal neurons. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "r-vi",
+      "kind": "nucleus",
+      "nameEn": "Right abducens nucleus",
+      "nameKo": "오른쪽 외전신경핵",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Lateral rectus motoneurons and internuclear neurons. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "l-vi",
+      "kind": "nucleus",
+      "nameEn": "Left abducens nucleus",
+      "nameKo": "왼쪽 외전신경핵",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Lateral rectus motoneurons and internuclear neurons. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "r-iv",
+      "kind": "nucleus",
+      "nameEn": "Right trochlear nucleus",
+      "nameKo": "오른쪽 활차신경핵",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Axons cross to the contralateral superior oblique. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "l-iv",
+      "kind": "nucleus",
+      "nameEn": "Left trochlear nucleus",
+      "nameKo": "왼쪽 활차신경핵",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Axons cross to the contralateral superior oblique. Spread positions are for reading. The anatomic button is still a schematic.",
+        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+      }
+    },
+    {
+      "id": "r-iii-mr",
+      "kind": "nucleus",
+      "nameEn": "Right oculomotor nucleus (medial rectus)",
+      "nameKo": "오른쪽 동안신경핵 (내직근)",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Subdivision kept separate so canal pathways do not add inside one shared nucleus.",
+        "ko": "반고리관 경로가 한 핵 안에서 섞이지 않도록 구역을 나눴습니다."
+      }
+    },
+    {
+      "id": "r-iii-sr",
+      "kind": "nucleus",
+      "nameEn": "Right oculomotor nucleus (superior rectus)",
+      "nameKo": "오른쪽 동안신경핵 (상직근)",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Subdivision kept separate so canal pathways do not add inside one shared nucleus.",
+        "ko": "반고리관 경로가 한 핵 안에서 섞이지 않도록 구역을 나눴습니다."
+      }
+    },
+    {
+      "id": "r-iii-ir",
+      "kind": "nucleus",
+      "nameEn": "Right oculomotor nucleus (inferior rectus)",
+      "nameKo": "오른쪽 동안신경핵 (하직근)",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Subdivision kept separate so canal pathways do not add inside one shared nucleus.",
+        "ko": "반고리관 경로가 한 핵 안에서 섞이지 않도록 구역을 나눴습니다."
+      }
+    },
+    {
+      "id": "r-iii-io",
+      "kind": "nucleus",
+      "nameEn": "Right oculomotor nucleus (inferior oblique)",
+      "nameKo": "오른쪽 동안신경핵 (하사근)",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Subdivision kept separate so canal pathways do not add inside one shared nucleus.",
+        "ko": "반고리관 경로가 한 핵 안에서 섞이지 않도록 구역을 나눴습니다."
+      }
+    },
+    {
+      "id": "l-iii-mr",
+      "kind": "nucleus",
+      "nameEn": "Left oculomotor nucleus (medial rectus)",
+      "nameKo": "왼쪽 동안신경핵 (내직근)",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Subdivision kept separate so canal pathways do not add inside one shared nucleus.",
+        "ko": "반고리관 경로가 한 핵 안에서 섞이지 않도록 구역을 나눴습니다."
+      }
+    },
+    {
+      "id": "l-iii-sr",
+      "kind": "nucleus",
+      "nameEn": "Left oculomotor nucleus (superior rectus)",
+      "nameKo": "왼쪽 동안신경핵 (상직근)",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Subdivision kept separate so canal pathways do not add inside one shared nucleus.",
+        "ko": "반고리관 경로가 한 핵 안에서 섞이지 않도록 구역을 나눴습니다."
+      }
+    },
+    {
+      "id": "l-iii-ir",
+      "kind": "nucleus",
+      "nameEn": "Left oculomotor nucleus (inferior rectus)",
+      "nameKo": "왼쪽 동안신경핵 (하직근)",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Subdivision kept separate so canal pathways do not add inside one shared nucleus.",
+        "ko": "반고리관 경로가 한 핵 안에서 섞이지 않도록 구역을 나눴습니다."
+      }
+    },
+    {
+      "id": "l-iii-io",
+      "kind": "nucleus",
+      "nameEn": "Left oculomotor nucleus (inferior oblique)",
+      "nameKo": "왼쪽 동안신경핵 (하사근)",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Subdivision kept separate so canal pathways do not add inside one shared nucleus.",
+        "ko": "반고리관 경로가 한 핵 안에서 섞이지 않도록 구역을 나눴습니다."
+      }
+    },
+    {
+      "id": "mlf-rh",
+      "kind": "tract",
+      "nameEn": "Medial longitudinal fasciculus (MLF), right horizontal",
+      "nameKo": "내측세로다발 (오른쪽 수평)",
+      "side": "midline",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "A strand of the tract for one canal pathway, so a click does not light every canal that uses the brainstem.",
+        "ko": "한 반고리관 경로의 가닥입니다. 뇌줄기를 지나는 모든 반고리관이 한꺼번에 켜지지 않습니다."
+      }
+    },
+    {
+      "id": "mlf-lh",
+      "kind": "tract",
+      "nameEn": "Medial longitudinal fasciculus (MLF), left horizontal",
+      "nameKo": "내측세로다발 (왼쪽 수평)",
+      "side": "midline",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "A strand of the tract for one canal pathway, so a click does not light every canal that uses the brainstem.",
+        "ko": "한 반고리관 경로의 가닥입니다. 뇌줄기를 지나는 모든 반고리관이 한꺼번에 켜지지 않습니다."
+      }
+    },
+    {
+      "id": "mlf-rp",
+      "kind": "tract",
+      "nameEn": "Medial longitudinal fasciculus (MLF), right posterior",
+      "nameKo": "내측세로다발 (오른쪽 후반고리관)",
+      "side": "midline",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "A strand of the tract for one canal pathway, so a click does not light every canal that uses the brainstem.",
+        "ko": "한 반고리관 경로의 가닥입니다. 뇌줄기를 지나는 모든 반고리관이 한꺼번에 켜지지 않습니다."
+      }
+    },
+    {
+      "id": "mlf-lp",
+      "kind": "tract",
+      "nameEn": "Medial longitudinal fasciculus (MLF), left posterior",
+      "nameKo": "내측세로다발 (왼쪽 후반고리관)",
+      "side": "midline",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "A strand of the tract for one canal pathway, so a click does not light every canal that uses the brainstem.",
+        "ko": "한 반고리관 경로의 가닥입니다. 뇌줄기를 지나는 모든 반고리관이 한꺼번에 켜지지 않습니다."
+      }
+    },
+    {
+      "id": "bc-ra",
+      "kind": "tract",
+      "nameEn": "Brachium conjunctivum, right anterior",
+      "nameKo": "결합완 (오른쪽 상반고리관)",
+      "side": "midline",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "A strand of the tract for one canal pathway, so a click does not light every canal that uses the brainstem.",
+        "ko": "한 반고리관 경로의 가닥입니다. 뇌줄기를 지나는 모든 반고리관이 한꺼번에 켜지지 않습니다."
+      }
+    },
+    {
+      "id": "bc-la",
+      "kind": "tract",
+      "nameEn": "Brachium conjunctivum, left anterior",
+      "nameKo": "결합완 (왼쪽 상반고리관)",
+      "side": "midline",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "A strand of the tract for one canal pathway, so a click does not light every canal that uses the brainstem.",
+        "ko": "한 반고리관 경로의 가닥입니다. 뇌줄기를 지나는 모든 반고리관이 한꺼번에 켜지지 않습니다."
+      }
+    },
+    {
+      "id": "cn6-r",
+      "kind": "nerve",
+      "nameEn": "Right abducens nerve (CN VI)",
+      "nameKo": "오른쪽 외전신경",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn6-l",
+      "kind": "nerve",
+      "nameEn": "Left abducens nerve (CN VI)",
+      "nameKo": "왼쪽 외전신경",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn4-r",
+      "kind": "nerve",
+      "nameEn": "Right trochlear nerve (CN IV)",
+      "nameKo": "오른쪽 활차신경",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn4-l",
+      "kind": "nerve",
+      "nameEn": "Left trochlear nerve (CN IV)",
+      "nameKo": "왼쪽 활차신경",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn3-r-mr",
+      "kind": "nerve",
+      "nameEn": "Right oculomotor nerve (CN III), medial rectus",
+      "nameKo": "오른쪽 동안신경 (내직근)",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn3-r-sr",
+      "kind": "nerve",
+      "nameEn": "Right oculomotor nerve (CN III), superior rectus",
+      "nameKo": "오른쪽 동안신경 (상직근)",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn3-r-ir",
+      "kind": "nerve",
+      "nameEn": "Right oculomotor nerve (CN III), inferior rectus",
+      "nameKo": "오른쪽 동안신경 (하직근)",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn3-r-io",
+      "kind": "nerve",
+      "nameEn": "Right oculomotor nerve (CN III), inferior oblique",
+      "nameKo": "오른쪽 동안신경 (하사근)",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn3-l-mr",
+      "kind": "nerve",
+      "nameEn": "Left oculomotor nerve (CN III), medial rectus",
+      "nameKo": "왼쪽 동안신경 (내직근)",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn3-l-sr",
+      "kind": "nerve",
+      "nameEn": "Left oculomotor nerve (CN III), superior rectus",
+      "nameKo": "왼쪽 동안신경 (상직근)",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn3-l-ir",
+      "kind": "nerve",
+      "nameEn": "Left oculomotor nerve (CN III), inferior rectus",
+      "nameKo": "왼쪽 동안신경 (하직근)",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "cn3-l-io",
+      "kind": "nerve",
+      "nameEn": "Left oculomotor nerve (CN III), inferior oblique",
+      "nameKo": "왼쪽 동안신경 (하사근)",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "One axon bundle, so the oculomotor nerve does not join unrelated muscles into one highlight.",
+        "ko": "축삭 다발 하나입니다. 동안신경이 관계없는 근육을 한 강조로 묶지 않습니다."
+      }
+    },
+    {
+      "id": "r-lr",
+      "kind": "muscle",
+      "nameEn": "Right lateral rectus",
+      "nameKo": "오른쪽 외직근",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        0.32269,
+        0.03837,
+        -0.94573
+      ],
+      "note": {
+        "en": "Excited by lhc. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "lhc가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "r-mr",
+      "kind": "muscle",
+      "nameEn": "Right medial rectus",
+      "nameKo": "오른쪽 내직근",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        -0.32269,
+        0.03837,
+        0.94573
+      ],
+      "note": {
+        "en": "Excited by rhc. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "rhc가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "r-sr",
+      "kind": "muscle",
+      "nameEn": "Right superior rectus",
+      "nameKo": "오른쪽 상직근",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        -0.5893,
+        -0.78839,
+        -0.17655
+      ],
+      "note": {
+        "en": "Excited by rac. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "rac가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "r-ir",
+      "kind": "muscle",
+      "nameEn": "Right inferior rectus",
+      "nameKo": "오른쪽 하직근",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        0.69432,
+        0.66693,
+        0.27042
+      ],
+      "note": {
+        "en": "Excited by lpc. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "lpc가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "r-so",
+      "kind": "muscle",
+      "nameEn": "Right superior oblique",
+      "nameKo": "오른쪽 상사근",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        -0.69432,
+        0.66693,
+        -0.27042
+      ],
+      "note": {
+        "en": "Excited by rpc. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "rpc가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "r-io",
+      "kind": "muscle",
+      "nameEn": "Right inferior oblique",
+      "nameKo": "오른쪽 하사근",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        0.5893,
+        -0.78839,
+        0.17655
+      ],
+      "note": {
+        "en": "Excited by lac. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "lac가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "r-eye",
+      "kind": "eye",
+      "nameEn": "Right eye",
+      "nameKo": "오른쪽 눈",
+      "side": "right",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Conjugate slow phase opposes head velocity. A position threshold resets the eye; that reset is the fast phase.",
+        "ko": "서상은 머리 속도와 반대로 갑니다. 위치가 문턱을 넘으면 되돌아오고, 그 되돌림이 속상입니다."
+      }
+    },
+    {
+      "id": "l-lr",
+      "kind": "muscle",
+      "nameEn": "Left lateral rectus",
+      "nameKo": "왼쪽 외직근",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        -0.32269,
+        0.03837,
+        0.94573
+      ],
+      "note": {
+        "en": "Excited by rhc. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "rhc가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "l-mr",
+      "kind": "muscle",
+      "nameEn": "Left medial rectus",
+      "nameKo": "왼쪽 내직근",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        0.32269,
+        0.03837,
+        -0.94573
+      ],
+      "note": {
+        "en": "Excited by lhc. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "lhc가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "l-sr",
+      "kind": "muscle",
+      "nameEn": "Left superior rectus",
+      "nameKo": "왼쪽 상직근",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        0.5893,
+        -0.78839,
+        0.17655
+      ],
+      "note": {
+        "en": "Excited by lac. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "lac가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "l-ir",
+      "kind": "muscle",
+      "nameEn": "Left inferior rectus",
+      "nameKo": "왼쪽 하직근",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        -0.69432,
+        0.66693,
+        -0.27042
+      ],
+      "note": {
+        "en": "Excited by rpc. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "rpc가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "l-so",
+      "kind": "muscle",
+      "nameEn": "Left superior oblique",
+      "nameKo": "왼쪽 상사근",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        0.69432,
+        0.66693,
+        0.27042
+      ],
+      "note": {
+        "en": "Excited by lpc. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "lpc가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "l-io",
+      "kind": "muscle",
+      "nameEn": "Left inferior oblique",
+      "nameKo": "왼쪽 하사근",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "axisReid": [
+        -0.5893,
+        -0.78839,
+        -0.17655
+      ],
+      "note": {
+        "en": "Excited by rac. axisReid is the negated excitatory normal of that canal, so contraction moves the eye opposite that canal.",
+        "ko": "rac가 흥분시킬 때 수축합니다. axisReid는 그 반고리관 흥분 법선의 반대 방향입니다."
+      }
+    },
+    {
+      "id": "l-eye",
+      "kind": "eye",
+      "nameEn": "Left eye",
+      "nameKo": "왼쪽 눈",
+      "side": "left",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Conjugate slow phase opposes head velocity. A position threshold resets the eye; that reset is the fast phase.",
+        "ko": "서상은 머리 속도와 반대로 갑니다. 위치가 문턱을 넘으면 되돌아오고, 그 되돌림이 속상입니다."
+      }
+    },
+    {
+      "id": "head",
+      "kind": "landmark",
+      "nameEn": "Head (schematic)",
+      "nameKo": "머리 (모식)",
+      "side": "midline",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "Procedural shell. Not a scan and not a Z-Anatomy mesh.",
+        "ko": "절차적으로 만든 껍질입니다. 촬영 영상이나 Z-Anatomy 메시가 아닙니다."
+      }
+    },
+    {
+      "id": "brainstem",
+      "kind": "landmark",
+      "nameEn": "Brainstem (schematic)",
+      "nameKo": "뇌줄기 (모식)",
+      "side": "midline",
+      "reviewStatus": "unverified",
+      "source": "TBD",
+      "note": {
+        "en": "The anatomic layout clusters the nuclei here. Those coordinates are still a diagram.",
+        "ko": "해부 배치에서 핵이 이 근처에 모입니다. 그 좌표도 모식입니다."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e0-rhc-rhc-amp",
+      "from": "rhc",
+      "to": "rhc-amp",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e1-lhc-lhc-amp",
+      "from": "lhc",
+      "to": "lhc-amp",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e2-rac-rac-amp",
+      "from": "rac",
+      "to": "rac-amp",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e3-lac-lac-amp",
+      "from": "lac",
+      "to": "lac-amp",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e4-rpc-rpc-amp",
+      "from": "rpc",
+      "to": "rpc-amp",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e5-lpc-lpc-amp",
+      "from": "lpc",
+      "to": "lpc-amp",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e6-rhc-amp-rvn-h",
+      "from": "rhc-amp",
+      "to": "rvn-h",
+      "sign": 1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e7-lhc-amp-rvn-h",
+      "from": "lhc-amp",
+      "to": "rvn-h",
+      "sign": -1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e8-lhc-amp-lvn-h",
+      "from": "lhc-amp",
+      "to": "lvn-h",
+      "sign": 1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e9-rhc-amp-lvn-h",
+      "from": "rhc-amp",
+      "to": "lvn-h",
+      "sign": -1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e10-rac-amp-rvn-a",
+      "from": "rac-amp",
+      "to": "rvn-a",
+      "sign": 1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e11-lpc-amp-rvn-a",
+      "from": "lpc-amp",
+      "to": "rvn-a",
+      "sign": -1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e12-lpc-amp-lvn-p",
+      "from": "lpc-amp",
+      "to": "lvn-p",
+      "sign": 1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e13-rac-amp-lvn-p",
+      "from": "rac-amp",
+      "to": "lvn-p",
+      "sign": -1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e14-lac-amp-lvn-a",
+      "from": "lac-amp",
+      "to": "lvn-a",
+      "sign": 1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e15-rpc-amp-lvn-a",
+      "from": "rpc-amp",
+      "to": "lvn-a",
+      "sign": -1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e16-rpc-amp-rvn-p",
+      "from": "rpc-amp",
+      "to": "rvn-p",
+      "sign": 1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e17-lac-amp-rvn-p",
+      "from": "lac-amp",
+      "to": "rvn-p",
+      "sign": -1,
+      "weight": 0.5,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Push-pull at the vestibular nucleus: the coplanar partner canal is subtracted. Weight 0.5 on each input so the pair sums once.",
+        "ko": "전정핵의 밀고 당기기입니다. 같은 평면의 짝 반고리관을 뺍니다. 입력이 한 번만 더해지도록 가중치는 각각 0.5입니다."
+      }
+    },
+    {
+      "id": "e18-rvn-h-l-vi",
+      "from": "rvn-h",
+      "to": "l-vi",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e19-l-vi-l-lr",
+      "from": "l-vi",
+      "to": "l-lr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e20-l-vi-mlf-rh",
+      "from": "l-vi",
+      "to": "mlf-rh",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e21-mlf-rh-r-iii-mr",
+      "from": "mlf-rh",
+      "to": "r-iii-mr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e22-r-iii-mr-r-mr",
+      "from": "r-iii-mr",
+      "to": "r-mr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e23-lvn-h-r-vi",
+      "from": "lvn-h",
+      "to": "r-vi",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e24-r-vi-r-lr",
+      "from": "r-vi",
+      "to": "r-lr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e25-r-vi-mlf-lh",
+      "from": "r-vi",
+      "to": "mlf-lh",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e26-mlf-lh-l-iii-mr",
+      "from": "mlf-lh",
+      "to": "l-iii-mr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e27-l-iii-mr-l-mr",
+      "from": "l-iii-mr",
+      "to": "l-mr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e28-rvn-a-bc-ra",
+      "from": "rvn-a",
+      "to": "bc-ra",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e29-bc-ra-l-iii-sr",
+      "from": "bc-ra",
+      "to": "l-iii-sr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e30-l-iii-sr-r-sr",
+      "from": "l-iii-sr",
+      "to": "r-sr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e31-bc-ra-l-iii-io",
+      "from": "bc-ra",
+      "to": "l-iii-io",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e32-l-iii-io-l-io",
+      "from": "l-iii-io",
+      "to": "l-io",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e33-lvn-a-bc-la",
+      "from": "lvn-a",
+      "to": "bc-la",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e34-bc-la-r-iii-sr",
+      "from": "bc-la",
+      "to": "r-iii-sr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e35-r-iii-sr-l-sr",
+      "from": "r-iii-sr",
+      "to": "l-sr",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e36-bc-la-r-iii-io",
+      "from": "bc-la",
+      "to": "r-iii-io",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e37-r-iii-io-r-io",
+      "from": "r-iii-io",
+      "to": "r-io",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e38-rvn-p-mlf-rp",
+      "from": "rvn-p",
+      "to": "mlf-rp",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e39-mlf-rp-l-iv",
+      "from": "mlf-rp",
+      "to": "l-iv",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e40-l-iv-r-so",
+      "from": "l-iv",
+      "to": "r-so",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e41-mlf-rp-l-iii-ir",
+      "from": "mlf-rp",
+      "to": "l-iii-ir",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e42-l-iii-ir-l-ir",
+      "from": "l-iii-ir",
+      "to": "l-ir",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e43-lvn-p-mlf-lp",
+      "from": "lvn-p",
+      "to": "mlf-lp",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e44-mlf-lp-r-iv",
+      "from": "mlf-lp",
+      "to": "r-iv",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e45-r-iv-l-so",
+      "from": "r-iv",
+      "to": "l-so",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e46-mlf-lp-r-iii-ir",
+      "from": "mlf-lp",
+      "to": "r-iii-ir",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e47-r-iii-ir-r-ir",
+      "from": "r-iii-ir",
+      "to": "r-ir",
+      "sign": 1,
+      "weight": 1,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Excitatory teaching connection. Horizontal canal: ipsilateral medial rectus and contralateral lateral rectus. Anterior canal: ipsilateral superior rectus and contralateral inferior oblique. Posterior canal: ipsilateral superior oblique and contralateral inferior rectus. Not copied from a checked page.",
+        "ko": "흥분성 학습 연결입니다. 수평반고리관은 같은쪽 내직근과 반대쪽 외직근, 상반고리관은 같은쪽 상직근과 반대쪽 하사근, 후반고리관은 같은쪽 상사근과 반대쪽 하직근입니다. 확인한 페이지에서 옮기지 않았습니다."
+      }
+    },
+    {
+      "id": "e48-rvn-h-lvn-h",
+      "from": "rvn-h",
+      "to": "lvn-h",
+      "sign": -1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Commissural inhibition drawn for the pathway highlight. Weight is 0 because the subtraction is already on the vestibular-nucleus inputs.",
+        "ko": "경로 강조용 교련 억제입니다. 뺄셈은 전정핵 입력에 이미 있으므로 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e49-lvn-h-rvn-h",
+      "from": "lvn-h",
+      "to": "rvn-h",
+      "sign": -1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Commissural inhibition drawn for the pathway highlight. Weight is 0 because the subtraction is already on the vestibular-nucleus inputs.",
+        "ko": "경로 강조용 교련 억제입니다. 뺄셈은 전정핵 입력에 이미 있으므로 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e50-rvn-a-lvn-a",
+      "from": "rvn-a",
+      "to": "lvn-a",
+      "sign": -1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Commissural inhibition drawn for the pathway highlight. Weight is 0 because the subtraction is already on the vestibular-nucleus inputs.",
+        "ko": "경로 강조용 교련 억제입니다. 뺄셈은 전정핵 입력에 이미 있으므로 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e51-lvn-a-rvn-a",
+      "from": "lvn-a",
+      "to": "rvn-a",
+      "sign": -1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Commissural inhibition drawn for the pathway highlight. Weight is 0 because the subtraction is already on the vestibular-nucleus inputs.",
+        "ko": "경로 강조용 교련 억제입니다. 뺄셈은 전정핵 입력에 이미 있으므로 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e52-rvn-p-lvn-p",
+      "from": "rvn-p",
+      "to": "lvn-p",
+      "sign": -1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Commissural inhibition drawn for the pathway highlight. Weight is 0 because the subtraction is already on the vestibular-nucleus inputs.",
+        "ko": "경로 강조용 교련 억제입니다. 뺄셈은 전정핵 입력에 이미 있으므로 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e53-lvn-p-rvn-p",
+      "from": "lvn-p",
+      "to": "rvn-p",
+      "sign": -1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Commissural inhibition drawn for the pathway highlight. Weight is 0 because the subtraction is already on the vestibular-nucleus inputs.",
+        "ko": "경로 강조용 교련 억제입니다. 뺄셈은 전정핵 입력에 이미 있으므로 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e54-rvn-h-r-vi",
+      "from": "rvn-h",
+      "to": "r-vi",
+      "sign": -1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Commissural inhibition drawn for the pathway highlight. Weight is 0 because the subtraction is already on the vestibular-nucleus inputs.",
+        "ko": "경로 강조용 교련 억제입니다. 뺄셈은 전정핵 입력에 이미 있으므로 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e55-lvn-h-l-vi",
+      "from": "lvn-h",
+      "to": "l-vi",
+      "sign": -1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Commissural inhibition drawn for the pathway highlight. Weight is 0 because the subtraction is already on the vestibular-nucleus inputs.",
+        "ko": "경로 강조용 교련 억제입니다. 뺄셈은 전정핵 입력에 이미 있으므로 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e56-l-vi-cn6-l",
+      "from": "l-vi",
+      "to": "cn6-l",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e57-cn6-l-l-lr",
+      "from": "cn6-l",
+      "to": "l-lr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e58-r-vi-cn6-r",
+      "from": "r-vi",
+      "to": "cn6-r",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e59-cn6-r-r-lr",
+      "from": "cn6-r",
+      "to": "r-lr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e60-r-iii-mr-cn3-r-mr",
+      "from": "r-iii-mr",
+      "to": "cn3-r-mr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e61-cn3-r-mr-r-mr",
+      "from": "cn3-r-mr",
+      "to": "r-mr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e62-l-iii-mr-cn3-l-mr",
+      "from": "l-iii-mr",
+      "to": "cn3-l-mr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e63-cn3-l-mr-l-mr",
+      "from": "cn3-l-mr",
+      "to": "l-mr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e64-l-iii-sr-cn3-r-sr",
+      "from": "l-iii-sr",
+      "to": "cn3-r-sr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e65-cn3-r-sr-r-sr",
+      "from": "cn3-r-sr",
+      "to": "r-sr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e66-r-iii-sr-cn3-l-sr",
+      "from": "r-iii-sr",
+      "to": "cn3-l-sr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e67-cn3-l-sr-l-sr",
+      "from": "cn3-l-sr",
+      "to": "l-sr",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e68-l-iii-io-cn3-l-io",
+      "from": "l-iii-io",
+      "to": "cn3-l-io",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e69-cn3-l-io-l-io",
+      "from": "cn3-l-io",
+      "to": "l-io",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e70-r-iii-io-cn3-r-io",
+      "from": "r-iii-io",
+      "to": "cn3-r-io",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e71-cn3-r-io-r-io",
+      "from": "cn3-r-io",
+      "to": "r-io",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e72-l-iii-ir-cn3-l-ir",
+      "from": "l-iii-ir",
+      "to": "cn3-l-ir",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e73-cn3-l-ir-l-ir",
+      "from": "cn3-l-ir",
+      "to": "l-ir",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e74-r-iii-ir-cn3-r-ir",
+      "from": "r-iii-ir",
+      "to": "cn3-r-ir",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e75-cn3-r-ir-r-ir",
+      "from": "cn3-r-ir",
+      "to": "r-ir",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e76-l-iv-cn4-r",
+      "from": "l-iv",
+      "to": "cn4-r",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e77-cn4-r-r-so",
+      "from": "cn4-r",
+      "to": "r-so",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e78-r-iv-cn4-l",
+      "from": "r-iv",
+      "to": "cn4-l",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e79-cn4-l-l-so",
+      "from": "cn4-l",
+      "to": "l-so",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Cranial-nerve tube for highlight and drawing. Weight is 0 so the motoneuron edge is not counted twice.",
+        "ko": "강조와 그림용 뇌신경 관입니다. 운동신경 연결을 두 번 세지 않도록 가중치는 0입니다."
+      }
+    },
+    {
+      "id": "e80-r-lr-r-eye",
+      "from": "r-lr",
+      "to": "r-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e81-r-mr-r-eye",
+      "from": "r-mr",
+      "to": "r-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e82-r-sr-r-eye",
+      "from": "r-sr",
+      "to": "r-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e83-r-ir-r-eye",
+      "from": "r-ir",
+      "to": "r-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e84-r-so-r-eye",
+      "from": "r-so",
+      "to": "r-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e85-r-io-r-eye",
+      "from": "r-io",
+      "to": "r-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e86-l-lr-l-eye",
+      "from": "l-lr",
+      "to": "l-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e87-l-mr-l-eye",
+      "from": "l-mr",
+      "to": "l-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e88-l-sr-l-eye",
+      "from": "l-sr",
+      "to": "l-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e89-l-ir-l-eye",
+      "from": "l-ir",
+      "to": "l-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e90-l-so-l-eye",
+      "from": "l-so",
+      "to": "l-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    },
+    {
+      "id": "e91-l-io-l-eye",
+      "from": "l-io",
+      "to": "l-eye",
+      "sign": 1,
+      "weight": 0,
+      "source": "TBD",
+      "reviewStatus": "unverified",
+      "note": {
+        "en": "Muscle insertion on the globe. Highlight includes the eye and does not continue to the other muscles.",
+        "ko": "안구에 붙는 근육입니다. 강조는 눈까지 가고, 다른 근육으로는 이어가지 않습니다."
+      }
+    }
+  ]
+}

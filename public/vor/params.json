@@ -1,0 +1,66 @@
+{
+  "modelVersion": "vor-schematic-1",
+  "baselineSpikesPerSec": {
+    "value": 90,
+    "unit": "spikes/s",
+    "source": "TBD",
+    "note": "Round resting rate in the mammalian canal-afferent range. Not copied from a checked table. Goldberg JM, Fernandez C. J Neurophysiol. 1971;34(4):635-660 is the usual squirrel-monkey paper; the 90 was not read off that page.",
+    "reviewStatus": "unverified"
+  },
+  "afferentGainSpikesPerDegPerSec": {
+    "value": 0.5,
+    "unit": "spikes/s per deg/s",
+    "source": "TBD",
+    "note": "Chosen so a constant-rate afferent reaches the inhibitory floor near 180 deg/s (baseline divided by this gain). Not copied from a checked table.",
+    "reviewStatus": "unverified"
+  },
+  "cupulaTimeConstantSec": {
+    "value": 4,
+    "unit": "s",
+    "source": "Raphan T. Vestibular, locomotor, and vestibulo-autonomic research: 50 years of collaboration with Bernard Cohen. J Neurophysiol. 123(1):329-345. doi:10.1152/jn.00485.2019. That review says the human cupular time constant is about 4 s (Dai et al. 1999) and the monkey afferent time constant is about 3.5–5 s (Goldberg and Fernandez 1971). The 4 s figure is taken from that sentence.",
+    "note": "Dominant cupula (long) time constant. The short mechanical time constant is not modelled.",
+    "reviewStatus": "unverified"
+  },
+  "velocityStorageSec": {
+    "value": 16,
+    "unit": "s",
+    "source": "Raphan T, Matsuo V, Cohen B. Velocity storage in the vestibulo-ocular reflex arc (VOR). Exp Brain Res. 1979;35:229-248. Cited for the mechanism. The 16 s value was not copied from a table in that paper.",
+    "note": "Round teaching value for a central time constant longer than the cupula. Unverified.",
+    "reviewStatus": "unverified"
+  },
+  "vorGain": {
+    "value": 1,
+    "unit": "1",
+    "source": "TBD",
+    "note": "Ideal compensatory gain for this teaching model, so a full canal pair can oppose head velocity. Not a measured human constant.",
+    "reviewStatus": "unverified"
+  },
+  "plantScale": {
+    "value": 0.5,
+    "unit": "1",
+    "source": "TBD",
+    "note": "Agonist contraction and antagonist relaxation each carry the canal axis, so 0.5 keeps the pair from adding twice. Model coefficient, not a measured constant.",
+    "reviewStatus": "unverified"
+  },
+  "fastPhaseThresholdDeg": {
+    "value": 18,
+    "unit": "deg",
+    "source": "TBD",
+    "note": "Eye-position magnitude that starts a reset toward the centre. The fast phase is this reset, so nystagmus is not scripted as a separate animation.",
+    "reviewStatus": "unverified"
+  },
+  "fastPhaseSpeedDegPerSec": {
+    "value": 350,
+    "unit": "deg/s",
+    "source": "TBD",
+    "note": "Reset speed while the eye is past the threshold. Not copied from a checked table.",
+    "reviewStatus": "unverified"
+  },
+  "fastPhaseStopDeg": {
+    "value": 1.5,
+    "unit": "deg",
+    "source": "TBD",
+    "note": "The reset ends inside this distance of the centre, or as soon as it would cross the centre.",
+    "reviewStatus": "unverified"
+  }
+}
