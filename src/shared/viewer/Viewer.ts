@@ -9,7 +9,7 @@ import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
-import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, type Placement, type StudyLabel } from '../labels';
+import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, thinForPhone, type Placement, type StudyLabel } from '../labels';
 import type { ViewStage } from '../stage-frame';
 import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { labelAnchorPoint } from '../surface-anchor';
@@ -223,6 +223,7 @@ export class EntViewer {
     anchor: THREE.Vector3 | null;
     radius: number;
     scale: number;
+    at: { x: number; y: number } | null;
   } | null = null;
   private pinching = false;
   private pinchStart = 0;
@@ -230,6 +231,7 @@ export class EntViewer {
   private lastTapAt = 0;
   private lastTapX = 0;
   private lastTapY = 0;
+  private lastPick: PickHit | null = null;
   private onDoubleHandler: ((hit: PickHit) => void) | null = null;
   private lastAnchor: THREE.Vector3 | null = null;
   private outward = new THREE.Vector3();
@@ -1956,7 +1958,9 @@ export class EntViewer {
     const due = this.labelPlanAt === 0 || now - this.labelPlanAt > 100;
     if (!this.interacting && due) {
       this.labelPlanAt = now;
-      this.labelPlan = this.layoutStudyLabels(width, height);
+      this.labelPlan = this.layoutStudyLabels(width, height).map((item) =>
+        this.canvas.clientWidth < 960 && item.id === this.selected ? { ...item, mode: 'label' as const } : item,
+      );
       this.rememberOffsets(width, height);
     }
     const wanted = new Set(this.labelPlan.map((item) => item.id));
@@ -2116,7 +2120,8 @@ export class EntViewer {
       }
       if (column.length) return columnPlacements(column, width, height, inset);
     }
-    const chosen = chooseStudyLabels(this.studyLabels, this.labelMode, distance, this.selected, this.viewStage, this.viewStep);
+    const chosenAll = chooseStudyLabels(this.studyLabels, this.labelMode, distance, this.selected, this.viewStage, this.viewStep);
+    const chosen = this.canvas.clientWidth < 960 ? thinForPhone(chosenAll, distance, this.selected) : chosenAll;
     if (this.viewStep) {
       const column = [];
       for (const label of chosen) {
@@ -2316,8 +2321,8 @@ export class EntViewer {
 
   private labelSize(text: string, twoLines: boolean): { width: number; height: number } {
     const size = estimateLabelSize(text, twoLines);
-    if (this.canvas.clientWidth >= 768) return size;
-    return { width: Math.max(size.width, 52), height: Math.max(twoLines ? 40 : 28, size.height) };
+    if (this.canvas.clientWidth >= 960) return size;
+    return { width: Math.max(size.width, 88), height: Math.max(twoLines ? 48 : 44, size.height) };
   }
 
   private applyViewOffset(): void {
@@ -2358,6 +2363,7 @@ export class EntViewer {
     event.preventDefault();
     this.pinching = true;
     this.suppressTap = true;
+    this.controls.enabled = false;
     if (this.pendingTap) window.clearTimeout(this.pendingTap);
     this.pendingTap = 0;
     const a = event.touches[0]!;
@@ -2379,7 +2385,10 @@ export class EntViewer {
     if (event.touches.length >= 2) return;
     if (this.pinching) this.zoomGesture = null;
     this.pinching = false;
-    if (event.touches.length === 0) this.suppressTap = false;
+    if (event.touches.length === 0) {
+      this.suppressTap = false;
+      this.controls.enabled = true;
+    }
   };
 
   private onPointerUp = (event: PointerEvent): void => {
@@ -2389,8 +2398,21 @@ export class EntViewer {
     this.down = null;
     if (this.pinching || this.suppressTap) return;
     if (moved > 10) return;
+    const now = event.timeStamp || performance.now();
+    const gap = now - this.lastTapAt;
+    const sameSpot = Math.hypot(event.clientX - this.lastTapX, event.clientY - this.lastTapY) < 28;
+    this.lastTapAt = now;
+    this.lastTapX = event.clientX;
+    this.lastTapY = event.clientY;
+    if (gap >= 40 && gap < 1200 && sameSpot && this.lastPick && this.mode === 'view') {
+      const picked = this.lastPick;
+      this.lastPick = null;
+      this.onDoubleHandler?.(picked);
+      return;
+    }
     const labelId = this.labelAt(event.clientX, event.clientY);
     if (labelId) {
+      this.lastPick = null;
       this.onLabelHandler?.(labelId === 'marker' ? '' : labelId);
       return;
     }
@@ -2408,26 +2430,8 @@ export class EntViewer {
       this.onMeasureHandler?.(this.measurementPoints());
       return;
     }
-    const now = performance.now();
-    const double =
-      hit !== null &&
-      now - this.lastTapAt < 450 &&
-      Math.hypot(event.clientX - this.lastTapX, event.clientY - this.lastTapY) < 28;
-    this.lastTapAt = now;
-    this.lastTapX = event.clientX;
-    this.lastTapY = event.clientY;
-    if (double && hit && this.mode === 'view') {
-      if (this.pendingTap) window.clearTimeout(this.pendingTap);
-      this.pendingTap = 0;
-      this.onDoubleHandler?.(hit);
-      return;
-    }
-    if (this.pendingTap) window.clearTimeout(this.pendingTap);
-    const picked = hit;
-    this.pendingTap = window.setTimeout(() => {
-      this.pendingTap = 0;
-      this.onPickHandler?.(picked);
-    }, 470);
+    this.lastPick = hit;
+    this.onPickHandler?.(hit);
   };
 
   private rememberAnchor(anchor: THREE.Vector3, stop: number): void {
@@ -2499,6 +2503,7 @@ export class EntViewer {
 
   private beginZoomAt(clientX: number, clientY: number): void {
     const hit = this.cursorPoint(clientX, clientY);
+    const rect = this.canvas.getBoundingClientRect();
     this.tween = null;
     this.zoomGesture = {
       cam: this.camera.position.clone(),
@@ -2506,7 +2511,31 @@ export class EntViewer {
       anchor: hit ? hit.point.clone() : null,
       radius: hit?.radius ?? 0,
       scale: 1,
+      at: { x: clientX - rect.left, y: clientY - rect.top },
     };
+  }
+
+  /** Shift the camera so `anchor` stays on the pinch midpoint after the dolly. */
+  private pinAnchorToScreen(anchor: THREE.Vector3, at: { x: number; y: number }): void {
+    const width = Math.max(this.canvas.clientWidth, 1);
+    const height = Math.max(this.canvas.clientHeight, 1);
+    for (let pass = 0; pass < 2; pass += 1) {
+      this.ndc.copy(anchor).project(this.camera);
+      const x = (this.ndc.x * 0.5 + 0.5) * width;
+      const y = (-this.ndc.y * 0.5 + 0.5) * height;
+      const dx = x - at.x;
+      const dy = y - at.y;
+      if (Math.hypot(dx, dy) < 0.6) return;
+      const dist = Math.max(this.camera.position.distanceTo(anchor), 1);
+      const worldPerPx = (2 * Math.tan((this.camera.fov * Math.PI) / 360) * dist) / height;
+      this.camera.updateMatrixWorld();
+      const right = new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0);
+      const up = new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1);
+      const shift = right.multiplyScalar(-dx * worldPerPx).add(up.multiplyScalar(dy * worldPerPx));
+      this.camera.position.add(shift);
+      this.controls.target.add(shift);
+      this.camera.lookAt(this.controls.target);
+    }
   }
 
   private applyZoomScale(scale: number): void {
@@ -2525,7 +2554,10 @@ export class EntViewer {
     this.applyingZoom = true;
     this.camera.position.set(next.camera[0], next.camera[1], next.camera[2]);
     this.controls.target.set(next.target[0], next.target[1], next.target[2]);
+    this.camera.lookAt(this.controls.target);
+    if (gesture.anchor && gesture.at) this.pinAnchorToScreen(gesture.anchor, gesture.at);
     this.controls.update();
+    if (gesture.anchor && gesture.at) this.pinAnchorToScreen(gesture.anchor, gesture.at);
     if (gesture.anchor) this.rememberAnchor(gesture.anchor, stop);
     this.applyingZoom = false;
     this.interacting = true;

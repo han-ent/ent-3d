@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { chooseStudyLabels, labelAllowed, type StudyLabel } from '../src/shared/labels';
 import { buildSearchIndex, searchEntries } from '../src/shared/search-index';
 import { nextSnap, sheetCoverPx, snapAfterDrag } from '../src/shared/sheet-snap';
-import { boxFitsView, frameAabb, INNER_CORE, STAGE_VIEW, stagesForLandmark } from '../src/shared/stage-frame';
+import { boxFitsView, frameAabb, INNER_CORE, STAGE_VIEW, stagesForLandmark, structureStages } from '../src/shared/stage-frame';
 import { CANAL_WALL, labelAnchorPoint, structureLabelAnchor } from '../src/shared/surface-anchor';
 import en from '../src/shared/i18n/en.json';
 import ko from '../src/shared/i18n/ko.json';
@@ -229,6 +229,7 @@ describe('dissection steps', () => {
     expect(antrum?.hidden).toEqual(expect.arrayContaining(['facial-nerve', 'chorda-tympani']));
     expect(facial?.visible).toEqual(expect.arrayContaining(['incus', 'facial-nerve']));
     expect(INNER_CORE).toEqual(['cochlea', 'vestibule', 'scc-lateral', 'scc-superior', 'scc-posterior', 'iac', 'facial-nerve']);
+    expect(structureStages('tm-pars-flaccida', 'membrane')).toEqual(['bone']);
     const css = readFileSync(resolve(root, 'src/styles/app.css'), 'utf8');
     const handle = css.slice(css.indexOf('.sheet-handle'), css.indexOf('.sheet-handle') + 320);
     expect(handle).toMatch(/touch-action:\s*none/);

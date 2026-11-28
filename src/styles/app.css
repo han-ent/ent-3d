@@ -1133,3 +1133,115 @@ body.is-quiz .sheet-body > :not(#quiz-card) { display: none; }
 
   .pop-menu button[aria-pressed="true"] { color: var(--accent); font-weight: 600; }
 }
+
+.sheet-tabs { display: none; }
+
+body.is-compact .sheet-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px 0;
+}
+
+body.is-compact .sheet-tabs button {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+body.is-compact .sheet-tabs button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--paper);
+  font-weight: 600;
+}
+
+body.is-compact #info-body,
+body.is-compact #list-section,
+body.is-compact #presets-section,
+body.is-compact #ct-section { display: none; }
+
+body.is-compact[data-sheet-tab="structures"] #list-section,
+body.is-compact[data-sheet-tab="ct"] #presets-section,
+body.is-compact[data-sheet-tab="ct"] #ct-section,
+body.is-compact[data-sheet-tab="info"] #info-body { display: block; }
+
+body.is-compact .text-btn,
+body.is-compact .peek-actions button,
+body.is-compact .chip,
+body.is-compact #help-btn {
+  min-height: 44px;
+}
+
+body.is-tablet .workspace,
+body.is-tablet .stage { position: absolute; inset: 0; }
+
+body.is-tablet .sheet,
+body.is-tablet .sheet.is-open {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: min(320px, 32vw);
+  height: auto;
+  max-height: none;
+  border-top: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: rgba(247, 245, 240, 0.97);
+  z-index: 6;
+}
+
+body.is-tablet .sheet-handle,
+body.is-tablet .phone-peek { display: none; }
+
+body.is-tablet .sheet .peek,
+body.is-tablet .sheet .sheet-body {
+  display: block;
+  visibility: visible;
+  height: auto;
+  background: #f7f5f0;
+}
+
+body.is-tablet .topbar { padding-top: env(safe-area-inset-top); }
+
+.gesture-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: calc(16px + env(safe-area-inset-bottom));
+  background: rgba(20, 16, 12, 0.28);
+}
+
+.gesture-guide[hidden] { display: none; }
+
+.gesture-card {
+  width: min(420px, 100%);
+  padding: 20px 20px 16px;
+  border-radius: 16px;
+  background: #f7f5f0;
+  color: #222;
+}
+
+.gesture-card h2 { margin: 0 0 8px; font-size: 20px; }
+
+.gesture-card ul { margin: 0 0 12px; padding-left: 18px; }
+
+.gesture-card li { font-size: 16px; line-height: 1.45; margin: 6px 0; }
+
+.gesture-card button {
+  min-height: 44px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--paper);
+  font-size: 16px;
+}
