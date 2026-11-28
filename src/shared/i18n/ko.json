@@ -41,6 +41,7 @@
   "ct.opacity": "단면 불투명도",
   "ct.show": "보이기",
   "ct.sample": "OpenEar CBCT",
+  "ct.credit": "OpenEar ZETA · Sieber et al., Sci Data 2018 · CC BY 4.0",
   "ct.window": "창",
   "ct.level": "레벨",
   "ct.contour": "구조 윤곽",

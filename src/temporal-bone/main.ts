@@ -71,6 +71,7 @@ workspace.innerHTML = `
         <span class="pacs-mark top"></span>
         <span class="pacs-mark right"></span>
         <span class="pacs-mark bottom"></span>
+        <input class="pacs-slider" type="range" min="0" max="1" value="0" data-i18n-aria="ct.slice" />
       </section>
       <section class="pacs-pane" data-plane="sagittal" data-anatomical="coronal">
         <canvas class="pacs-canvas"></canvas>
@@ -81,6 +82,7 @@ workspace.innerHTML = `
         <span class="pacs-mark top"></span>
         <span class="pacs-mark right"></span>
         <span class="pacs-mark bottom"></span>
+        <input class="pacs-slider" type="range" min="0" max="1" value="0" data-i18n-aria="ct.slice" />
       </section>
       <section class="pacs-pane" data-plane="axial" data-anatomical="sagittal">
         <canvas class="pacs-canvas"></canvas>
@@ -91,6 +93,7 @@ workspace.innerHTML = `
         <span class="pacs-mark top"></span>
         <span class="pacs-mark right"></span>
         <span class="pacs-mark bottom"></span>
+        <input class="pacs-slider" type="range" min="0" max="1" value="0" data-i18n-aria="ct.slice" />
       </section>
       <div class="pacs-bar">
         <div class="pacs-planes" id="pacs-planes"></div>
@@ -194,6 +197,7 @@ workspace.innerHTML = `
         <input id="ct-index" type="range" min="0" max="1" value="0" data-i18n-aria="ct.slice" />
         <label class="checkline"><input id="ct-contour" type="checkbox" checked /><span data-i18n="ct.contour"></span></label>
         <label class="checkline"><input id="ct-float" type="checkbox" /><span data-i18n="ct.overlay"></span></label>
+        <p class="ct-credit" id="ct-credit" data-i18n="ct.credit"></p>
       </section>
       <section id="quiz-card" hidden>
         <h3 data-i18n="quiz.title"></h3>
@@ -444,7 +448,10 @@ function applySnap(snap: SheetSnap): void {
   document.body.classList.toggle('is-phone', phone || land);
   document.body.classList.toggle('is-landscape-phone', land);
   document.body.classList.toggle('is-tablet', layoutKind() === 'tablet');
+  document.body.classList.toggle('is-tablet-portrait', layoutKind() === 'tablet' && window.innerHeight > window.innerWidth);
   document.body.classList.toggle('is-compact', layoutKind() !== 'desktop');
+  const topbar = document.querySelector('.topbar');
+  if (topbar) document.documentElement.style.setProperty('--topbar-h', `${Math.ceil(topbar.getBoundingClientRect().height)}px`);
   const open = land || !phone || sheetSnap !== 'peek';
   sheet.classList.toggle('is-open', open);
   sheetToggle.setAttribute('aria-expanded', String(open));
@@ -477,8 +484,34 @@ function syncPacsMarker(): void {
   else viewer.setMarker(null, '');
 }
 
+function singlePlanePacs(): boolean {
+  return layoutKind() === 'phone' || document.body.classList.contains('is-tablet-portrait');
+}
+
 function syncLabelInset(): void {
   if (!viewer) return;
+  if (pacsOpen) {
+    const slot = document.getElementById('view-slot');
+    if (!slot) return;
+    const slotRect = slot.getBoundingClientRect();
+    if (slotRect.width < 2 || slotRect.height < 2) return;
+    let top = 8;
+    let right = 8;
+    let bottom = 8;
+    let left = 8;
+    for (const node of workspace.querySelectorAll('.labelbar, .gizmo, .modebar, .crumbs, .scale-hud, .pacs-bar')) {
+      const rect = node.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2 || getComputedStyle(node).visibility === 'hidden') continue;
+      const overlapW = Math.min(rect.right, slotRect.right) - Math.max(rect.left, slotRect.left);
+      const overlapH = Math.min(rect.bottom, slotRect.bottom) - Math.max(rect.top, slotRect.top);
+      if (overlapW < 8 || overlapH < 8) continue;
+      if (rect.top < slotRect.top + slotRect.height * 0.55) top = Math.max(top, rect.bottom - slotRect.top + 8);
+      if (rect.bottom > slotRect.bottom - slotRect.height * 0.55) bottom = Math.max(bottom, slotRect.bottom - rect.top + 8);
+      if (rect.left > slotRect.left + slotRect.width * 0.45) right = Math.max(right, slotRect.right - rect.left + 8);
+    }
+    viewer.setLabelInset({ top, right, bottom, left });
+    return;
+  }
   const kind = layoutKind();
   if (kind === 'tablet') {
     const width = Math.max(canvas.clientWidth, window.innerWidth, 1);
@@ -1321,6 +1354,14 @@ function syncSliders(): void {
     slider.max = String(Math.max(0, count - 1));
     slider.value = String(planeState[activePlane].index);
   }
+  pacsRoot.querySelectorAll<HTMLElement>('.pacs-pane').forEach((pane) => {
+    const plane = pane.dataset.plane as SliceName | undefined;
+    const slider = pane.querySelector<HTMLInputElement>('.pacs-slider');
+    if (!plane || !slider) return;
+    const axisCount = volume!.dims[volume!.planes[plane].axis];
+    slider.max = String(Math.max(0, axisCount - 1));
+    slider.value = String(planeState[plane].index);
+  });
 }
 
 function setWindow(next: { width: number; level: number }): void {
@@ -1378,12 +1419,14 @@ function setPacs(open: boolean): void {
   if (portraitPhone()) applySnap('peek');
   if (!crosshair && volume) {
     orientPoint(slicePose(volume, activePlane, planeState[activePlane].index).position);
+    requestAnimationFrame(() => syncLabelInset());
     return;
   }
   syncPacsMarker();
   syncCrosshair();
   void paintPanes();
   void drawCt();
+  requestAnimationFrame(() => syncLabelInset());
 }
 
 function refreshPlaneButtons(): void {
@@ -1571,7 +1614,7 @@ async function paintPanes(): Promise<void> {
   if (!pacsOpen || !volume) return;
   const token = ++paintToken;
   const planes: SliceName[] =
-    layoutKind() === 'phone' ? [pacsShow === '3d' ? activePlane : pacsShow] : ['coronal', 'sagittal', 'axial'];
+    singlePlanePacs() ? [pacsShow === '3d' ? activePlane : pacsShow] : ['coronal', 'sagittal', 'axial'];
   for (const plane of planes) {
     if (token !== paintToken) return;
     const index = planeState[plane].index;
@@ -1700,6 +1743,16 @@ function buildCt(): void {
   slider.addEventListener('input', () => onSliceSlider(Number(slider.value)));
   const phoneSlider = workspace.querySelector<HTMLInputElement>('#pacs-index');
   phoneSlider?.addEventListener('input', () => onSliceSlider(Number(phoneSlider.value)));
+  pacsRoot.querySelectorAll<HTMLInputElement>('.pacs-slider').forEach((slider) => {
+    const pane = slider.closest<HTMLElement>('.pacs-pane');
+    const plane = pane?.dataset.plane as SliceName | undefined;
+    if (!plane) return;
+    slider.addEventListener('input', () => {
+      const next = Number(slider.value);
+      focusPlane(plane);
+      onSliceSlider(next);
+    });
+  });
   workspace.querySelector<HTMLInputElement>('#ct-window')?.addEventListener('input', (event) => {
     windowWidth = Number((event.target as HTMLInputElement).value);
     void drawCt();
@@ -2673,6 +2726,7 @@ window.addEventListener('resize', () => {
   applySnap(sheetSnap);
   syncLabelInset();
   renderBackChip();
+  if (pacsOpen) void paintPanes();
 });
 const blockPinch = (event: Event) => event.preventDefault();
 document.addEventListener('gesturestart', blockPinch, { passive: false });

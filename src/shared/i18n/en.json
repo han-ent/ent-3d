@@ -41,6 +41,7 @@
   "ct.opacity": "Plane opacity",
   "ct.show": "Show",
   "ct.sample": "OpenEar CBCT",
+  "ct.credit": "OpenEar ZETA · Sieber et al., Sci Data 2018 · CC BY 4.0",
   "ct.window": "Window",
   "ct.level": "Level",
   "ct.contour": "Contours",

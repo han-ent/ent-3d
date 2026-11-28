@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { displayedEdgeLabels } from '../src/shared/frame';
@@ -13,6 +13,8 @@ import {
   scrollIndex,
 } from '../src/shared/pacs';
 import type { VolumeMeta } from '../src/shared/types';
+import en from '../src/shared/i18n/en.json';
+import ko from '../src/shared/i18n/ko.json';
 
 /** Identity stack in the ZETA file frame: +X anterior, +Y inferior, +Z medial (right ear). */
 function synthetic(): VolumeMeta {
@@ -102,6 +104,25 @@ describe('PACS slice and window controls', () => {
   it('letterboxes a slice inside the pane', () => {
     const rect = containedRect({ width: 200, height: 100 }, { width: 100, height: 100 });
     expect(rect).toEqual({ x: 50, y: 0, width: 100, height: 100 });
+  });
+});
+
+describe('CT panel chrome', () => {
+  it('names the OpenEar source in both languages', () => {
+    const credit = 'OpenEar ZETA · Sieber et al., Sci Data 2018 · CC BY 4.0';
+    expect(en['ct.credit']).toBe(credit);
+    expect(ko['ct.credit']).toBe(credit);
+  });
+
+  it('keeps a slice slider on each pane and a tablet grid under the navigation', () => {
+    const root = resolve(import.meta.dirname, '..');
+    const page = readFileSync(resolve(root, 'src/temporal-bone/main.ts'), 'utf8');
+    const css = readFileSync(resolve(root, 'src/styles/app.css'), 'utf8');
+    expect(page.match(/class="pacs-slider"/g)?.length).toBe(3);
+    expect(page).toContain('data-i18n="ct.credit"');
+    expect(css).toContain('body.is-pacs.is-tablet .workspace { top: var(--topbar-h, 48px); }');
+    expect(css).toContain('body.is-pacs.is-tablet-portrait .stage');
+    expect(css).toContain('body.is-pacs.is-tablet:not(.is-tablet-portrait) .view-slot { margin: 100px 6px 100px; }');
   });
 });
 
