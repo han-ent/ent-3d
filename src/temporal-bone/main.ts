@@ -15,7 +15,7 @@ import {
   type ViewStage,
 } from '../shared/stage-frame';
 import { isNavShell, shouldStageJump } from '../shared/picking';
-import { COCHLEA_PARTS, STAGE_LIMITS, groupPickId, labelAction, visibleFovDeg } from '../shared/zoom-fit';
+import { COCHLEA_PARTS, STAGE_LIMITS, groupPickId, labelAction, listSelectionId, visibleFovDeg } from '../shared/zoom-fit';
 import { CANAL_WALL } from '../shared/surface-anchor';
 import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
 import { sliceFile, slicePose, clampIndex } from '../shared/ct';
@@ -67,6 +67,7 @@ workspace.innerHTML = `
       <button type="button" data-labels="basic" data-i18n="labels.basic"></button>
       <button type="button" data-labels="surgical" data-i18n="labels.surgical"></button>
       <button type="button" data-labels="all" data-i18n="labels.all"></button>
+      <button type="button" id="help-btn" data-i18n="menu.help"></button>
     </div>
     <div class="crumbs" id="crumbs"></div>
     <div class="measure-card" id="measure-readout" hidden>
@@ -115,6 +116,11 @@ workspace.innerHTML = `
     </div>
     </div>
     <div class="sheet-body" id="sheet-body">
+      <div class="sheet-tabs" id="sheet-tabs">
+        <button type="button" data-tab="structures" data-i18n="sheet.tab.structures"></button>
+        <button type="button" data-tab="ct" data-i18n="sheet.tab.ct"></button>
+        <button type="button" data-tab="info" data-i18n="sheet.tab.info"></button>
+      </div>
       <p class="review-line" data-i18n="sheet.reviewLine"></p>
       <div id="info-body"></div>
       <section id="list-section">
@@ -159,6 +165,18 @@ workspace.innerHTML = `
     </div>
   </section>
   <div id="safe-probe" aria-hidden="true"></div>
+  <div id="gesture-guide" class="gesture-guide" hidden>
+    <div class="gesture-card" role="dialog" aria-modal="true">
+      <h2 data-i18n="guide.title"></h2>
+      <ul>
+        <li data-i18n="guide.rotate"></li>
+        <li data-i18n="guide.pinch"></li>
+        <li data-i18n="guide.tap"></li>
+        <li data-i18n="guide.double"></li>
+      </ul>
+      <button type="button" id="guide-dismiss" data-i18n="guide.dismiss"></button>
+    </div>
+  </div>
 `;
 
   document.body.className = 'app-body';
@@ -301,10 +319,23 @@ function landscapePhone(): boolean {
   );
 }
 
-function layoutKind(): 'desktop' | 'side' | 'phone' {
-  if (desktopLayout()) return 'desktop';
+function coarsePointer(): boolean {
+  return window.matchMedia('(pointer: coarse)').matches;
+}
+
+function tabletLayout(): boolean {
+  if (!coarsePointer() || landscapePhone()) return false;
+  if (window.matchMedia('(max-width: 767px) and (orientation: portrait)').matches) return false;
+  const shortSide = Math.min(window.innerWidth, window.innerHeight);
+  const longSide = Math.max(window.innerWidth, window.innerHeight);
+  return window.innerWidth >= 768 && shortSide >= 600 && longSide <= 1400;
+}
+
+function layoutKind(): 'desktop' | 'tablet' | 'side' | 'phone' {
   if (landscapePhone()) return 'phone';
   if (window.matchMedia('(max-width: 767px) and (orientation: portrait)').matches) return 'phone';
+  if (tabletLayout()) return 'tablet';
+  if (desktopLayout()) return 'desktop';
   return 'side';
 }
 
@@ -320,12 +351,13 @@ function safeInset(edge: 'top' | 'bottom'): number {
 }
 
 function phoneVisible(): { x: number; y: number; width: number; height: number } | null {
-  if (layoutKind() !== 'phone') return null;
+  const kind = layoutKind();
+  if (kind !== 'phone' && kind !== 'tablet') return null;
   const width = Math.max(canvas.clientWidth, window.innerWidth, 1);
   const height = Math.max(canvas.clientHeight, window.innerHeight, 1);
   const top = safeInset('top') + 64;
-  if (landscapePhone()) {
-    const sheetW = Math.round(Math.min(width * 0.23, 260));
+  if (landscapePhone() || kind === 'tablet') {
+    const sheetW = kind === 'tablet' ? Math.round(Math.min(width * 0.32, 320)) : Math.round(Math.min(width * 0.23, 260));
     return {
       x: 8,
       y: top,
@@ -356,6 +388,8 @@ function applySnap(snap: SheetSnap): void {
   document.body.classList.toggle('is-sheet-full', phone && sheetSnap === 'full');
   document.body.classList.toggle('is-phone', phone || land);
   document.body.classList.toggle('is-landscape-phone', land);
+  document.body.classList.toggle('is-tablet', layoutKind() === 'tablet');
+  document.body.classList.toggle('is-compact', layoutKind() !== 'desktop');
   const open = land || !phone || sheetSnap !== 'peek';
   sheet.classList.toggle('is-open', open);
   sheetToggle.setAttribute('aria-expanded', String(open));
@@ -376,7 +410,14 @@ function syncCrosshair(): void {
 
 function syncLabelInset(): void {
   if (!viewer) return;
-  if (layoutKind() === 'phone') {
+  const kind = layoutKind();
+  if (kind === 'tablet') {
+    const width = Math.max(canvas.clientWidth, window.innerWidth, 1);
+    const sheetW = Math.round(Math.min(width * 0.32, 320));
+    viewer.setLabelInset({ top: safeInset('top') + 68, right: sheetW + 16, bottom: safeInset('bottom') + 24, left: 12 });
+    return;
+  }
+  if (kind === 'phone') {
     const width = Math.max(canvas.clientWidth, window.innerWidth, 1);
     const height = Math.max(canvas.clientHeight, window.innerHeight, 1);
     const top = safeInset('top') + 68;
@@ -581,6 +622,8 @@ function renderChips(): void {
   const structureHits = hits ? new Set(hits.filter((hit) => hit.kind === 'structure').map((hit) => hit.id)) : null;
   structureList.replaceChildren();
   const hidden = new Set(viewer?.hiddenIds() ?? []);
+  const activeId = listSelectionId(selected, selectionTitle?.en ?? null);
+  let cochleaRow = false;
   for (const system of STRUCTURE_SYSTEMS) {
     const items = manifest.structures.filter((structure) => {
       if (!system.ids.includes(structure.id)) return false;
@@ -599,7 +642,24 @@ function renderChips(): void {
       button.type = 'button';
       button.className = 'chip';
       button.dataset.select = structure.id;
-      if (structure.id === selected) button.classList.add('is-active');
+      if (activeId === 'cochlea' && structure.id.startsWith('scala-') && !cochleaRow) {
+        cochleaRow = true;
+        const cochlea = document.createElement('button');
+        cochlea.type = 'button';
+        cochlea.className = 'chip is-active';
+        cochlea.dataset.select = 'cochlea';
+        cochlea.innerHTML = `<i class="swatch" style="background:${structure.color}"></i><span>${escapeHtml(englishFirst('Cochlea', '와우'))}</span>`;
+        cochlea.addEventListener('click', () => {
+          if (mode === 'quiz') return;
+          setMode('view');
+          focusCochlea();
+        });
+        const cochleaRowEl = document.createElement('div');
+        cochleaRowEl.className = 'chip-row';
+        cochleaRowEl.append(cochlea);
+        structureList.append(cochleaRowEl);
+      }
+      if (structure.id === activeId) button.classList.add('is-active');
       button.innerHTML = `<i class="swatch" style="background:${structure.color}"></i><span>${escapeHtml(structureLabel(structure.id))}</span>`;
       button.addEventListener('click', () => {
         if (mode === 'quiz') return;
@@ -843,8 +903,42 @@ function viewSelectionOnCt(): void {
   openSection('ct');
 }
 
+function applySheetTab(tab: 'structures' | 'ct' | 'info'): void {
+  document.body.dataset.sheetTab = tab;
+  for (const button of workspace.querySelectorAll<HTMLButtonElement>('#sheet-tabs button')) {
+    button.setAttribute('aria-pressed', String(button.dataset.tab === tab));
+  }
+}
+
+const GUIDE_KEY = 'ent3d.guide';
+
+function openGuide(): void {
+  const guide = document.getElementById('gesture-guide');
+  if (guide) guide.hidden = false;
+}
+
+function dismissGuide(): void {
+  try {
+    localStorage.setItem(GUIDE_KEY, '1');
+  } catch {
+    /* private mode */
+  }
+  const guide = document.getElementById('gesture-guide');
+  if (guide) guide.hidden = true;
+}
+
+function maybeOpenGuide(): void {
+  try {
+    if (localStorage.getItem(GUIDE_KEY) === '1') return;
+  } catch {
+    return;
+  }
+  openGuide();
+}
+
 function openSection(id: 'presets' | 'ct' | 'list'): void {
   applySnap('full');
+  applySheetTab(id === 'list' ? 'structures' : 'ct');
   const section = document.getElementById(`${id === 'list' ? 'list' : id}-section`);
   requestAnimationFrame(() => section?.scrollIntoView({ block: 'start' }));
 }
@@ -950,6 +1044,9 @@ function renderPhoneMenu(): void {
         renderPeek();
         renderInfo();
         renderChips();
+      } else if (action === 'help') {
+        menu.hidden = true;
+        openGuide();
       } else if (action === 'style') {
         menu.hidden = true;
         styleBtn.click();
@@ -966,6 +1063,7 @@ function fillMenu(menu: HTMLElement): void {
     <a href="${pageUrl('')}">${escapeHtml(t('nav.home'))}</a>
     <a href="${pageUrl('about')}">${escapeHtml(t('nav.about'))}</a>
     <button type="button" data-menu="overview">${escapeHtml(t('menu.overview'))}</button>
+    <button type="button" data-menu="help">${escapeHtml(t('menu.help'))}</button>
     <button type="button" data-menu="style">${escapeHtml(renderStyle === 'atlas' ? t('style.model') : t('style.atlas'))}</button>
   `;
 }
@@ -1348,18 +1446,20 @@ function onPick(hit: PickHit | null): void {
 function onDouble(hit: PickHit): void {
   if (mode !== 'view') return;
   hidePicker();
-  if (isNavShell(hit.structureId)) {
-    onPick(hit);
+  const structureId = hit.overlaps?.[0]?.structureId ?? hit.structureId;
+  const ranked = structureId === hit.structureId ? hit : { ...hit, structureId };
+  if (isNavShell(ranked.structureId)) {
+    onPick(ranked);
     return;
   }
-  orientPoint(hit.pointMm);
-  if (groupPickId(hit.structureId) === 'cochlea') {
-    selectStructure(hit.structureId.startsWith('scala-') ? hit.structureId : 'scala-vestibuli', false, { ko: '와우', en: 'Cochlea' });
+  orientPoint(ranked.pointMm);
+  if (groupPickId(ranked.structureId) === 'cochlea') {
+    selectStructure(ranked.structureId.startsWith('scala-') ? ranked.structureId : 'scala-vestibuli', false, { ko: '와우', en: 'Cochlea' });
     viewer?.frameIds(COCHLEA_PARTS);
     lowerSheetAfterFit();
     return;
   }
-  selectStructure(hit.structureId, true);
+  selectStructure(ranked.structureId, true);
 }
 
 workspace.querySelectorAll<HTMLButtonElement>('[data-labels]').forEach((button) => {
@@ -1405,6 +1505,15 @@ workspace.querySelectorAll<HTMLButtonElement>('[data-section]').forEach((button)
     if (id === 'presets' || id === 'ct' || id === 'list') openSection(id);
   });
 });
+workspace.querySelectorAll<HTMLButtonElement>('#sheet-tabs button').forEach((button) => {
+  button.addEventListener('click', () => {
+    const tab = button.dataset.tab;
+    if (tab === 'structures' || tab === 'ct' || tab === 'info') applySheetTab(tab);
+  });
+});
+document.getElementById('guide-dismiss')?.addEventListener('click', () => dismissGuide());
+document.getElementById('help-btn')?.addEventListener('click', () => openGuide());
+applySheetTab('structures');
 styleBtn.addEventListener('click', () => {
   renderStyle = renderStyle === 'atlas' ? 'model' : 'atlas';
   viewer?.setRenderStyle(renderStyle);
@@ -1711,9 +1820,15 @@ function refreshStudyLabels(): void {
       text: english,
       en: english,
       ko: structure.name.ko,
-      tier: structure.parent || parents.has(structure.id) ? (structure.parent ? 'subpart' : 'structure') : 'structure',
+      tier: structure.id === 'tm-pars-flaccida'
+        ? 'structure'
+        : structure.parent || parents.has(structure.id)
+          ? (structure.parent ? 'subpart' : 'structure')
+          : 'structure',
       modes,
-      priority: corePriority[structure.id] ?? (structure.parent ? 25 : structure.id === 'bone' ? 80 : 48),
+      priority: structure.id === 'tm-pars-flaccida'
+        ? 64
+        : corePriority[structure.id] ?? (structure.parent ? 25 : structure.id === 'bone' ? 80 : 48),
       parentId: structure.parent,
       position,
       stages: structureStages(structure.id, structure.layer),
@@ -2045,6 +2160,7 @@ async function boot(): Promise<void> {
   buildCt();
   viewer.start();
   if (eacMm) flyStage('body');
+  maybeOpenGuide();
   stageStatus.hidden = failures.length === 0;
   if (failures.length) stageStatus.textContent = `${t('temporal.loadError')} ${failures.join(', ')}`;
   paintStatic();

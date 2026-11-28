@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chooseStudyLabels, columnPlacements, dedupeStudyLabels, englishFirst, focusPartList, labelAllowed, placeLabels, relayoutOnTweenEnd, tiersForDistance, type StudyLabel } from '../src/shared/labels';
+import { chooseStudyLabels, columnPlacements, dedupeStudyLabels, englishFirst, focusPartList, labelAllowed, phoneLabelCap, placeLabels, relayoutOnTweenEnd, thinForPhone, tiersForDistance, usesPhoneLabelLayout, type StudyLabel } from '../src/shared/labels';
 
 const label = (patch: Partial<StudyLabel>): StudyLabel => ({
   id: 'malleus-umbo',
@@ -86,6 +86,52 @@ describe('label collision', () => {
       const previous = placed[index - 1]!;
       const current = placed[index]!;
       expect(current.y).toBeGreaterThanOrEqual(previous.y + 34);
+    }
+  });
+
+  it('keeps desktop label layout on a 1280px window', () => {
+    expect(usesPhoneLabelLayout(1280)).toBe(false);
+    expect(usesPhoneLabelLayout(959)).toBe(true);
+    expect(usesPhoneLabelLayout(390)).toBe(true);
+  });
+
+  it('keeps the selected name on a phone and thins the rest when far', () => {
+    const labels = [
+      { id: 'bone', priority: 80 },
+      { id: 'cochlea', priority: 70 },
+      { id: 'vestibule', priority: 60 },
+      { id: 'tm-pars-flaccida', priority: 64 },
+      { id: 'stapes', priority: 40 },
+      { id: 'incus', priority: 30 },
+      { id: 'malleus', priority: 20 },
+    ];
+    expect(phoneLabelCap(800)).toBe(4);
+    expect(phoneLabelCap(200)).toBe(6);
+    const far = thinForPhone(labels, 800, 'stapes');
+    expect(far.map((item) => item.id)).toContain('stapes');
+    expect(far).toHaveLength(4);
+    const placed = placeLabels(
+      far.map((item, index) => ({
+        id: item.id,
+        priority: item.priority,
+        anchorX: 40 + index * 12,
+        anchorY: 80,
+        width: 100,
+        height: 48,
+        occluded: false,
+      })),
+      375,
+      667,
+      { top: 68, right: 78, bottom: 260, left: 12 },
+    );
+    for (let i = 0; i < placed.length; i += 1) {
+      for (let j = i + 1; j < placed.length; j += 1) {
+        const a = placed[i]!;
+        const b = placed[j]!;
+        if (a.mode !== 'label' || b.mode !== 'label') continue;
+        const overlap = a.x < b.x + 100 && a.x + 100 > b.x && a.y < b.y + 48 && a.y + 48 > b.y;
+        expect(overlap).toBe(false);
+      }
     }
   });
 

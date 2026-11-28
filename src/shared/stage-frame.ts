@@ -198,6 +198,7 @@ export function structureStages(id: string, layer: string): ViewStage[] {
   if (id === 'facial-nerve' || id.startsWith('fn-')) return ['inner', 'bone'];
   if (INNER_STRUCTURES.has(id) || layer === 'inner-ear') return ['inner'];
   if (OUTSIDE_BONE.has(id)) return ['bone'];
+  if (id === 'tm-pars-flaccida') return ['bone'];
   // Ossicles, drum, and chorda are named on the dissection step that opens them.
   return [];
 }

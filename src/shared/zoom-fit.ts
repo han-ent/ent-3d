@@ -222,6 +222,13 @@ export const COCHLEA_PARTS = [
 ] as const;
 
 /** Picker id. Cochlear scalae share one chip; the vestibule stays separate. */
+/** List row that should look selected. A cochlea fit keeps the Cochlea row, not one scala. */
+export function listSelectionId(selectedId: string | null, titleEn?: string | null): string | null {
+  if (!selectedId) return null;
+  if (groupPickId(selectedId) === 'cochlea' && titleEn === 'Cochlea') return 'cochlea';
+  return selectedId;
+}
+
 export function groupPickId(id: string): string {
   if (id === 'cochlea' || id.startsWith('scala-')) return 'cochlea';
   if (id === 'vestibule-center') return 'vestibule';

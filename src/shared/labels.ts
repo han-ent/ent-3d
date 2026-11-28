@@ -242,6 +242,44 @@ export function declutterLabels(labels: readonly StudyLabel[], mode: LabelMode, 
   return picked;
 }
 
+/** Phone label thinning and the larger hit boxes apply only below the desktop breakpoint. */
+export function usesPhoneLabelLayout(windowWidthPx: number): boolean {
+  return windowWidthPx < 960;
+}
+
+/** How many floating names a phone can show without stacking on top of each other. */
+export function phoneLabelCap(distanceMm: number): number {
+  if (distanceMm > 500) return 4;
+  if (distanceMm > 180) return 6;
+  return 8;
+}
+
+/**
+ * Far phone views keep a few coarse names. The selected structure always stays,
+ * so zooming in or tapping can reveal its full label.
+ */
+export function thinForPhone<T extends { id: string; priority: number }>(
+  labels: readonly T[],
+  distanceMm: number,
+  selectedId: string | null,
+): T[] {
+  const cap = Math.max(1, phoneLabelCap(distanceMm));
+  const ranked = labels.slice().sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
+  const picked: T[] = [];
+  const seen = new Set<string>();
+  const push = (label: T | undefined) => {
+    if (!label || seen.has(label.id)) return;
+    seen.add(label.id);
+    picked.push(label);
+  };
+  if (selectedId) push(labels.find((label) => label.id === selectedId));
+  for (const label of ranked) {
+    if (picked.length >= cap) break;
+    push(label);
+  }
+  return picked;
+}
+
 export function chooseStudyLabels(
   labels: readonly StudyLabel[],
   mode: LabelMode,
