@@ -24,13 +24,13 @@ import { firstLine, isPendingText, paragraphLines, sentenceNeedsSourceCheck } fr
 import { installFonts } from '../shared/fonts';
 import { applyI18n, getLang, initI18n, onLangChange, t, text } from '../shared/i18n';
 import { distanceMm, formatDistanceMm } from '../shared/measurement';
-import { assetUrl, fetchJson, pageUrl, publicUrl } from '../shared/paths';
+import { assetUrl, fetchJson, publicUrl } from '../shared/paths';
 import { registerServiceWorker } from '../shared/pwa';
 import { grade, makeLocateQuestion, makeNameQuestion, type QuizQuestion } from '../shared/quiz';
 import { formatIssues, validateContent, validateManifest, validatePresets, validateVolume } from '../shared/schema';
 import { STRUCTURE_SYSTEMS } from '../shared/systems';
 import type { DissectionStep, Manifest, PresetFile, StructureContent, StructureDef, Vec3, VolumeMeta } from '../shared/types';
-import { renderHeader } from '../shared/ui/chrome';
+import { headerLinks, renderHeader } from '../shared/ui/chrome';
 import { EntViewer, type PickHit } from '../shared/viewer/Viewer';
 
 const DATA = 'temporal-bone';
@@ -1172,9 +1172,11 @@ function renderPhoneMenu(): void {
 }
 
 function fillMenu(menu: HTMLElement): void {
+  const links = headerLinks()
+    .map((link) => `<a href="${link.href}">${escapeHtml(t(link.key))}</a>`)
+    .join('');
   menu.innerHTML = `
-    <a href="${pageUrl('')}">${escapeHtml(t('nav.home'))}</a>
-    <a href="${pageUrl('about')}">${escapeHtml(t('nav.about'))}</a>
+    ${links}
     <button type="button" data-menu="overview">${escapeHtml(t('menu.overview'))}</button>
     <button type="button" data-menu="help">${escapeHtml(t('menu.help'))}</button>
     <button type="button" data-menu="style">${escapeHtml(renderStyle === 'atlas' ? t('style.model') : t('style.atlas'))}</button>
