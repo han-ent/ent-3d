@@ -122,6 +122,8 @@ describe('CT panel chrome', () => {
     expect(page).toContain('data-i18n="ct.credit"');
     expect(css).toContain('body.is-pacs.is-tablet .workspace { top: var(--topbar-h, 48px); }');
     expect(css).toContain('body.is-pacs.is-tablet-portrait .stage');
+    expect(css).toContain('body.is-pacs.is-tablet-portrait[data-pacs-show="3d"] .pacs-bar { margin-top: auto; pointer-events: auto; }');
+    expect(css).toContain('inset: 0 0 60px 0');
     expect(css).toContain('grid-row: 1 / span 3');
     expect(css).toContain('.pacs-slider {\n  position: absolute;');
     expect(css).toMatch(/\.pacs-slider \{[\s\S]*?height:\s*44px/);

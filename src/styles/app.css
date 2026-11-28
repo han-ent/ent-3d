@@ -1648,7 +1648,7 @@ body.is-pacs.is-tablet-portrait #pacs-index { flex: 1; min-width: 64px; accent-c
 
 body.is-pacs.is-tablet-portrait .view-slot {
   position: absolute;
-  inset: 0 0 56px 0;
+  inset: 0 0 60px 0;
   grid-column: auto;
   grid-row: auto;
   margin: 0;
@@ -1663,7 +1663,7 @@ body.is-pacs.is-tablet-portrait:not([data-pacs-show="3d"]) .stage-caption { disp
 
 body.is-pacs.is-tablet-portrait[data-pacs-show="3d"] .pacs { background: transparent; pointer-events: none; }
 body.is-pacs.is-tablet-portrait[data-pacs-show="3d"] .pacs-pane { display: none !important; }
-body.is-pacs.is-tablet-portrait[data-pacs-show="3d"] .pacs-bar { pointer-events: auto; }
+body.is-pacs.is-tablet-portrait[data-pacs-show="3d"] .pacs-bar { margin-top: auto; pointer-events: auto; }
 
 body.is-pacs.is-tablet-portrait[data-pacs-show="3d"] .labelbar,
 body.is-pacs.is-tablet-portrait[data-pacs-show="3d"] .modebar,
