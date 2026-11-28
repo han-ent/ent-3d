@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chooseStudyLabels, columnPlacements, dedupeStudyLabels, englishFirst, focusPartList, labelAllowed, phoneLabelCap, placeLabels, relayoutOnTweenEnd, thinForPhone, tiersForDistance, usesPhoneLabelLayout, type StudyLabel } from '../src/shared/labels';
+import { chooseStudyLabels, columnPlacements, dedupeStudyLabels, englishFirst, focusPartList, labelAllowed, phoneLabelCap, placeLabels, relayoutOnTweenEnd, thinForPhone, tiersForDistance, touchLabelBox, usesPhoneLabelLayout, usesTouchLabelMetrics, type StudyLabel } from '../src/shared/labels';
 
 const label = (patch: Partial<StudyLabel>): StudyLabel => ({
   id: 'malleus-umbo',
@@ -93,6 +93,55 @@ describe('label collision', () => {
     expect(usesPhoneLabelLayout(1280)).toBe(false);
     expect(usesPhoneLabelLayout(959)).toBe(true);
     expect(usesPhoneLabelLayout(390)).toBe(true);
+    expect(usesTouchLabelMetrics(1280, 800, false)).toBe(false);
+    expect(usesTouchLabelMetrics(1180, 820, true)).toBe(true);
+    expect(usesTouchLabelMetrics(820, 1180, true)).toBe(true);
+  });
+
+  it('does not overlap inner-ear pills on an iPad', () => {
+    const names = ['Superior SCC', 'IAC', 'Cochlea', 'Vestibule', 'Lateral SCC', 'Posterior SCC', 'Facial nerve'];
+    const overlaps = (
+      a: { x: number; y: number; w: number; h: number },
+      b: { x: number; y: number; w: number; h: number },
+    ) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    for (const [width, height] of [
+      [1180, 820],
+      [820, 1180],
+    ] as const) {
+      const items = names.map((text, index) => {
+        const box = touchLabelBox(text, true);
+        return {
+          id: text,
+          anchorX: width * 0.46,
+          anchorY: 140 + index * 36,
+          width: box.width,
+          height: box.height,
+          priority: 90 - index,
+        };
+      });
+      const sheet = Math.min(width * 0.32, 320);
+      const placed = columnPlacements(items, width, height, {
+        top: 72,
+        right: sheet + 16,
+        bottom: 28,
+        left: 12,
+      });
+      expect(placed.length).toBeGreaterThan(3);
+      for (let i = 0; i < placed.length; i += 1) {
+        for (let j = i + 1; j < placed.length; j += 1) {
+          const left = placed[i]!;
+          const right = placed[j]!;
+          const leftBox = items.find((item) => item.id === left.id)!;
+          const rightBox = items.find((item) => item.id === right.id)!;
+          expect(
+            overlaps(
+              { x: left.x, y: left.y, w: leftBox.width, h: leftBox.height },
+              { x: right.x, y: right.y, w: rightBox.width, h: rightBox.height },
+            ),
+          ).toBe(false);
+        }
+      }
+    }
   });
 
   it('keeps the selected name on a phone and thins the rest when far', () => {

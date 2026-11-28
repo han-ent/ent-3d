@@ -9,7 +9,7 @@ import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
-import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, thinForPhone, usesPhoneLabelLayout, type Placement, type StudyLabel } from '../labels';
+import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, thinForPhone, touchLabelBox, usesPhoneLabelLayout, usesTouchLabelMetrics, type Placement, type StudyLabel } from '../labels';
 import type { ViewStage } from '../stage-frame';
 import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { labelAnchorPoint } from '../surface-anchor';
@@ -27,6 +27,7 @@ import {
   type VisibleRect,
 } from '../zoom-fit';
 import { choosePixelRatio, coveredBySphere } from './budget';
+import { easeOrbitOffset, MAX_DRAG_STEP_RAD, MAX_HOLD_STEP_RAD } from '../orbit-guard';
 import {
   ATLAS_BACKGROUND,
   MODEL_BACKGROUND,
@@ -237,6 +238,8 @@ export class EntViewer {
   private outward = new THREE.Vector3();
   private applyingZoom = false;
   private lastStop = 0;
+  private dragOffset = new THREE.Vector3();
+  private hasDragOffset = false;
   private pendingTap = 0;
   private lastTouchAt = 0;
   private pose = new THREE.Vector3();
@@ -372,6 +375,10 @@ export class EntViewer {
     canvas.addEventListener('pointercancel', () => {
       this.down = null;
       this.pinching = false;
+      this.zoomGesture = null;
+      this.controls.enabled = true;
+      this.clearOrbitInertia();
+      this.hasDragOffset = false;
     });
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -1118,6 +1125,7 @@ export class EntViewer {
     const beforeTween = this.tween !== null;
     this.stepTween(now);
     const moved = this.controls.update();
+    this.limitDragStep();
     const tweening = this.tween !== null;
     if (relayoutOnTweenEnd(beforeTween, tweening)) this.labelPlanAt = 0;
     const drifting = moved && this.meaningfulMove();
@@ -2324,10 +2332,14 @@ export class EntViewer {
     return usesPhoneLabelLayout(window.innerWidth);
   }
 
+  private touchLabels(): boolean {
+    const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+    return usesTouchLabelMetrics(window.innerWidth, window.innerHeight, coarse);
+  }
+
   private labelSize(text: string, twoLines: boolean): { width: number; height: number } {
-    const size = estimateLabelSize(text, twoLines);
-    if (!this.phoneLayout()) return size;
-    return { width: Math.max(size.width, 88), height: Math.max(twoLines ? 48 : 44, size.height) };
+    if (!this.touchLabels()) return estimateLabelSize(text, twoLines);
+    return touchLabelBox(text, twoLines);
   }
 
   private applyViewOffset(): void {
@@ -2368,7 +2380,7 @@ export class EntViewer {
     event.preventDefault();
     this.pinching = true;
     this.suppressTap = true;
-    this.controls.enabled = false;
+    this.clearOrbitInertia();
     if (this.pendingTap) window.clearTimeout(this.pendingTap);
     this.pendingTap = 0;
     const a = event.touches[0]!;
@@ -2388,12 +2400,14 @@ export class EntViewer {
 
   private onTouchEnd = (event: TouchEvent): void => {
     if (event.touches.length >= 2) return;
+    const wasPinch = this.pinching;
     if (this.pinching) this.zoomGesture = null;
     this.pinching = false;
-    if (event.touches.length === 0) {
-      this.suppressTap = false;
-      this.controls.enabled = true;
+    if (wasPinch && event.touches.length === 1) {
+      this.clearOrbitInertia();
+      this.hasDragOffset = false;
     }
+    if (event.touches.length === 0) this.suppressTap = false;
   };
 
   private onPointerUp = (event: PointerEvent): void => {
@@ -2447,6 +2461,44 @@ export class EntViewer {
     this.lastStop = stop;
   }
 
+  /**
+   * OrbitControls stops updating pointer positions while it is disabled.
+   * A pinch used to do that, so lifting back to one finger restarted the
+   * drag from where the finger was when the second finger landed. The next
+   * move then applied the whole missed distance in one frame.
+   * Keep controls enabled, and drop any leftover flick when the finger count changes.
+   */
+  private clearOrbitInertia(): void {
+    const controls = this.controls as OrbitControls & { _sphericalDelta: { set: (theta: number, phi: number, radius: number) => void } };
+    controls._sphericalDelta.set(0, 0, 0);
+  }
+
+  /** A single frame of a finger drag cannot spin the model. Tweens are left alone. */
+  private limitDragStep(): void {
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    if (offset.lengthSq() < 1e-8) return;
+    const dragging = this.pointerDown && !this.tween;
+    if (!dragging || !this.hasDragOffset) {
+      this.dragOffset.copy(offset);
+      this.hasDragOffset = true;
+      return;
+    }
+    const angle = this.dragOffset.angleTo(offset);
+    if (angle > MAX_DRAG_STEP_RAD && angle < Math.PI - 1e-3) {
+      const swing = new THREE.Quaternion().setFromUnitVectors(this.dragOffset.clone().normalize(), offset.clone().normalize());
+      swing.slerp(new THREE.Quaternion(), 1 - MAX_DRAG_STEP_RAD / angle);
+      const kept = this.dragOffset.clone().applyQuaternion(swing).setLength(offset.length());
+      this.applyingZoom = true;
+      this.camera.position.copy(this.controls.target).add(kept);
+      this.camera.lookAt(this.controls.target);
+      this.applyingZoom = false;
+      this.clearOrbitInertia();
+      this.dragOffset.copy(kept);
+      return;
+    }
+    this.dragOffset.copy(offset);
+  }
+
   /** Rotation stays outside the last zoomed surface instead of swinging into it. */
   private guardOrbit(): void {
     if (this.applyingZoom || this.tween || !this.lastAnchor || this.outward.lengthSq() < 1e-6) return;
@@ -2470,8 +2522,20 @@ export class EntViewer {
       this.camera.position.copy(anchor).addScaledVector(this.outward, stop);
       this.controls.target.copy(anchor);
     } else {
-      this.camera.position.set(held.camera[0], held.camera[1], held.camera[2]);
-      this.controls.target.set(held.target[0], held.target[1], held.target[2]);
+      const desired: [number, number, number] = [
+        held.camera[0] - held.target[0],
+        held.camera[1] - held.target[1],
+        held.camera[2] - held.target[2],
+      ];
+      const currentOff = this.camera.position.clone().sub(this.controls.target);
+      const eased = easeOrbitOffset([currentOff.x, currentOff.y, currentOff.z], desired, MAX_HOLD_STEP_RAD);
+      const turn = currentOff.angleTo(new THREE.Vector3(...desired));
+      if (turn > MAX_HOLD_STEP_RAD) {
+        this.camera.position.copy(this.controls.target).add(new THREE.Vector3(...eased));
+      } else {
+        this.camera.position.set(held.camera[0], held.camera[1], held.camera[2]);
+        this.controls.target.set(held.target[0], held.target[1], held.target[2]);
+      }
     }
     this.controls.update();
     this.applyingZoom = false;
