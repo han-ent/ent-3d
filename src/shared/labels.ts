@@ -247,6 +247,24 @@ export function usesPhoneLabelLayout(windowWidthPx: number): boolean {
   return windowWidthPx < 960;
 }
 
+/**
+ * Touch layouts draw a two-line pill at least 44 px tall. A fine pointer at
+ * desktop width keeps the original estimate, including a 1280 px window.
+ */
+export function usesTouchLabelMetrics(windowWidthPx: number, windowHeightPx: number, coarsePointer: boolean): boolean {
+  if (windowWidthPx < 960) return true;
+  if (!coarsePointer) return false;
+  const shortSide = Math.min(windowWidthPx, windowHeightPx);
+  const longSide = Math.max(windowWidthPx, windowHeightPx);
+  return shortSide >= 600 && longSide <= 1400;
+}
+
+/** Box used to keep touch pills from covering one another. */
+export function touchLabelBox(text: string, twoLines: boolean): { width: number; height: number } {
+  const size = estimateLabelSize(text, twoLines);
+  return { width: Math.max(size.width, 88), height: Math.max(twoLines ? 56 : 44, size.height) };
+}
+
 /** How many floating names a phone can show without stacking on top of each other. */
 export function phoneLabelCap(distanceMm: number): number {
   if (distanceMm > 500) return 4;

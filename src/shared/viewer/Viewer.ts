@@ -9,7 +9,7 @@ import type { SlicePose } from '../ct';
 import { chooseScaleMm, worldClippingPlane } from '../measurement';
 import type { DissectionStep, Vec3 } from '../types';
 import { GIZMO_AXES } from '../frame';
-import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, thinForPhone, usesPhoneLabelLayout, type Placement, type StudyLabel } from '../labels';
+import { chooseStudyLabels, columnPlacements, estimateLabelSize, focusPartList, placeLabels, relayoutOnTweenEnd, thinForPhone, touchLabelBox, usesPhoneLabelLayout, usesTouchLabelMetrics, type Placement, type StudyLabel } from '../labels';
 import type { ViewStage } from '../stage-frame';
 import { distanceForAspect, INNER_CORE, placeAlong } from '../stage-frame';
 import { labelAnchorPoint } from '../surface-anchor';
@@ -2332,10 +2332,14 @@ export class EntViewer {
     return usesPhoneLabelLayout(window.innerWidth);
   }
 
+  private touchLabels(): boolean {
+    const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+    return usesTouchLabelMetrics(window.innerWidth, window.innerHeight, coarse);
+  }
+
   private labelSize(text: string, twoLines: boolean): { width: number; height: number } {
-    const size = estimateLabelSize(text, twoLines);
-    if (!this.phoneLayout()) return size;
-    return { width: Math.max(size.width, 88), height: Math.max(twoLines ? 48 : 44, size.height) };
+    if (!this.touchLabels()) return estimateLabelSize(text, twoLines);
+    return touchLabelBox(text, twoLines);
   }
 
   private applyViewOffset(): void {

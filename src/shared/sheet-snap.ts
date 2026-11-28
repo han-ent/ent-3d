@@ -40,7 +40,7 @@ export function sheetCoverPx(snap: SheetSnap, viewportHeight: number): number {
   if (snap === 'peek') return 130;
   if (snap === 'half') {
     const share = Math.round(viewportHeight * 0.42);
-    const floor = viewportHeight < 760 ? 360 : 220;
+    const floor = viewportHeight <= 700 ? 428 : 220;
     return Math.max(floor, share);
   }
   return Math.round(Math.min(viewportHeight * 0.92, Math.max(280, viewportHeight - 48)));
