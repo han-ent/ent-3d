@@ -3,15 +3,20 @@ import { pageUrl } from '../paths';
 
 export type NavId = 'home' | 'temporal' | 'vor' | 'about';
 
-export function renderHeader(active: NavId): HTMLElement {
-  const header = document.createElement('header');
-  header.className = 'topbar';
-  const links: { id: NavId; key: string; href: string }[] = [
+/** Same destinations as the desktop header, in that order. */
+export function headerLinks(): { id: NavId; key: string; href: string }[] {
+  return [
     { id: 'home', key: 'nav.home', href: pageUrl('') },
     { id: 'temporal', key: 'nav.temporal', href: pageUrl('temporal-bone') },
     { id: 'vor', key: 'nav.vor', href: pageUrl('vor') },
     { id: 'about', key: 'nav.about', href: pageUrl('about') },
   ];
+}
+
+export function renderHeader(active: NavId): HTMLElement {
+  const header = document.createElement('header');
+  header.className = 'topbar';
+  const links = headerLinks();
   const nav = links
     .map(
       (link) =>

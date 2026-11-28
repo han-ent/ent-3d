@@ -3,9 +3,9 @@ import './vor.css';
 import { installFonts } from '../shared/fonts';
 import { applyI18n, initI18n, onLangChange, t } from '../shared/i18n';
 import { anatomyLines, getLabelLang, onLabelLangChange, setLabelLang } from '../shared/label-lang';
-import { fetchJson, pageUrl, publicUrl } from '../shared/paths';
+import { fetchJson, publicUrl } from '../shared/paths';
 import { registerServiceWorker } from '../shared/pwa';
-import { renderHeader } from '../shared/ui/chrome';
+import { headerLinks, renderHeader } from '../shared/ui/chrome';
 import { createState, driveOrder, modelNumbers, step, type VorState } from './engine';
 import { connectedIds, excitatoryCanals, excitatoryChain } from './highlight';
 import { baselineAfterPinch, dragAngle, ORBIT_VIEWS } from './orbit';
@@ -32,9 +32,9 @@ workspace.innerHTML = `
     <canvas class="vor-gl" id="vor-canvas"></canvas>
     <div class="vor-labels" id="vor-labels"></div>
     <nav class="vor-phone-nav" id="vor-phone-nav">
-      <a href="${pageUrl('')}" data-i18n="nav.home"></a>
-      <a href="${pageUrl('temporal-bone')}" data-i18n="nav.temporal"></a>
-      <a href="${pageUrl('vor')}" class="is-active" data-i18n="nav.vor"></a>
+      ${headerLinks()
+        .map((link) => `<a href="${link.href}" data-i18n="${link.key}"${link.id === 'vor' ? ' class="is-active"' : ''}></a>`)
+        .join('')}
     </nav>
     <div class="vor-toolbar" id="vor-toolbar">
       <div class="vor-bar">
