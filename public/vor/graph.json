@@ -160,8 +160,8 @@
     {
       "id": "rvn-h",
       "kind": "nucleus",
-      "nameEn": "Right medial vestibular nucleus",
-      "nameKo": "오른쪽 내측전정핵",
+      "nameEn": "Right medial vestibular nucleus (horizontal)",
+      "nameKo": "오른쪽 내측전정핵 (수평반고리관)",
       "side": "right",
       "reviewStatus": "unverified",
       "source": "TBD",
@@ -173,8 +173,8 @@
     {
       "id": "lvn-h",
       "kind": "nucleus",
-      "nameEn": "Left medial vestibular nucleus",
-      "nameKo": "왼쪽 내측전정핵",
+      "nameEn": "Left medial vestibular nucleus (horizontal)",
+      "nameKo": "왼쪽 내측전정핵 (수평반고리관)",
       "side": "left",
       "reviewStatus": "unverified",
       "source": "TBD",
@@ -212,27 +212,27 @@
     {
       "id": "rvn-p",
       "kind": "nucleus",
-      "nameEn": "Right inferior vestibular nucleus",
-      "nameKo": "오른쪽 하전정핵",
+      "nameEn": "Right medial vestibular nucleus (posterior canal)",
+      "nameKo": "오른쪽 내측전정핵 (후반고리관)",
       "side": "right",
       "reviewStatus": "unverified",
       "source": "TBD",
       "note": {
-        "en": "Posterior-canal neurons. Spread positions are for reading. The anatomic button is still a schematic.",
-        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+        "en": "Posterior-canal excitatory relay toward the contralateral trochlear and oculomotor nuclei. Taught as the medial vestibular nucleus, not the inferior nucleus. Spread positions are a diagram. Source not copied from a checked page.",
+        "ko": "후반고리관 흥분 중계는 아래전정핵이 아니라 내측전정핵으로 적었습니다. 반대쪽 활차신경핵과 동안신경핵으로 갑니다. 펼친 위치는 모식이고, 확인한 페이지에서 옮기지 않았습니다."
       }
     },
     {
       "id": "lvn-p",
       "kind": "nucleus",
-      "nameEn": "Left inferior vestibular nucleus",
-      "nameKo": "왼쪽 하전정핵",
+      "nameEn": "Left medial vestibular nucleus (posterior canal)",
+      "nameKo": "왼쪽 내측전정핵 (후반고리관)",
       "side": "left",
       "reviewStatus": "unverified",
       "source": "TBD",
       "note": {
-        "en": "Posterior-canal neurons. Spread positions are for reading. The anatomic button is still a schematic.",
-        "ko": "펼친 위치는 읽기 쉽게 둔 것입니다. 해부 위치 버튼도 모식입니다."
+        "en": "Posterior-canal excitatory relay toward the contralateral trochlear and oculomotor nuclei. Taught as the medial vestibular nucleus, not the inferior nucleus. Spread positions are a diagram. Source not copied from a checked page.",
+        "ko": "후반고리관 흥분 중계는 아래전정핵이 아니라 내측전정핵으로 적었습니다. 반대쪽 활차신경핵과 동안신경핵으로 갑니다. 펼친 위치는 모식이고, 확인한 페이지에서 옮기지 않았습니다."
       }
     },
     {

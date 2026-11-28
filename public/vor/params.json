@@ -8,10 +8,10 @@
     "reviewStatus": "unverified"
   },
   "afferentGainSpikesPerDegPerSec": {
-    "value": 0.5,
+    "value": 1.5,
     "unit": "spikes/s per deg/s",
     "source": "TBD",
-    "note": "Chosen so a constant-rate afferent reaches the inhibitory floor near 180 deg/s (baseline divided by this gain). Not copied from a checked table.",
+    "note": "Set so baseline/gain equals inhibitorySaturationDegPerSec (60 deg/s). Excitation stays linear; inhibition reaches 0 spikes/s at that canal velocity. Not copied from a checked table.",
     "reviewStatus": "unverified"
   },
   "cupulaTimeConstantSec": {
@@ -32,7 +32,7 @@
     "value": 1,
     "unit": "1",
     "source": "TBD",
-    "note": "Ideal compensatory gain for this teaching model, so a full canal pair can oppose head velocity. Not a measured human constant.",
+    "note": "Raises the canal-plane plant so a pure yaw, whose horizontal-canal cosine is about 0.95, still produces a horizontal eye velocity near the head velocity. Not a measured human constant.",
     "reviewStatus": "unverified"
   },
   "plantScale": {
@@ -61,6 +61,48 @@
     "unit": "deg",
     "source": "TBD",
     "note": "The reset ends inside this distance of the centre, or as soon as it would cross the centre.",
+    "reviewStatus": "unverified"
+  },
+  "inhibitorySaturationDegPerSec": {
+    "value": 60,
+    "unit": "deg/s",
+    "source": "Ewald JR. Physiologische Untersuchungen über das Endorgan des Nervus octavus. Wiesbaden: Bergmann; 1892. Second law: excitation is a stronger canal stimulus than inhibition, because firing can rise well above rest and can only fall to zero. Halmagyi GM, Curthoys IS. A clinical sign of canal paresis. Arch Neurol. 1988;45(7):737-739. A rapid head impulse shows that asymmetry after one labyrinth is lost. The 60 deg/s clip is a model setting so a lesion-side impulse near 200 deg/s keeps only a small gain; it was not copied from a table.",
+    "note": "Canal velocity at which the inhibitory afferent stops decreasing. Excitation is not clipped in this range.",
+    "reviewStatus": "unverified"
+  },
+  "staticImbalanceGain": {
+    "value": 0.9,
+    "unit": "1",
+    "source": "TBD",
+    "note": "Scales a constant resting-rate loss before it moves the eyes. Without it, a dead canal looks like a continuous impulse at the full inhibitory cutoff and the spontaneous nystagmus is far too fast.",
+    "reviewStatus": "unverified"
+  },
+  "torsionalVorGain": {
+    "value": 0.35,
+    "unit": "1",
+    "source": "Tweed D, Sievering D, Misslisch H, Fetter M, Zee DS, Koenig E. Rotational kinematics of the human vestibuloocular reflex. I. Gain matrices. J Neurophysiol. 1994;72(5):2467-2479. The abstract gives a torsional collinear gain of about 0.37 for 0.3 Hz rotation in darkness. This file uses 0.35, inside that low range.",
+    "note": "Multiplies the roll component of slow-phase eye velocity. Horizontal and vertical components are left on vorGain.",
+    "reviewStatus": "unverified"
+  },
+  "torsionalStorageSec": {
+    "value": 5,
+    "unit": "s",
+    "source": "TBD",
+    "note": "Vertical-canal velocity storage. Shorter than the horizontal 16 s so post-rotatory roll does not linger. The number was not copied from a checked table.",
+    "reviewStatus": "unverified"
+  },
+  "catchUpThresholdDeg": {
+    "value": 8,
+    "unit": "deg",
+    "source": "TBD",
+    "note": "Gaze slip that starts a catch-up saccade when head speed is high and the slow-phase gain is low. Not copied from a checked table.",
+    "reviewStatus": "unverified"
+  },
+  "catchUpMinHeadDegPerSec": {
+    "value": 100,
+    "unit": "deg/s",
+    "source": "TBD",
+    "note": "Head speed above which a weak slow phase may trigger a catch-up saccade. Ordinary nystagmus at lower speed still uses the position reset.",
     "reviewStatus": "unverified"
   }
 }

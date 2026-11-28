@@ -34,6 +34,33 @@ export function connectedIds(graph: GraphFile, startId: string, stopIds: Readonl
  * Canals reached by walking only excitatory drive edges upstream.
  * This is the canal a muscle "comes from" when several canals also inhibit the same nucleus.
  */
+/**
+ * Downstream excitatory links only (sign > 0), including zero-weight nerve tubes.
+ * Inhibitory edges are left out, so a canal click does not light the opposing pathway.
+ */
+export function excitatoryChain(graph: GraphFile, startId: string, stopIds: ReadonlySet<string> = new Set()): string[] {
+  if (!graph.nodes.some((node) => node.id === startId)) return [];
+  const seen = new Set<string>([startId]);
+  const queue = [startId];
+  const outgoing = new Map<string, string[]>();
+  for (const edge of graph.edges) {
+    if (edge.sign <= 0) continue;
+    const list = outgoing.get(edge.from) ?? [];
+    list.push(edge.to);
+    outgoing.set(edge.from, list);
+  }
+  while (queue.length > 0) {
+    const id = queue.shift()!;
+    if (id !== startId && stopIds.has(id)) continue;
+    for (const next of outgoing.get(id) ?? []) {
+      if (seen.has(next)) continue;
+      seen.add(next);
+      queue.push(next);
+    }
+  }
+  return [...seen];
+}
+
 export function excitatoryCanals(graph: GraphFile, startId: string, canalIds: ReadonlySet<string>): string[] {
   const canals = new Set<string>();
   const seen = new Set<string>();

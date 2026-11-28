@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createState, driveOrder, modelNumbers, step, type StepInput, type VorState } from '../src/vor/engine';
-import { connectedIds, excitatoryCanals } from '../src/vor/highlight';
+import { connectedIds, excitatoryCanals, excitatoryChain } from '../src/vor/highlight';
 import type { CanalFile, GraphFile, LayoutFile, ParamsFile, Vec3, VorBundle } from '../src/vor/types';
 
 const root = resolve(import.meta.dirname, '..');
@@ -206,6 +206,76 @@ describe('VOR physiology', () => {
     expect(state.slowOmega.left[2]).toBeLessThan(0);
   });
 
+  it('keeps normal horizontal gain near 1 through high velocity, and drops only the lesion-side impulse', () => {
+    const loss = { canalScale: { rhc: 0, rac: 0, rpc: 0 } };
+    const ratio = (omega: Vec3, frames: number, extra: Partial<StepInput> = {}) => {
+      const state = run(omega, frames, extra);
+      const head = Math.hypot(omega[0], omega[1], omega[2]);
+      const eye = state.slowOmega.right;
+      return -((eye[0] * omega[0] + eye[1] * omega[1] + eye[2] * omega[2]) / (head * head));
+    };
+    expect(ratio([0, 0, -60], 4)).toBeGreaterThan(0.9);
+    expect(ratio([0, 0, -60], 4)).toBeLessThan(1.08);
+    expect(ratio([0, 0, -250], 4)).toBeGreaterThan(0.9);
+    expect(ratio([0, 0, -300], 4)).toBeLessThan(1.08);
+    const lesion = ratio([0, 0, -200], 6, loss);
+    const healthy = ratio([0, 0, 200], 6, loss);
+    expect(lesion).toBeGreaterThan(0.2);
+    expect(lesion).toBeLessThan(0.4);
+    expect(healthy).toBeGreaterThanOrEqual(0.8);
+    expect(healthy).toBeGreaterThan(lesion * 2);
+
+    const state = createState(bundle);
+    let sawCatch = false;
+    let catchSign = 0;
+    for (let frame = 0; frame < 30; frame += 1) {
+      step(bundle, state, { omegaReidDeg: [0, 0, -200], dt: 1 / 60, ...loss }, order);
+      if (state.catchUp.right) {
+        sawCatch = true;
+        catchSign = state.eyeOmega.right[2];
+      }
+    }
+    expect(sawCatch).toBe(true);
+    expect(catchSign).toBeGreaterThan(100);
+    const intact = createState(bundle);
+    let intactCatch = false;
+    for (let frame = 0; frame < 30; frame += 1) {
+      step(bundle, intact, { omegaReidDeg: [0, 0, 200], dt: 1 / 60, ...loss }, order);
+      if (intact.catchUp.right) intactCatch = true;
+    }
+    expect(intactCatch).toBe(false);
+  });
+
+  it('keeps acute unilateral nystagmus horizontal, modest, and quick-phase toward the healthy side', () => {
+    const loss = { canalScale: { rhc: 0, rac: 0, rpc: 0 } };
+    const state = createState(bundle);
+    let quickPhase = 0;
+    for (let frame = 0; frame < 240; frame += 1) {
+      step(bundle, state, { omegaReidDeg: [0, 0, 0], dt: 1 / 60, ...loss }, order);
+      if (!state.fastPhase.right && !state.catchUp.right) {
+        const slow = state.slowOmega.right;
+        expect(slow[2]).toBeLessThan(0);
+        expect(Math.abs(slow[2])).toBeGreaterThan(4);
+        expect(Math.abs(slow[2])).toBeLessThan(30);
+        expect(Math.abs(slow[2])).toBeGreaterThan(Math.abs(slow[0]));
+      }
+      if (state.fastPhase.right) quickPhase = state.eyeOmega.right[2];
+    }
+    expect(quickPhase).toBeGreaterThan(0);
+  });
+
+  it('lets post-rotatory roll decay ahead of post-rotatory yaw', () => {
+    const settle = (omega: Vec3) => {
+      const state = createState(bundle);
+      for (let frame = 0; frame < 180; frame += 1) step(bundle, state, { omegaReidDeg: omega, dt: 1 / 60 }, order);
+      for (let frame = 0; frame < 360; frame += 1) step(bundle, state, { omegaReidDeg: [0, 0, 0], dt: 1 / 60 }, order);
+      return state.slowOmega.right;
+    };
+    const yaw = Math.abs(settle([0, 0, -60])[2]);
+    const roll = Math.abs(settle([60, 0, 0])[0]);
+    expect(roll).toBeLessThan(yaw);
+  });
+
   it('accepts a canalith bias as an extra cupula deflection', () => {
     const state = run([0, 0, 0], 2, { canalithDegPerSec: { rhc: 40 } });
     expect(state.firing.rhc).toBeGreaterThan(numbers.baseline);
@@ -237,5 +307,13 @@ describe('pathway highlight', () => {
     expect(excitatoryCanals(bundle.graph, 'r-ir', canalIds)).toEqual(['lpc']);
     const fromMuscle = connectedIds(bundle.graph, 'r-mr', eyes);
     expect(fromMuscle).toContain('rhc');
+  });
+
+  it('keeps the right horizontal excitatory chain apart from the inhibited side', () => {
+    const chain = excitatoryChain(bundle.graph, 'rhc', eyes);
+    expect(chain).toEqual(expect.arrayContaining(['rhc', 'rvn-h', 'l-vi', 'mlf-rh', 'r-iii-mr', 'r-mr', 'l-lr']));
+    expect(chain).not.toContain('lhc');
+    expect(chain).not.toContain('r-lr');
+    expect(chain).not.toContain('lvn-h');
   });
 });

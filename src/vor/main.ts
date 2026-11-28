@@ -3,11 +3,11 @@ import './vor.css';
 import { installFonts } from '../shared/fonts';
 import { applyI18n, initI18n, onLangChange, t } from '../shared/i18n';
 import { anatomyLines, getLabelLang, onLabelLangChange, setLabelLang } from '../shared/label-lang';
-import { fetchJson, publicUrl } from '../shared/paths';
+import { fetchJson, pageUrl, publicUrl } from '../shared/paths';
 import { registerServiceWorker } from '../shared/pwa';
 import { renderHeader } from '../shared/ui/chrome';
 import { createState, driveOrder, modelNumbers, step, type VorState } from './engine';
-import { connectedIds, excitatoryCanals } from './highlight';
+import { connectedIds, excitatoryCanals, excitatoryChain } from './highlight';
 import { baselineAfterPinch, dragAngle, ORBIT_VIEWS } from './orbit';
 import { VorScene, type LabelCopy } from './scene';
 import { renderMeters, renderSheet } from './sheet';
@@ -31,11 +31,20 @@ workspace.innerHTML = `
   <div class="vor-stage">
     <canvas class="vor-gl" id="vor-canvas"></canvas>
     <div class="vor-labels" id="vor-labels"></div>
+    <nav class="vor-phone-nav" id="vor-phone-nav">
+      <a href="${pageUrl('')}" data-i18n="nav.home"></a>
+      <a href="${pageUrl('temporal-bone')}" data-i18n="nav.temporal"></a>
+      <a href="${pageUrl('vor')}" class="is-active" data-i18n="nav.vor"></a>
+    </nav>
     <div class="vor-toolbar" id="vor-toolbar">
       <div class="vor-scroll" id="vor-maneuvers"></div>
-      <label class="vor-slider"><span data-i18n="vor.velocity"></span><input type="range" id="vor-velocity" min="10" max="300" step="10" value="60"></label>
-      <div class="vor-scroll" id="vor-views"></div>
-      <div class="vor-scroll" id="vor-drag"></div>
+      <div class="vor-scroll" id="vor-tools">
+        <label class="vor-slider"><span data-i18n="vor.velocity"></span><input type="range" id="vor-velocity" min="10" max="300" step="10" value="60"></label>
+        <div class="vor-inline" id="vor-views"></div>
+        <div class="vor-inline" id="vor-drag"></div>
+        <button type="button" id="vor-reset" data-i18n="vor.resetHead"></button>
+        <button type="button" id="vor-inhibition" data-i18n="vor.showInhibition" aria-pressed="false"></button>
+      </div>
     </div>
     <p class="vor-frame-note" data-i18n="vor.frameNote"></p>
     <canvas class="vor-spark" id="vor-spark" width="168" height="72"></canvas>
@@ -100,6 +109,7 @@ let speed = 1;
 let layoutT = 0;
 let layoutTarget = 0;
 let maneuver: string | null = SHOT && (DEMO === 'yaw-right' || DEMO === 'eyes') ? 'yaw-right' : null;
+let includeInhibition = false;
 let headDrag: Vec3 | null = null;
 const history: { rhc: number; lhc: number; eye: number }[] = [];
 
@@ -149,14 +159,25 @@ function omegaNow(): Vec3 {
   return [axis[0] * speedDeg, axis[1] * speedDeg, axis[2] * speedDeg];
 }
 
+function headMoving(): boolean {
+  const omega = omegaNow();
+  return Math.hypot(omega[0], omega[1], omega[2]) > 20;
+}
+
 function connected(): string[] {
   if (!bundle || !selected) return [];
-  return connectedIds(bundle.graph, selected, EYES);
+  if (includeInhibition && !headMoving()) return connectedIds(bundle.graph, selected, EYES);
+  return excitatoryChain(bundle.graph, selected, EYES);
 }
 
 function labelList(): string[] {
   if (!bundle) return [];
-  if (selected) return [selected, ...connected().filter((id) => id !== selected && id !== 'head')];
+  if (selected) {
+    const ids = connected().filter((id) => id !== 'head');
+    const muscles = ids.filter((id) => bundle!.graph.nodes.find((node) => node.id === id)?.kind === 'muscle');
+    const rest = ids.filter((id) => id !== selected && !muscles.includes(id));
+    return [selected, ...muscles, ...rest];
+  }
   if (preset === 'eyes') return bundle.graph.nodes.filter((node) => node.kind === 'muscle' || node.kind === 'eye').map((node) => node.id);
   if (preset === 'labyrinth') return bundle.canals.canals.map((canal) => canal.id);
   if (preset === 'brainstem') {
@@ -221,6 +242,8 @@ function paintChrome(): void {
   dragHost.querySelectorAll<HTMLButtonElement>('[data-drag]').forEach((button) => {
     button.setAttribute('aria-pressed', button.dataset.drag === dragMode ? 'true' : 'false');
   });
+  const inhibition = workspace.querySelector<HTMLButtonElement>('#vor-inhibition');
+  if (inhibition) inhibition.setAttribute('aria-pressed', includeInhibition ? 'true' : 'false');
   refreshLabels();
   refreshSheet();
 }
@@ -418,8 +441,9 @@ const endPointer = (event: PointerEvent) => {
   view?.setInteracting(false);
   headDrag = null;
   if (!dragged && press) {
+    const fromLabel = labelUnder(event.clientX, event.clientY);
     const hit = view?.pick(event.clientX, event.clientY) ?? null;
-    selected = hit === 'head' ? null : hit;
+    selected = fromLabel ?? (hit === 'head' ? null : hit);
     refreshLabels();
     refreshSheet();
   }
@@ -428,14 +452,20 @@ const endPointer = (event: PointerEvent) => {
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
 
-labels.addEventListener('click', (event) => {
-  const el = (event.target as HTMLElement).closest<HTMLElement>('.vor-label');
-  const id = el?.dataset.nodeId;
-  if (!id) return;
-  selected = id;
-  refreshLabels();
-  refreshSheet();
+workspace.querySelector('#vor-reset')?.addEventListener('click', () => view?.resetHead());
+workspace.querySelector('#vor-inhibition')?.addEventListener('click', () => {
+  includeInhibition = !includeInhibition;
+  paintChrome();
 });
+
+function labelUnder(x: number, y: number): string | null {
+  const nodes = [...labels.querySelectorAll<HTMLElement>('.vor-label')].filter((el) => !el.hidden);
+  const hit = nodes.find((el) => {
+    const rect = el.getBoundingClientRect();
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+  });
+  return hit?.dataset.nodeId ?? null;
+}
 
 let acc = 0;
 let last = performance.now();
@@ -459,6 +489,24 @@ function frame(now: number): void {
       }
     }
     view.setLayout(layoutT);
+    const stageBox = canvas.getBoundingClientRect();
+    const sheetBox = sheet.getBoundingClientRect();
+    const overlaps =
+      sheetBox.width > 0 &&
+      sheetBox.left < stageBox.right &&
+      sheetBox.right > stageBox.left &&
+      sheetBox.top < stageBox.bottom &&
+      sheetBox.bottom > stageBox.top;
+    view.setLabelObstacle(
+      overlaps
+        ? {
+            left: sheetBox.left - stageBox.left,
+            top: sheetBox.top - stageBox.top,
+            right: sheetBox.right - stageBox.left,
+            bottom: sheetBox.bottom - stageBox.top,
+          }
+        : null,
+    );
     view.applyState(state, selected ? new Set(connected()) : null, baseline);
     view.render(now);
     renderMeters(sheet, bundle, state, selected, t);
@@ -488,12 +536,11 @@ async function boot(): Promise<void> {
     state = createState(bundle);
     view = new VorScene(canvas, labels, bundle);
     status.hidden = true;
-    if (window.innerHeight < 780) view.flyTo({ ...ORBIT_VIEWS.head, radius: 370 }, false);
+    if (window.innerWidth < 700) view.flyTo({ ...ORBIT_VIEWS.head, radius: 560, polar: 1.08 }, false);
     if (SHOT && DEMO === 'highlight-rhc') {
       selected = 'rhc';
       preset = 'labyrinth';
-      const close = window.innerWidth < 800 ? { ...ORBIT_VIEWS.labyrinth, radius: 130, target: [36, 4, 6] as [number, number, number] } : ORBIT_VIEWS.labyrinth;
-      view.flyTo(close, false);
+      view.flyTo(window.innerWidth < 700 ? { ...ORBIT_VIEWS.labyrinth, radius: 340 } : ORBIT_VIEWS.labyrinth, false);
     }
     if (SHOT && DEMO === 'eyes') {
       preset = 'eyes';

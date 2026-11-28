@@ -61,6 +61,7 @@ export class VorScene {
   private fly: { from: OrbitView; to: OrbitView; start: number } | null = null;
   private interacting = false;
   private shown: string[] = [];
+  private obstacle: { left: number; top: number; right: number; bottom: number } | null = null;
   private scratch = new THREE.Vector3();
   private scratchB = new THREE.Vector3();
   private scratchC = new THREE.Vector3();
@@ -119,6 +120,15 @@ export class VorScene {
   zoomBy(scale: number): void {
     this.fly = null;
     this.orbit.radius = zoomRadius(this.orbit.radius, scale);
+  }
+
+  resetHead(): void {
+    this.head.quaternion.identity();
+  }
+
+  /** Canvas-local rectangle the labels should stay out of (the info sheet). */
+  setLabelObstacle(rect: { left: number; top: number; right: number; bottom: number } | null): void {
+    this.obstacle = rect;
   }
 
   /** Integrate head pose from the same angular velocity the canals see. */
@@ -503,16 +513,14 @@ export class VorScene {
   private placeLabels(): void {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
-    const phone = width < 800;
-    const cap = phone ? 6 : 9;
-    const allow = new Set(this.shown.slice(0, cap));
-    const placed: { x: number; y: number }[] = [];
-    for (const [id, el] of this.labelNodes) {
+    const cap = width < 800 ? 8 : 12;
+    const allow = this.shown.slice(0, cap);
+    for (const el of this.labelNodes.values()) el.hidden = true;
+    const placed: { x: number; y: number; w: number; h: number }[] = [];
+    for (const id of allow) {
+      const el = this.labelNodes.get(id);
       const anchor = this.anchors.get(id);
-      if (!anchor || !allow.has(id)) {
-        el.hidden = true;
-        continue;
-      }
+      if (!el || !anchor) continue;
       this.scratchC.copy(anchor.position).applyMatrix4(this.head.matrixWorld).project(this.camera);
       if (this.scratchC.z > 1 || this.scratchC.z < -1) {
         el.hidden = true;
@@ -524,19 +532,34 @@ export class VorScene {
         el.hidden = true;
         continue;
       }
+      let left = x;
       let top = y;
-      for (let pass = 0; pass < 6; pass += 1) {
-        const hit = placed.find((item) => Math.abs(item.x - x) < 150 && Math.abs(item.y - top) < 36);
-        if (!hit) break;
-        top = hit.y + 38;
+      const boxW = 150;
+      const boxH = 40;
+      const blocked = (px: number, py: number) => {
+        const overlap = placed.some(
+          (item) => Math.abs(item.x - px) < (item.w + boxW) / 2 && Math.abs(item.y - py) < (item.h + boxH) / 2,
+        );
+        const obstacle = this.obstacle;
+        const hitsSheet =
+          obstacle !== null &&
+          px + boxW / 2 > obstacle.left + 2 &&
+          px - boxW / 2 < obstacle.right - 2 &&
+          py > obstacle.top + 2 &&
+          py - boxH < obstacle.bottom;
+        return overlap || hitsSheet;
+      };
+      for (let pass = 0; pass < 8 && blocked(left, top); pass += 1) {
+        if (this.obstacle && top > this.obstacle.top) top = this.obstacle.top - 6;
+        else top -= 42;
       }
-      if (top > height - 28) {
+      if (top < 72 || top > height - 8 || blocked(left, top)) {
         el.hidden = true;
         continue;
       }
-      placed.push({ x, y: top });
+      placed.push({ x: left, y: top, w: boxW, h: boxH });
       el.hidden = false;
-      el.style.transform = `translate(${x}px, ${top}px)`;
+      el.style.transform = `translate(${left}px, ${top}px)`;
     }
   }
 }

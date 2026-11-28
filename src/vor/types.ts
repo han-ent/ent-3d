@@ -88,6 +88,17 @@ export type ParamsFile = {
   fastPhaseThresholdDeg: CitedNumber;
   fastPhaseSpeedDegPerSec: CitedNumber;
   fastPhaseStopDeg: CitedNumber;
+  /** Canal-velocity at which inhibition stops falling. Excitation stays linear. */
+  inhibitorySaturationDegPerSec: CitedNumber;
+  /** Scales a constant resting-rate loss before it reaches the eye. */
+  staticImbalanceGain: CitedNumber;
+  /** Multiplies the roll component of slow-phase eye velocity. */
+  torsionalVorGain: CitedNumber;
+  /** Velocity-storage time constant for the vertical canals (roll / pitch). */
+  torsionalStorageSec: CitedNumber;
+  /** Gaze-slip angle that starts a catch-up saccade during a failed impulse. */
+  catchUpThresholdDeg: CitedNumber;
+  catchUpMinHeadDegPerSec: CitedNumber;
 };
 
 /** Scene millimetres: +X patient's right, +Y superior, +Z posterior. Schematic. */

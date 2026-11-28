@@ -35,7 +35,13 @@ export type VorState = {
   /** Vestibular slow phase, before a quick-phase reset. */
   slowOmega: EyeVec;
   eyePos: EyeVec;
+  /** Accumulated gaze slip (head + eye), used for a catch-up saccade. */
+  gazeError: EyeVec;
   fastPhase: { right: boolean; left: boolean };
+  /** Rapid compensatory saccade when an impulse outruns a weak VOR. */
+  catchUp: { right: boolean; left: boolean };
+  /** False after one catch-up, until head speed falls. Stops a held turn from repeating it. */
+  catchArmed: { right: boolean; left: boolean };
 };
 
 export type ModelNumbers = {
@@ -48,6 +54,12 @@ export type ModelNumbers = {
   fastThreshold: number;
   fastSpeed: number;
   fastStop: number;
+  inhibitorySaturation: number;
+  staticImbalanceGain: number;
+  torsionalVorGain: number;
+  torsionalStorage: number;
+  catchUpThreshold: number;
+  catchUpMinHead: number;
 };
 
 const EYE_SIDES = ['right', 'left'] as const;
@@ -83,6 +95,12 @@ export function modelNumbers(params: ParamsFile): ModelNumbers {
     fastThreshold: params.fastPhaseThresholdDeg.value,
     fastSpeed: params.fastPhaseSpeedDegPerSec.value,
     fastStop: params.fastPhaseStopDeg.value,
+    inhibitorySaturation: params.inhibitorySaturationDegPerSec.value,
+    staticImbalanceGain: params.staticImbalanceGain.value,
+    torsionalVorGain: params.torsionalVorGain.value,
+    torsionalStorage: params.torsionalStorageSec.value,
+    catchUpThreshold: params.catchUpThresholdDeg.value,
+    catchUpMinHead: params.catchUpMinHeadDegPerSec.value,
   };
 }
 
@@ -140,7 +158,10 @@ export function createState(bundle: VorBundle): VorState {
     eyeOmega: eye(),
     slowOmega: eye(),
     eyePos: eye(),
+    gazeError: eye(),
     fastPhase: { right: false, left: false },
+    catchUp: { right: false, left: false },
+    catchArmed: { right: true, left: true },
   };
 }
 
@@ -149,13 +170,19 @@ function scaleOf(input: StepInput, id: string): number {
   return value === undefined || !Number.isFinite(value) ? 1 : value;
 }
 
+const PAIRS: readonly (readonly [string, string])[] = [
+  ['rhc', 'lhc'],
+  ['rac', 'lpc'],
+  ['lac', 'rpc'],
+];
+
 /**
- * Cupula is a high-pass of head velocity: it matches a velocity step, then
- * returns toward rest with the cupula time constant. Velocity storage is
- * added so the central signal outlasts the cupula. A constant afferent loss
- * (the tonic term) is not passed through that high-pass.
+ * Cupula is a high-pass of head velocity. Inhibition of the afferent is
+ * clipped at a modest canal velocity (Ewald II); excitation is not.
+ * Velocity storage prolongs only the dynamic signal. A resting-rate loss
+ * is returned separately so it can be scaled before it reaches the eye.
  */
-function canalCentral(
+function canalSignals(
   state: VorState,
   numbers: ModelNumbers,
   proj: number,
@@ -163,52 +190,116 @@ function canalCentral(
   scale: number,
   dt: number,
   id: string,
-): number {
+  tauStorage: number,
+): { dynamic: number; tonic: number } {
   const tauC = Math.max(numbers.tauCupula, 1e-3);
-  const tauV = Math.max(numbers.tauStorage, 1e-3);
+  const tauV = Math.max(tauStorage, tauC);
   const blend = 1 - Math.exp(-dt / tauC);
   const tracked = state.cupula[id] ?? 0;
   const nextTracked = tracked + (proj - tracked) * blend;
   state.cupula[id] = nextTracked;
   const deflection = proj - nextTracked + canalith;
   state.deflection[id] = deflection;
-  const gain = numbers.afferentGain;
-  const firing = Math.max(0, scale * (numbers.baseline + gain * deflection));
+  const gain = numbers.afferentGain === 0 ? 1 : numbers.afferentGain;
+  const sat = Math.max(numbers.inhibitorySaturation, 1);
+  const peripheral = deflection >= 0 ? deflection : Math.max(deflection, -sat);
+  const firing = Math.max(0, scale * (numbers.baseline + gain * peripheral));
   state.firing[id] = firing;
-  const resting = scale * numbers.baseline;
-  const dynamic = gain === 0 ? 0 : (firing - resting) / gain;
-  const tonic = gain === 0 ? 0 : (resting - numbers.baseline) / gain;
+  const alive = scale > 0.01;
+  const driven = alive ? peripheral : 0;
   const stored = state.storage[id] ?? 0;
   const leak = Math.exp(-dt / tauV);
-  const drive = 1 / tauC - 1 / tauV;
-  const nextStored = stored * leak + drive * dynamic * tauV * (1 - leak);
+  const charge = Math.max(0, 1 / tauC - 1 / tauV);
+  const nextStored = stored * leak + charge * driven * tauV * (1 - leak);
   state.storage[id] = nextStored;
-  return dynamic + nextStored + tonic;
+  const tonic = ((alive ? scale : 0) - 1) * (numbers.baseline / gain);
+  return { dynamic: driven + nextStored, tonic };
+}
+
+/** Vertical-canal resting loss is scaled down with torsional sensitivity so spontaneous nystagmus stays horizontal-dominant. */
+function restingWeight(id: string, gain: number): number {
+  const vertical = id === 'rac' || id === 'lac' || id === 'rpc' || id === 'lpc';
+  return vertical ? gain * 0.45 : gain;
+}
+
+/** Excitatory afferent carries the velocity; a saturated inhibitory partner does not pull it down. */
+function pairEstimate(first: number, second: number, firstAlive: boolean, secondAlive: boolean): number {
+  if (!firstAlive && !secondAlive) return 0;
+  if (firstAlive && !secondAlive) return first;
+  if (!firstAlive && secondAlive) return -second;
+  const flipped = -second;
+  return Math.abs(first) >= Math.abs(flipped) ? first : flipped;
 }
 
 function slowEye(graph: GraphFile, signal: Record<string, number>, numbers: ModelNumbers): EyeVec {
   const eye: EyeVec = { right: [0, 0, 0], left: [0, 0, 0] };
   const scale = numbers.plantScale * numbers.vorGain;
+  const torsion = Math.min(1, Math.max(0, numbers.torsionalVorGain));
   for (const node of graph.nodes) {
     if (node.kind !== 'muscle' || !node.axisReid) continue;
     const side = node.side === 'left' ? 'left' : 'right';
     addScaled(eye[side], node.axisReid, (signal[node.id] ?? 0) * scale);
   }
+  eye.right[0] *= torsion;
+  eye.left[0] *= torsion;
   return eye;
 }
 
-function integrateEye(
+function add(a: Vec3, b: Vec3, scale = 1): Vec3 {
+  return [a[0] + b[0] * scale, a[1] + b[1] * scale, a[2] + b[2] * scale];
+}
+
+function compensatoryGain(head: Vec3, slow: Vec3): number {
+  const speed = mag(head);
+  if (speed < 30) return 1;
+  return -dot(slow, head) / (speed * speed);
+}
+
+/**
+ * Centering quick phases reset a large orbital position.
+ * A catch-up saccade is the other way: during a fast impulse the eye
+ * jumps further in the compensatory direction to pay back gaze slip.
+ */
+function moveEye(
   pos: Vec3,
+  gaze: Vec3,
   slow: Vec3,
+  head: Vec3,
   fast: boolean,
+  catching: boolean,
+  armed: boolean,
   dt: number,
   numbers: ModelNumbers,
-): { pos: Vec3; omega: Vec3; fast: boolean } {
+): { pos: Vec3; gaze: Vec3; omega: Vec3; fast: boolean; catchUp: boolean; armed: boolean } {
+  const headSpeed = mag(head);
+  let ready = armed;
+  if (headSpeed < 40) ready = true;
+  const slipped = add(gaze, add(head, slow), dt);
+  const failed = compensatoryGain(head, slow) < 0.65;
+  let catchUp = catching;
+  if (!catchUp && ready && failed && headSpeed >= numbers.catchUpMinHead && mag(pos) < 12 && mag(slipped) >= numbers.catchUpThreshold) {
+    catchUp = true;
+    ready = false;
+  }
+  if (catchUp) {
+    const size = mag(slipped) || 1;
+    const omega: Vec3 = [
+      (-slipped[0] / size) * numbers.fastSpeed,
+      (-slipped[1] / size) * numbers.fastSpeed,
+      (-slipped[2] / size) * numbers.fastSpeed,
+    ];
+    const next = add(pos, omega, dt);
+    const nextGaze = add(gaze, add(head, omega), dt);
+    const done = dot(nextGaze, slipped) <= 0 || mag(nextGaze) <= numbers.catchUpThreshold * 0.35 || mag(next) > 35;
+    if (done) {
+      return { pos: next, gaze: [0, 0, 0], omega, fast: false, catchUp: false, armed: false };
+    }
+    return { pos: next, gaze: nextGaze, omega, fast: false, catchUp: true, armed: false };
+  }
   let beating = fast;
   if (!beating && mag(pos) >= numbers.fastThreshold) beating = true;
   if (!beating) {
-    const next: Vec3 = [pos[0] + slow[0] * dt, pos[1] + slow[1] * dt, pos[2] + slow[2] * dt];
-    return { pos: next, omega: [slow[0], slow[1], slow[2]], fast: false };
+    return { pos: add(pos, slow, dt), gaze: slipped, omega: [slow[0], slow[1], slow[2]], fast: false, catchUp: false, armed: ready };
   }
   const size = mag(pos) || 1;
   const omega: Vec3 = [
@@ -216,26 +307,47 @@ function integrateEye(
     (-pos[1] / size) * numbers.fastSpeed,
     (-pos[2] / size) * numbers.fastSpeed,
   ];
-  const next: Vec3 = [pos[0] + omega[0] * dt, pos[1] + omega[1] * dt, pos[2] + omega[2] * dt];
-  if (next[0] * pos[0] + next[1] * pos[1] + next[2] * pos[2] <= 0 || mag(next) <= numbers.fastStop) {
-    return { pos: [0, 0, 0], omega, fast: false };
+  const next = add(pos, omega, dt);
+  if (dot(next, pos) <= 0 || mag(next) <= numbers.fastStop) {
+    return { pos: [0, 0, 0], gaze: add(gaze, add(head, omega), dt), omega, fast: false, catchUp: false, armed: ready };
   }
-  return { pos: next, omega, fast: true };
+  return { pos: next, gaze: add(gaze, add(head, omega), dt), omega, fast: true, catchUp: false, armed: ready };
 }
 
 export function step(bundle: VorBundle, state: VorState, input: StepInput, order = driveOrder(bundle.graph)): void {
   const dt = Number.isFinite(input.dt) && input.dt > 0 ? input.dt : 0;
   const numbers = modelNumbers(bundle.params);
-  const central: Record<string, number> = {};
+  const dynamic: Record<string, number> = {};
+  const tonic: Record<string, number> = {};
+  const alive: Record<string, boolean> = {};
   for (const canal of bundle.canals.canals) {
     const proj = dot(input.omegaReidDeg, canal.excitatoryNormal);
     const canalith = input.canalithDegPerSec?.[canal.id] ?? 0;
-    central[canal.id] = canalCentral(state, numbers, proj, canalith, scaleOf(input, canal.id), dt, canal.id);
+    const scale = scaleOf(input, canal.id);
+    const vertical = canal.plane !== 'horizontal';
+    const signals = canalSignals(
+      state,
+      numbers,
+      proj,
+      canalith,
+      scale,
+      dt,
+      canal.id,
+      vertical ? numbers.torsionalStorage : numbers.tauStorage,
+    );
+    dynamic[canal.id] = signals.dynamic;
+    tonic[canal.id] = signals.tonic;
+    alive[canal.id] = scale > 0.01;
   }
 
   const signal: Record<string, number> = {};
   for (const node of bundle.graph.nodes) signal[node.id] = 0;
-  for (const canal of bundle.canals.canals) signal[canal.id] = central[canal.id] ?? 0;
+  const k = numbers.staticImbalanceGain;
+  for (const [first, second] of PAIRS) {
+    const estimate = pairEstimate(dynamic[first] ?? 0, dynamic[second] ?? 0, alive[first] === true, alive[second] === true);
+    signal[first] = estimate + restingWeight(first, k) * (tonic[first] ?? 0);
+    signal[second] = -estimate + restingWeight(second, k) * (tonic[second] ?? 0);
+  }
 
   const incoming = new Map<string, { from: string; sign: number; weight: number }[]>();
   for (const edge of bundle.graph.edges) {
@@ -263,15 +375,28 @@ export function step(bundle: VorBundle, state: VorState, input: StepInput, order
   state.slowOmega = slow;
 
   for (const side of EYE_SIDES) {
-    const moved = integrateEye(state.eyePos[side], slow[side], state.fastPhase[side], dt, numbers);
+    const moved = moveEye(
+      state.eyePos[side],
+      state.gazeError[side],
+      slow[side],
+      input.omegaReidDeg,
+      state.fastPhase[side],
+      state.catchUp[side],
+      state.catchArmed[side],
+      dt,
+      numbers,
+    );
     state.eyePos[side] = moved.pos;
+    state.gazeError[side] = moved.gaze;
     state.eyeOmega[side] = moved.omega;
     state.fastPhase[side] = moved.fast;
+    state.catchUp[side] = moved.catchUp;
+    state.catchArmed[side] = moved.armed;
   }
 
   const muscle: Record<string, number> = { ...drive };
   for (const side of EYE_SIDES) {
-    if (!state.fastPhase[side]) continue;
+    if (!state.fastPhase[side] && !state.catchUp[side]) continue;
     const omega = state.eyeOmega[side];
     for (const node of bundle.graph.nodes) {
       if (node.kind !== 'muscle' || node.side !== side || !node.axisReid) continue;

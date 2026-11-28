@@ -206,5 +206,7 @@
   "vor.pathway": "연결된 구조",
   "vor.source": "출처",
   "vor.fast": "속상",
-  "vor.slow": "서상"
+  "vor.slow": "서상",
+  "vor.resetHead": "머리 되돌리기",
+  "vor.showInhibition": "억제 포함"
 }

@@ -206,5 +206,7 @@
   "vor.pathway": "Connected",
   "vor.source": "Source",
   "vor.fast": "Fast phase",
-  "vor.slow": "Slow phase"
+  "vor.slow": "Slow phase",
+  "vor.resetHead": "Reset head",
+  "vor.showInhibition": "Show inhibition"
 }

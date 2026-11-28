@@ -26,7 +26,8 @@ export type OrbitView = {
 /** Face-on, slightly above and to the patient's right. */
 export const ORBIT_VIEWS: Record<'head' | 'labyrinth' | 'brainstem' | 'eyes', OrbitView> = {
   head: { azimuth: 0.28, polar: 1.18, radius: 290, target: [0, 10, -8] },
-  labyrinth: { azimuth: 0.85, polar: 1.28, radius: 78, target: [68, 0, 12] },
+  /** Far enough to show both labyrinths, not one ear. */
+  labyrinth: { azimuth: 0.42, polar: 1.12, radius: 250, target: [0, 0, 8] },
   brainstem: { azimuth: 0.2, polar: 1.22, radius: 145, target: [0, 6, 8] },
   eyes: { azimuth: 0.08, polar: 1.22, radius: 125, target: [0, 14, -76] },
 };
