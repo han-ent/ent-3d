@@ -17,8 +17,9 @@ import {
 import { isNavShell, shouldStageJump } from '../shared/picking';
 import { COCHLEA_PARTS, STAGE_LIMITS, groupPickId, labelAction, listSelectionId, visibleFovDeg } from '../shared/zoom-fit';
 import { CANAL_WALL } from '../shared/surface-anchor';
-import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type SliceName } from '../shared/ct-slice';
+import { contoursOnPlane, indexAlong, movePointToSlice, pointOnSlice, remapGray, sliceFractions, type ContourSegment, type SliceName } from '../shared/ct-slice';
 import { sliceFile, slicePose, clampIndex } from '../shared/ct';
+import { WINDOW_PRESETS, consumeDragSteps, containedRect, dragWindowLevel, formatSliceOverlay, formatWindowOverlay, scrollIndex } from '../shared/pacs';
 import { firstLine, isPendingText, paragraphLines, sentenceNeedsSourceCheck } from '../shared/content-display';
 import { installFonts } from '../shared/fonts';
 import { applyI18n, getLang, initI18n, onLangChange, t, text } from '../shared/i18n';
@@ -57,7 +58,47 @@ const workspace = document.createElement('div');
 workspace.className = 'workspace';
 workspace.innerHTML = `
   <div class="stage">
-    <canvas id="view"></canvas>
+    <div class="view-slot" id="view-slot">
+      <canvas id="view"></canvas>
+    </div>
+    <div id="pacs" class="pacs" hidden>
+      <section class="pacs-pane" data-plane="coronal" data-anatomical="axial">
+        <canvas class="pacs-canvas"></canvas>
+        <p class="pacs-name"></p>
+        <p class="pacs-im"></p>
+        <p class="pacs-wl"></p>
+        <span class="pacs-mark left"></span>
+        <span class="pacs-mark top"></span>
+        <span class="pacs-mark right"></span>
+        <span class="pacs-mark bottom"></span>
+      </section>
+      <section class="pacs-pane" data-plane="sagittal" data-anatomical="coronal">
+        <canvas class="pacs-canvas"></canvas>
+        <p class="pacs-name"></p>
+        <p class="pacs-im"></p>
+        <p class="pacs-wl"></p>
+        <span class="pacs-mark left"></span>
+        <span class="pacs-mark top"></span>
+        <span class="pacs-mark right"></span>
+        <span class="pacs-mark bottom"></span>
+      </section>
+      <section class="pacs-pane" data-plane="axial" data-anatomical="sagittal">
+        <canvas class="pacs-canvas"></canvas>
+        <p class="pacs-name"></p>
+        <p class="pacs-im"></p>
+        <p class="pacs-wl"></p>
+        <span class="pacs-mark left"></span>
+        <span class="pacs-mark top"></span>
+        <span class="pacs-mark right"></span>
+        <span class="pacs-mark bottom"></span>
+      </section>
+      <div class="pacs-bar">
+        <div class="pacs-planes" id="pacs-planes"></div>
+        <button type="button" id="pacs-tool" data-i18n="ct.tool.scroll"></button>
+        <input id="pacs-index" type="range" min="0" max="1" value="0" data-i18n-aria="ct.slice" />
+        <button type="button" id="pacs-close" data-i18n="ct.pacsClose"></button>
+      </div>
+    </div>
     <div class="stage-status" id="stage-status" data-i18n="temporal.loading"></div>
     <div class="scale-hud" id="scale-hud">
       <span class="scale-bar-line" data-scale-line></span>
@@ -139,6 +180,11 @@ workspace.innerHTML = `
         <h3 data-i18n="ct.title"></h3>
         <p class="hint" data-i18n="ct.hint"></p>
         <div class="btn-row" id="ct-planes"></div>
+        <div class="btn-row">
+          <button type="button" class="text-btn" id="ct-preset-bone" data-i18n="ct.preset.bone"></button>
+          <button type="button" class="text-btn" id="ct-preset-soft" data-i18n="ct.preset.soft"></button>
+          <button type="button" class="text-btn" id="ct-open" data-i18n="ct.pacsOpen"></button>
+        </div>
         <div class="ct-orient" id="ct-orient-top"></div>
         <canvas class="ct-canvas" id="ct-canvas"></canvas>
         <div class="ct-orient" id="ct-orient-bottom"></div>
@@ -275,8 +321,17 @@ const planeState: Record<SliceName, { index: number }> = {
   coronal: { index: 0 },
   sagittal: { index: 0 },
 };
+let pacsOpen = false;
+let pacsTool: 'scroll' | 'window' = 'scroll';
+let windowWidth = 255;
+let windowLevel = 128;
+let pacsShow: SliceName | '3d' = 'coronal';
 const imageCache = new Map<string, Promise<HTMLImageElement>>();
 const rawCache = new Map<string, ImageData>();
+const orientedScratch = new Map<SliceName, HTMLCanvasElement>();
+const contourCache = new Map<string, ContourSegment[]>();
+let rawLock: Promise<unknown> = Promise.resolve();
+const pacsRoot = workspace.querySelector<HTMLElement>('#pacs')!;
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => {
@@ -404,8 +459,22 @@ function openSheet(open: boolean): void {
 }
 
 function syncCrosshair(): void {
-  const show = ctPanelVisible(sheetSnap, layoutKind() !== 'phone') && crosshair ? crosshair : null;
+  const show = crosshair && (pacsOpen || ctPanelVisible(sheetSnap, layoutKind() !== 'phone')) ? crosshair : null;
   viewer?.setCrosshair(show);
+  viewer?.setCursorScale(pacsOpen ? 4 : 1);
+}
+
+function syncPacsMarker(): void {
+  if (!viewer) return;
+  if (pacsOpen && crosshair) {
+    viewer.setMarker(crosshair, '');
+    viewer.setCursorScale(4);
+    return;
+  }
+  viewer.setCursorScale(1);
+  const step = activeStep ? findStep(activeStep) : undefined;
+  if (step?.marker) viewer.setMarker(step.marker.position_mm, `${text(step.marker.label)} · ${step.marker.review}`);
+  else viewer.setMarker(null, '');
 }
 
 function syncLabelInset(): void {
@@ -490,6 +559,7 @@ function paintStatic(): void {
   renderOrient();
   renderBackChip();
   renderPhoneMenu();
+  refreshPlaneButtons();
 }
 
 function renderMeasure(points: Vec3[]): void {
@@ -871,6 +941,10 @@ function selectStructure(id: string, frame: boolean, title?: { ko: string; en: s
   viewer?.flash(id);
   if (portraitPhone()) applySnap(frame && sheetSnap === 'full' ? 'half' : frame ? sheetSnap : 'peek');
   viewer?.select(id, frame);
+  if (pacsOpen) {
+    const center = viewer?.structureCenter(id);
+    if (center) orientPoint(center);
+  }
   const sheetBody = document.querySelector<HTMLElement>('#sheet-body');
   if (sheetBody) sheetBody.scrollTop = 0;
   renderPeek();
@@ -899,8 +973,9 @@ function focusIac(): void {
 function viewSelectionOnCt(): void {
   if (!selected) return;
   const center = viewer?.structureCenter(selected);
-  if (center) orientPoint(center);
   openSection('ct');
+  setPacs(true);
+  if (center) orientPoint(center);
 }
 
 function applySheetTab(tab: 'structures' | 'ct' | 'info'): void {
@@ -908,6 +983,7 @@ function applySheetTab(tab: 'structures' | 'ct' | 'info'): void {
   for (const button of workspace.querySelectorAll<HTMLButtonElement>('#sheet-tabs button')) {
     button.setAttribute('aria-pressed', String(button.dataset.tab === tab));
   }
+  if (layoutKind() !== 'desktop') setPacs(tab === 'ct');
 }
 
 const GUIDE_KEY = 'ent3d.guide';
@@ -1229,10 +1305,315 @@ function orientPoint(point: Vec3): void {
     planeState[plane].index = clampIndex(indexAlong(volume!, axis, point), count);
   });
   syncCrosshair();
-  const slider = workspace.querySelector<HTMLInputElement>('#ct-index');
-  if (slider) slider.value = String(planeState[activePlane].index);
+  syncSliders();
+  if (pacsOpen) syncPacsMarker();
   void drawCt();
+  void paintPanes();
   void syncFloatPlanes();
+}
+
+function syncSliders(): void {
+  if (!volume) return;
+  const count = volume.dims[volume.planes[activePlane].axis];
+  for (const id of ['#ct-index', '#pacs-index']) {
+    const slider = workspace.querySelector<HTMLInputElement>(id);
+    if (!slider) continue;
+    slider.max = String(Math.max(0, count - 1));
+    slider.value = String(planeState[activePlane].index);
+  }
+}
+
+function setWindow(next: { width: number; level: number }): void {
+  windowWidth = next.width;
+  windowLevel = next.level;
+  const widthInput = workspace.querySelector<HTMLInputElement>('#ct-window');
+  const levelInput = workspace.querySelector<HTMLInputElement>('#ct-level');
+  if (widthInput) widthInput.value = String(windowWidth);
+  if (levelInput) levelInput.value = String(windowLevel);
+}
+
+function focusPlane(plane: SliceName): void {
+  activePlane = plane;
+  pacsShow = plane;
+  if (pacsOpen) document.body.dataset.pacsShow = plane;
+  ctPlanes.querySelectorAll('button').forEach((item) => item.classList.toggle('is-active', item.dataset.ctPlane === plane));
+  pacsRoot.querySelectorAll<HTMLElement>('.pacs-pane').forEach((pane) => {
+    pane.classList.toggle('is-active', pane.dataset.plane === plane);
+  });
+  pacsRoot.querySelectorAll<HTMLButtonElement>('#pacs-planes button').forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.pacsPlane === plane);
+  });
+  syncSliders();
+  renderOrient();
+}
+
+function showVolume(): void {
+  pacsShow = '3d';
+  document.body.dataset.pacsShow = '3d';
+  pacsRoot.querySelectorAll('.pacs-pane').forEach((pane) => pane.classList.remove('is-active'));
+  pacsRoot.querySelectorAll<HTMLButtonElement>('#pacs-planes button').forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.pacsPlane === '3d');
+  });
+}
+
+function setPacs(open: boolean): void {
+  if (pacsOpen === open) return;
+  pacsOpen = open;
+  document.body.classList.toggle('is-pacs', open);
+  pacsRoot.hidden = !open;
+  const openBtn = workspace.querySelector<HTMLButtonElement>('#ct-open');
+  if (openBtn) {
+    openBtn.dataset.i18n = open ? 'ct.pacsClose' : 'ct.pacsOpen';
+    openBtn.textContent = t(openBtn.dataset.i18n);
+    openBtn.setAttribute('aria-pressed', String(open));
+  }
+  if (!open) {
+    document.body.dataset.pacsShow = '';
+    syncPacsMarker();
+    syncCrosshair();
+    return;
+  }
+  if (!crosshair) activePlane = 'coronal';
+  focusPlane(activePlane);
+  if (portraitPhone()) applySnap('peek');
+  if (!crosshair && volume) {
+    orientPoint(slicePose(volume, activePlane, planeState[activePlane].index).position);
+    return;
+  }
+  syncPacsMarker();
+  syncCrosshair();
+  void paintPanes();
+  void drawCt();
+}
+
+function refreshPlaneButtons(): void {
+  workspace.querySelectorAll<HTMLButtonElement>('[data-ct-plane]').forEach((button) => {
+    const plane = button.dataset.ctPlane as SliceName;
+    button.textContent = t(`ct.anatomical.${anatomicalPlaneName(plane)}`);
+  });
+  workspace.querySelectorAll<HTMLButtonElement>('[data-pacs-plane]').forEach((button) => {
+    const plane = button.dataset.pacsPlane;
+    button.textContent = plane === '3d' ? t('ct.view3d') : t(`ct.anatomical.${anatomicalPlaneName(plane as SliceName)}`);
+  });
+  const tool = workspace.querySelector<HTMLButtonElement>('#pacs-tool');
+  if (tool) tool.textContent = t(pacsTool === 'window' ? 'ct.tool.window' : 'ct.tool.scroll');
+}
+
+function stepPlane(plane: SliceName, delta: number): void {
+  if (!volume || delta === 0) return;
+  const count = volume.dims[volume.planes[plane].axis];
+  const next = scrollIndex(planeState[plane].index, delta, count);
+  if (next === planeState[plane].index) return;
+  focusPlane(plane);
+  const base = crosshair ?? slicePose(volume, plane, planeState[plane].index).position;
+  orientPoint(movePointToSlice(volume, plane, next, base));
+}
+
+function onSliceSlider(value: number): void {
+  if (!volume) return;
+  const count = volume.dims[volume.planes[activePlane].axis];
+  const next = clampIndex(value, count);
+  const base = crosshair ?? slicePose(volume, activePlane, planeState[activePlane].index).position;
+  orientPoint(movePointToSlice(volume, activePlane, next, base));
+}
+
+function withRaw<T>(work: () => Promise<T>): Promise<T> {
+  const run = rawLock.then(work, work);
+  rawLock = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
+async function orientedBitmap(plane: SliceName, index: number): Promise<HTMLCanvasElement | null> {
+  return withRaw(async () => {
+    if (!volume) return null;
+    const url = assetUrl(
+      `${DATA}/${sliceFile(volume.planes[plane].folder, index, volume.index_digits, volume.file_extension)}`,
+    );
+    const image = await loadImage(url);
+    const rawCtx = rawCanvas.getContext('2d', { willReadFrequently: true });
+    if (!rawCtx) return null;
+    if (rawCanvas.width !== image.naturalWidth || rawCanvas.height !== image.naturalHeight) {
+      rawCanvas.width = image.naturalWidth;
+      rawCanvas.height = image.naturalHeight;
+    }
+    let raw = rawCache.get(url);
+    if (!raw) {
+      rawCtx.drawImage(image, 0, 0);
+      raw = rawCtx.getImageData(0, 0, rawCanvas.width, rawCanvas.height);
+      rawCache.set(url, raw);
+    } else rawCtx.putImageData(raw, 0, 0);
+    const out = rawCtx.createImageData(raw.width, raw.height);
+    remapGray(raw.data, windowWidth, windowLevel, out.data);
+    rawCtx.putImageData(out, 0, 0);
+    const orient = ctDisplayOrient(plane);
+    const size = displayedSize(orient, raw.width, raw.height);
+    let target = orientedScratch.get(plane);
+    if (!target) {
+      target = document.createElement('canvas');
+      orientedScratch.set(plane, target);
+    }
+    if (target.width !== size.width || target.height !== size.height) {
+      target.width = size.width;
+      target.height = size.height;
+    }
+    const ctx = target.getContext('2d');
+    if (!ctx) return null;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, size.width, size.height);
+    ctx.save();
+    ctx.translate(size.width / 2, size.height / 2);
+    ctx.scale(orient.flipX ? -1 : 1, orient.flipY ? -1 : 1);
+    ctx.rotate((orient.turnsCW * Math.PI) / 2);
+    ctx.drawImage(rawCanvas, -raw.width / 2, -raw.height / 2);
+    ctx.restore();
+    return target;
+  });
+}
+
+function strokeCross(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number): void {
+  ctx.save();
+  ctx.strokeStyle = '#ffe14a';
+  ctx.lineWidth = Math.max(1, width / 320);
+  ctx.beginPath();
+  ctx.moveTo(x, 0);
+  ctx.lineTo(x, height);
+  ctx.moveTo(0, y);
+  ctx.lineTo(width, y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawContours(
+  ctx: CanvasRenderingContext2D,
+  plane: SliceName,
+  index: number,
+  width: number,
+  height: number,
+): void {
+  if (!volume || !viewer || !contoursOn || pacsDragging) return;
+  const key = `${plane}:${index}`;
+  let segments = contourCache.get(key);
+  if (!segments) {
+    const pose = slicePose(volume, plane, index);
+    segments = contoursOnPlane(viewer.contourSources(true), pose.position, pose.normal);
+    contourCache.set(key, segments);
+  }
+  const orient = ctDisplayOrient(plane);
+  ctx.save();
+  ctx.lineWidth = Math.max(1, width / 220);
+  for (const segment of segments) {
+    const a = sliceFractions(volume, plane, index, segment.a);
+    const b = sliceFractions(volume, plane, index, segment.b);
+    const start = displayPoint(orient, a.col01, a.row01, width, height);
+    const end = displayPoint(orient, b.col01, b.row01, width, height);
+    ctx.strokeStyle = segment.color;
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function paneHud(plane: SliceName, index: number): void {
+  if (!volume) return;
+  const pane = pacsRoot.querySelector<HTMLElement>(`.pacs-pane[data-plane="${plane}"]`);
+  if (!pane) return;
+  const labels = displayedEdgeLabels(plane);
+  const mark = (side: string, text: string) => {
+    const node = pane.querySelector<HTMLElement>(`.pacs-mark.${side}`);
+    if (node) node.textContent = text;
+  };
+  mark('left', labels.left);
+  mark('top', labels.top);
+  mark('right', labels.right);
+  mark('bottom', labels.bottom);
+  const pose = slicePose(volume, plane, index);
+  const axis = volume.planes[plane].axis;
+  const im = pane.querySelector<HTMLElement>('.pacs-im');
+  const wl = pane.querySelector<HTMLElement>('.pacs-wl');
+  const name = pane.querySelector<HTMLElement>('.pacs-name');
+  if (im) im.textContent = formatSliceOverlay(index, volume.dims[axis], pose.position[axis]);
+  if (wl) wl.textContent = formatWindowOverlay(windowWidth, windowLevel);
+  if (name) name.textContent = t(`ct.anatomical.${anatomicalPlaneName(plane)}`);
+}
+
+function blitPane(plane: SliceName, bitmap: HTMLCanvasElement, index: number): void {
+  const pane = pacsRoot.querySelector<HTMLElement>(`.pacs-pane[data-plane="${plane}"]`);
+  const canvas = pane?.querySelector<HTMLCanvasElement>('canvas');
+  const ctx = canvas?.getContext('2d');
+  if (!canvas || !ctx || !volume) return;
+  if (canvas.width !== bitmap.width || canvas.height !== bitmap.height) {
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0);
+  drawContours(ctx, plane, index, canvas.width, canvas.height);
+  if (crosshair) {
+    const orient = ctDisplayOrient(plane);
+    const frac = sliceFractions(volume, plane, index, crosshair);
+    const at = displayPoint(orient, frac.col01, frac.row01, canvas.width, canvas.height);
+    strokeCross(ctx, at.x, at.y, canvas.width, canvas.height);
+  }
+  drawPaneLabels(ctx, plane, index);
+  paneHud(plane, index);
+}
+
+let paintToken = 0;
+let pacsDragging = false;
+
+async function paintPanes(): Promise<void> {
+  if (!pacsOpen || !volume) return;
+  const token = ++paintToken;
+  const planes: SliceName[] =
+    layoutKind() === 'phone' ? [pacsShow === '3d' ? activePlane : pacsShow] : ['coronal', 'sagittal', 'axial'];
+  for (const plane of planes) {
+    if (token !== paintToken) return;
+    const index = planeState[plane].index;
+    const bitmap = await orientedBitmap(plane, index);
+    if (token !== paintToken || !bitmap || planeState[plane].index !== index) continue;
+    blitPane(plane, bitmap, index);
+    const count = volume.dims[volume.planes[plane].axis];
+    for (const delta of [-1, 1]) {
+      const neighbor = index + delta;
+      if (neighbor < 0 || neighbor >= count) continue;
+      const url = assetUrl(
+        `${DATA}/${sliceFile(volume.planes[plane].folder, neighbor, volume.index_digits, volume.file_extension)}`,
+      );
+      void loadImage(url);
+    }
+  }
+}
+
+function drawPaneLabels(ctx: CanvasRenderingContext2D, plane: SliceName, index: number): void {
+  const orient = ctDisplayOrient(plane);
+  ctx.save();
+  ctx.font = '12px sans-serif';
+  ctx.textBaseline = 'top';
+  const nearby = ctLabels
+    .filter((label) => label.plane === plane && Math.abs(label.slice_index - index) <= 6)
+    .sort((a, b) => Math.abs(a.slice_index - index) - Math.abs(b.slice_index - index))
+    .slice(0, 6);
+  for (const label of nearby) {
+    const at = displayPoint(orient, label.xy[0], label.xy[1], ctx.canvas.width, ctx.canvas.height);
+    const en = label.en.trim();
+    const ko = label.ko.trim();
+    const enWidth = Math.min(ctx.measureText(en).width + 8, ctx.canvas.width * 0.46);
+    ctx.fillStyle = 'rgba(20,16,12,0.72)';
+    ctx.fillRect(at.x + 6, at.y - 2, enWidth, ko && ko !== en ? 28 : 16);
+    ctx.fillStyle = '#f7f5f0';
+    ctx.fillText(en, at.x + 10, at.y, enWidth - 8);
+    if (ko && ko.toLowerCase() !== en.toLowerCase()) {
+      ctx.fillStyle = '#d9d3c7';
+      ctx.fillText(ko, at.x + 10, at.y + 13, enWidth - 8);
+    }
+  }
+  ctx.restore();
 }
 
 function displayPoint(orient: ReturnType<typeof ctDisplayOrient>, col01: number, row01: number, width: number, height: number): { x: number; y: number } {
@@ -1244,70 +1625,32 @@ async function drawCt(): Promise<void> {
   if (!volume) return;
   const plane = activePlane;
   const index = planeState[plane].index;
-  const url = assetUrl(`${DATA}/${sliceFile(volume.planes[plane].folder, index, volume.index_digits, volume.file_extension)}`);
-  const image = await loadImage(url);
-  const rawCtx = rawCanvas.getContext('2d', { willReadFrequently: true });
+  const bitmap = await orientedBitmap(plane, index);
   const ctx = ctCanvas.getContext('2d');
-  if (!rawCtx || !ctx) return;
-  if (rawCanvas.width !== image.naturalWidth || rawCanvas.height !== image.naturalHeight) {
-    rawCanvas.width = image.naturalWidth;
-    rawCanvas.height = image.naturalHeight;
-  }
-  rawCtx.drawImage(image, 0, 0);
-  let raw = rawCache.get(url);
-  if (!raw) {
-    raw = rawCtx.getImageData(0, 0, rawCanvas.width, rawCanvas.height);
-    rawCache.set(url, raw);
-  }
-  const windowWidth = Number(workspace.querySelector<HTMLInputElement>('#ct-window')?.value ?? 255);
-  const level = Number(workspace.querySelector<HTMLInputElement>('#ct-level')?.value ?? 128);
-  const out = rawCtx.createImageData(raw.width, raw.height);
-  remapGray(raw.data, windowWidth, level, out.data);
-  rawCtx.putImageData(out, 0, 0);
-  const orient = ctDisplayOrient(plane);
-  const size = displayedSize(orient, raw.width, raw.height);
-  if (ctCanvas.width !== size.width || ctCanvas.height !== size.height) {
-    ctCanvas.width = size.width;
-    ctCanvas.height = size.height;
+  if (!bitmap || !ctx || planeState[plane].index !== index) return;
+  if (ctCanvas.width !== bitmap.width || ctCanvas.height !== bitmap.height) {
+    ctCanvas.width = bitmap.width;
+    ctCanvas.height = bitmap.height;
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, size.width, size.height);
-  ctx.save();
-  ctx.translate(size.width / 2, size.height / 2);
-  ctx.scale(orient.flipX ? -1 : 1, orient.flipY ? -1 : 1);
-  ctx.rotate((orient.turnsCW * Math.PI) / 2);
-  ctx.drawImage(rawCanvas, -raw.width / 2, -raw.height / 2);
-  ctx.restore();
-  if (contoursOn && viewer) {
-    const pose = slicePose(volume, plane, index);
-    const segments = contoursOnPlane(viewer.contourSources(true), pose.position, pose.normal);
-    ctx.lineWidth = Math.max(1, image.naturalWidth / 220);
-    for (const segment of segments) {
-      const a = sliceFractions(volume, plane, index, segment.a);
-      const b = sliceFractions(volume, plane, index, segment.b);
-      const start = displayPoint(orient, a.col01, a.row01, size.width, size.height);
-      const end = displayPoint(orient, b.col01, b.row01, size.width, size.height);
-      ctx.strokeStyle = segment.color;
-      ctx.beginPath();
-      ctx.moveTo(start.x, start.y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
-    }
-  }
+  ctx.clearRect(0, 0, ctCanvas.width, ctCanvas.height);
+  ctx.drawImage(bitmap, 0, 0);
+  const orient = ctDisplayOrient(plane);
+  drawContours(ctx, plane, index, ctCanvas.width, ctCanvas.height);
   if (crosshair && ctPanelVisible(sheetSnap, desktopLayout())) {
     const frac = sliceFractions(volume, plane, index, crosshair);
-    const at = displayPoint(orient, frac.col01, frac.row01, size.width, size.height);
+    const at = displayPoint(orient, frac.col01, frac.row01, ctCanvas.width, ctCanvas.height);
     ctx.strokeStyle = '#8C2F1B';
     ctx.beginPath();
     ctx.moveTo(at.x, 0);
-    ctx.lineTo(at.x, size.height);
+    ctx.lineTo(at.x, ctCanvas.height);
     ctx.moveTo(0, at.y);
-    ctx.lineTo(size.width, at.y);
+    ctx.lineTo(ctCanvas.width, at.y);
     ctx.stroke();
   }
   const pose = slicePose(volume, plane, index);
   const axis = volume.planes[plane].axis;
-  ctReadout.textContent = `${t(`ct.anatomical.${anatomicalPlaneName(plane)}`)} ${index + 1}/${volume.dims[axis]} · ${pose.position[axis].toFixed(1)} mm`;
+  ctReadout.textContent = `${t(`ct.anatomical.${anatomicalPlaneName(plane)}`)} ${formatSliceOverlay(index, volume.dims[axis], pose.position[axis])}`;
   drawCtLabels(ctx, plane, index, orient);
 }
 
@@ -1341,14 +1684,9 @@ function buildCt(): void {
     button.dataset.ctPlane = plane;
     button.textContent = t(`ct.anatomical.${anatomicalPlaneName(plane)}`);
     button.addEventListener('click', () => {
-      activePlane = plane;
-      const slider = workspace.querySelector<HTMLInputElement>('#ct-index')!;
-      const axisCount = volume!.dims[volume!.planes[plane].axis];
-      slider.max = String(Math.max(0, axisCount - 1));
-      slider.value = String(planeState[plane].index);
-      ctPlanes.querySelectorAll('button').forEach((item) => item.classList.toggle('is-active', item === button));
-      renderOrient();
+      focusPlane(plane);
       void drawCt();
+      void paintPanes();
       void syncFloatPlanes();
     });
     ctPlanes.append(button);
@@ -1359,17 +1697,65 @@ function buildCt(): void {
   const axisCount = volume.dims[volume.planes.axial.axis];
   slider.max = String(Math.max(0, axisCount - 1));
   slider.value = String(planeState.axial.index);
-  slider.addEventListener('input', () => {
-    if (!volume) return;
-    planeState[activePlane].index = Number(slider.value);
-    const base = crosshair ?? slicePose(volume, activePlane, planeState[activePlane].index).position;
-    orientPoint(movePointToSlice(volume, activePlane, planeState[activePlane].index, base));
+  slider.addEventListener('input', () => onSliceSlider(Number(slider.value)));
+  const phoneSlider = workspace.querySelector<HTMLInputElement>('#pacs-index');
+  phoneSlider?.addEventListener('input', () => onSliceSlider(Number(phoneSlider.value)));
+  workspace.querySelector<HTMLInputElement>('#ct-window')?.addEventListener('input', (event) => {
+    windowWidth = Number((event.target as HTMLInputElement).value);
+    void drawCt();
+    void paintPanes();
   });
-  workspace.querySelector('#ct-window')?.addEventListener('input', () => void drawCt());
-  workspace.querySelector('#ct-level')?.addEventListener('input', () => void drawCt());
+  workspace.querySelector<HTMLInputElement>('#ct-level')?.addEventListener('input', (event) => {
+    windowLevel = Number((event.target as HTMLInputElement).value);
+    void drawCt();
+    void paintPanes();
+  });
+  workspace.querySelector('#ct-preset-bone')?.addEventListener('click', () => {
+    setWindow(WINDOW_PRESETS.bone);
+    void drawCt();
+    void paintPanes();
+  });
+  workspace.querySelector('#ct-preset-soft')?.addEventListener('click', () => {
+    setWindow(WINDOW_PRESETS.soft);
+    void drawCt();
+    void paintPanes();
+  });
+  workspace.querySelector('#ct-open')?.addEventListener('click', () => {
+    const next = !pacsOpen;
+    if (next && layoutKind() !== 'desktop') applySheetTab('ct');
+    else setPacs(next);
+  });
+  workspace.querySelector('#pacs-close')?.addEventListener('click', () => {
+    if (layoutKind() !== 'desktop') applySheetTab('structures');
+    setPacs(false);
+  });
+  workspace.querySelector('#pacs-tool')?.addEventListener('click', () => {
+    pacsTool = pacsTool === 'scroll' ? 'window' : 'scroll';
+    refreshPlaneButtons();
+  });
+  const phonePlanes = workspace.querySelector<HTMLElement>('#pacs-planes');
+  if (phonePlanes) {
+    phonePlanes.replaceChildren();
+    for (const id of ['coronal', 'sagittal', 'axial', '3d'] as const) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.pacsPlane = id;
+      button.textContent = id === '3d' ? t('ct.view3d') : t(`ct.anatomical.${anatomicalPlaneName(id)}`);
+      button.addEventListener('click', () => {
+        if (id === '3d') showVolume();
+        else {
+          focusPlane(id);
+          void paintPanes();
+        }
+      });
+      phonePlanes.append(button);
+    }
+  }
   workspace.querySelector<HTMLInputElement>('#ct-contour')?.addEventListener('change', (event) => {
     contoursOn = (event.target as HTMLInputElement).checked;
+    contourCache.clear();
     void drawCt();
+    void paintPanes();
   });
   workspace.querySelector<HTMLInputElement>('#ct-float')?.addEventListener('change', (event) => {
     floatPlanes = (event.target as HTMLInputElement).checked;
@@ -1385,8 +1771,124 @@ function buildCt(): void {
     const point = pointOnSlice(volume, activePlane, planeState[activePlane].index, raw.u, raw.v);
     orientPoint(point);
   });
+  bindPaneGestures();
+  window.addEventListener('keydown', (event) => {
+    if (!pacsOpen || !volume) return;
+    const tag = (event.target as HTMLElement | null)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    stepPlane(activePlane, event.key === 'ArrowDown' ? 1 : -1);
+  });
   renderOrient();
+  focusPlane(activePlane);
   void drawCt();
+}
+
+type PaneDrag = {
+  id: number;
+  plane: SliceName;
+  x: number;
+  y: number;
+  lastY: number;
+  carried: number;
+  mode: 'pending' | 'scroll' | 'window';
+  button: number;
+  pointers: number;
+  startW: number;
+  startL: number;
+};
+let paneDrag: PaneDrag | null = null;
+
+function bindPaneGestures(): void {
+  pacsRoot.querySelectorAll<HTMLElement>('.pacs-pane').forEach((pane) => {
+    const plane = pane.dataset.plane as SliceName;
+    const canvas = pane.querySelector<HTMLCanvasElement>('canvas');
+    if (!canvas) return;
+    canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+    canvas.addEventListener(
+      'wheel',
+      (event) => {
+        if (!pacsOpen) return;
+        event.preventDefault();
+        stepPlane(plane, event.deltaY > 0 ? 1 : event.deltaY < 0 ? -1 : 0);
+      },
+      { passive: false },
+    );
+    canvas.addEventListener('pointerdown', (event) => {
+      if (!volume || !pacsOpen) return;
+      if (paneDrag && event.pointerId !== paneDrag.id) {
+        paneDrag.mode = 'window';
+        paneDrag.pointers = 2;
+        paneDrag.x = event.clientX;
+        paneDrag.y = event.clientY;
+        paneDrag.startW = windowWidth;
+        paneDrag.startL = windowLevel;
+        pacsDragging = true;
+        return;
+      }
+      focusPlane(plane);
+      canvas.setPointerCapture(event.pointerId);
+      paneDrag = {
+        id: event.pointerId,
+        plane,
+        x: event.clientX,
+        y: event.clientY,
+        lastY: event.clientY,
+        carried: 0,
+        mode: 'pending',
+        button: event.button,
+        pointers: 1,
+        startW: windowWidth,
+        startL: windowLevel,
+      };
+    });
+    canvas.addEventListener('pointermove', (event) => {
+      if (!paneDrag || event.pointerId !== paneDrag.id) return;
+      if (paneDrag.mode === 'pending') {
+        if (Math.hypot(event.clientX - paneDrag.x, event.clientY - paneDrag.y) < 6) return;
+        const windowing = paneDrag.button === 2 || paneDrag.pointers > 1 || pacsTool === 'window';
+        paneDrag.mode = windowing ? 'window' : 'scroll';
+        paneDrag.lastY = event.clientY;
+        pacsDragging = true;
+        return;
+      }
+      if (paneDrag.mode === 'scroll') {
+        const step = consumeDragSteps(paneDrag.carried, event.clientY - paneDrag.lastY);
+        paneDrag.carried = step.carried;
+        paneDrag.lastY = event.clientY;
+        if (step.steps) stepPlane(paneDrag.plane, step.steps);
+        return;
+      }
+      setWindow(dragWindowLevel({ width: paneDrag.startW, level: paneDrag.startL }, event.clientX - paneDrag.x, event.clientY - paneDrag.y));
+      void drawCt();
+      void paintPanes();
+    });
+    const finish = (event: PointerEvent) => {
+      if (!paneDrag || event.pointerId !== paneDrag.id) return;
+      const drag = paneDrag;
+      paneDrag = null;
+      pacsDragging = false;
+      if (drag.mode === 'pending' && volume) {
+        const box = canvas.getBoundingClientRect();
+        const content = containedRect(
+          { width: box.width, height: box.height },
+          { width: canvas.width, height: canvas.height },
+        );
+        const x = event.clientX - box.left;
+        const y = event.clientY - box.top;
+        if (x >= content.x && y >= content.y && x <= content.x + content.width && y <= content.y + content.height) {
+          const raw = mapDisplayToRaw(ctDisplayOrient(drag.plane), (x - content.x) / content.width, (y - content.y) / content.height);
+          orientPoint(pointOnSlice(volume, drag.plane, planeState[drag.plane].index, raw.u, raw.v));
+          return;
+        }
+      }
+      void paintPanes();
+      void drawCt();
+    };
+    canvas.addEventListener('pointerup', finish);
+    canvas.addEventListener('pointercancel', finish);
+  });
 }
 
 function onPick(hit: PickHit | null): void {
