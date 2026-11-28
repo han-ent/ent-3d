@@ -57,10 +57,10 @@ export type DisplayOrient = {
 };
 
 /**
- * Radiological display for this right ear.
- * Axial: anterior at the top, the patient's right (lateral) on the viewer's left.
- * Coronal: superior at the top, the patient's right on the viewer's left.
- * Sagittal: superior at the top, anterior on the viewer's left.
+ * Radiological display for this right ear. Lateral is the patient's right.
+ * Axial, from the feet: patient R on the left, anterior up.
+ * Coronal, from the front: patient R on the left, superior up.
+ * Sagittal, from the patient's left: anterior on the left, superior up.
  */
 export function ctDisplayOrient(folder: StackPlane): DisplayOrient {
   const anatomical = anatomicalPlaneName(folder);
@@ -69,11 +69,12 @@ export function ctDisplayOrient(folder: StackPlane): DisplayOrient {
   return { turnsCW: 0, flipX: true, flipY: true };
 }
 
+/** Pane-edge letters. This right ear maps lateral to R and medial to L. */
 export function displayedEdgeLabels(folder: StackPlane): EdgeLabels {
   const anatomical = anatomicalPlaneName(folder);
-  if (anatomical === 'axial') return { left: 'Lat', top: 'Ant', right: 'Med', bottom: 'Post' };
-  if (anatomical === 'coronal') return { left: 'Lat', top: 'Sup', right: 'Med', bottom: 'Inf' };
-  return { left: 'Ant', top: 'Sup', right: 'Post', bottom: 'Inf' };
+  if (anatomical === 'axial') return { left: 'R', top: 'A', right: 'L', bottom: 'P' };
+  if (anatomical === 'coronal') return { left: 'R', top: 'S', right: 'L', bottom: 'I' };
+  return { left: 'A', top: 'S', right: 'P', bottom: 'I' };
 }
 
 /** Raw image fraction, origin at the top left, into the displayed image. */

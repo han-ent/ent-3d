@@ -29,9 +29,9 @@ describe('anatomical frame', () => {
   });
 
   it('turns slices into radiological orientation for this right ear', () => {
-    expect(displayedEdgeLabels('coronal')).toEqual({ left: 'Lat', top: 'Ant', right: 'Med', bottom: 'Post' });
-    expect(displayedEdgeLabels('sagittal')).toEqual({ left: 'Lat', top: 'Sup', right: 'Med', bottom: 'Inf' });
-    expect(displayedEdgeLabels('axial')).toEqual({ left: 'Ant', top: 'Sup', right: 'Post', bottom: 'Inf' });
+    expect(displayedEdgeLabels('coronal')).toEqual({ left: 'R', top: 'A', right: 'L', bottom: 'P' });
+    expect(displayedEdgeLabels('sagittal')).toEqual({ left: 'R', top: 'S', right: 'L', bottom: 'I' });
+    expect(displayedEdgeLabels('axial')).toEqual({ left: 'A', top: 'S', right: 'P', bottom: 'I' });
     const sagittal = ctDisplayOrient('axial');
     const anterior = mapRawToDisplay(sagittal, 1, 0.5);
     expect(anterior.u).toBeLessThan(0.5);

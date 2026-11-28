@@ -987,6 +987,14 @@ export class EntViewer {
     this.invalidate();
   }
 
+  /** Scales the 3D cursor. 1 is the ordinary pick crosshair. */
+  setCursorScale(scale: number): void {
+    const next = Math.max(0.2, scale);
+    this.crosshair.scale.setScalar(next);
+    if (this.marker) this.marker.scale.setScalar(next);
+    this.invalidate();
+  }
+
   contourSources(skipBone = true): ContourSource[] {
     const sources: ContourSource[] = [];
     for (const record of this.records.values()) {
