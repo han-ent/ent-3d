@@ -16,6 +16,7 @@ main.innerHTML = `
     <h1 data-i18n="nav.temporal"></h1>
     <p data-i18n="home.lead"></p>
     <a class="enter" href="${pageUrl('temporal-bone')}" data-i18n="home.enter"></a>
+    <a class="enter" href="${pageUrl('vor')}" data-i18n="home.openVor"></a>
   </section>
   <p class="credit">
     <span data-i18n="footer.blurb"></span>
